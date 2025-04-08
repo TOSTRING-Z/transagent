@@ -1,8 +1,8 @@
 /* 全局变量 */
 
-const Store = require('electron-store');
+const { default: Store } = require('electron-store');
 const { Utils } = require('./Utils');
-
+console.log(Store);
 const store = new Store();
 
 // 插件配置参数

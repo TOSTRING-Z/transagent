@@ -11,7 +11,7 @@
     "stream": true
   },
   "func_status": {
-    "clip": true,
+    "clip": false,
     "react": true,
     "markdown": true,
     "math": true,
@@ -122,6 +122,10 @@
     }
   },
   "plugins": {
+    "baidu_translate": {
+      "path": "{resourcesPath}/resource/plugins/script/baidu_translate.js",
+      "show": true
+    },
     "python_execute": {
       "params": {
         "python_bin": "python",
@@ -160,24 +164,19 @@
   },
   "mcp_server": {
     "biotools": {
-      "url": "http://172.27.0.3:3001/sse",
+      "url": "http://127.0.0.1:3001/sse",
       "enabled": true
     }
   },
   "chain_call": [
     {
-      "model": "plugins",
-      "version": "python_execute",
-      "input_data": {
-        "code": "{query}"
-      },
       "end": true
     }
   ],
   "tool_call": {
     "memory_length": 20,
     "mcp_timeout": 600,
-    "extra_prompt": "biotools/mcp_server/prompt.md",
+    "extra_prompt": "{resourcesPath}/resource/system_prompts/prompt.md",
     "llm_parmas": {
       "max_tokens": 8000,
       "temperature": 0.5,
