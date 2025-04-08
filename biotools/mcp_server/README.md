@@ -23,7 +23,11 @@ mcp dev mcp_server/server.py
 ```bash
 # 构建
 docker pull continuumio/miniconda3
-docker build -t biotools:latest .
+docker build \
+  --add-host=host.docker.internal:host-gateway \
+  --build-arg HTTP_PROXY=http://host.docker.internal:7890 \
+  --build-arg HTTPS_PROXY=http://host.docker.internal:7890 \
+  -t biotools:latest .
 
 # 打包
 docker save -o biotools.tar biotools:latest

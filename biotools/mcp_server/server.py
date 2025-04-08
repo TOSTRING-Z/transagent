@@ -29,6 +29,8 @@ bed_data_db = {
     "CRISPR": "/data/human/human_CRISPR.bed",
 }
 
+bed_config = {"gene_bed_path": "/data/human/gene.bed"}
+
 
 async def execute_bash(
     command: str = "echo hello!", timeout: Optional[float] = 600.0
@@ -69,11 +71,10 @@ async def execute_bash(
 async def get_bed_data(biological_type: str) -> str:
     if biological_type in bed_data_db:
         return bed_data_db[biological_type]
-    return "Biological type {biological_type} not found in database"
+    return "Biological type {biological_type} not found in local database"
 
 
 async def get_gene_position(genes: list = ["TP53"]) -> str:
-    bed_config = {"gene_bed_path": "/data/gene.bed"}
     gene_bed = pd.read_csv(
         bed_config["gene_bed_path"], index_col=None, header=None, sep="\t"
     )
@@ -199,7 +200,7 @@ Returns:
         ),
         types.Tool(
             name="get_bed_data",
-            description="""Get bed data for a given biological type (hg38).
+            description="""Get bed data for a given biological type from the local database (hg38).
 Returns:
     The path to the [biological_type]-bed file.""",
             inputSchema={

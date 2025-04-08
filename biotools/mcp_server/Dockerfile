@@ -40,11 +40,6 @@ RUN conda install -y -n beta_chip bioconda::macs2
 RUN conda install -y conda-forge::pandas
 RUN conda install -y conda-forge::seaborn
 
-RUN perl /opt/conda/share/homer/.//configureHomer.pl -install hg38
-RUN perl /opt/conda/share/homer/.//configureHomer.pl -install hg19
-
-# https://reg-gen.readthedocs.io/en/latest/rgt/introduction.html
-
 FROM python:3.12-slim-bookworm
 
 COPY --from=conda /opt/conda /opt/conda
@@ -53,6 +48,11 @@ ADD server.py /app/server.py
 ADD .bashrc /root/.bashrc
 
 ENV PATH="/app/.venv/bin:$PATH"
+
+RUN perl /opt/conda/share/homer/.//configureHomer.pl -install hg38
+RUN perl /opt/conda/share/homer/.//configureHomer.pl -install hg19
+
+# https://reg-gen.readthedocs.io/en/latest/rgt/introduction.html
 
 LABEL org.opencontainers.image.title="biotools"
 
