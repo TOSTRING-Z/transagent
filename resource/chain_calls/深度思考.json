@@ -1,0 +1,45 @@
+{
+    "chain_call": [
+        {
+            "model": "deepseek",
+            "version": "deepseek-chat",
+            "prompt": "",
+            "input_template": "请将用户的任务拆分为3个阶段\n - 输出json的键名必须为'stageN'\n - 输出仅保留我提供的键名\n - 输出必须为如下json格式:\n {{\"stage1\":\"阶段1需要...\",\"stage2\":\"阶段2需要...\",\"stage3\":\"阶段3需要...\"}}\n- 输出只保留json部分字符串,不输出任何解释和描述。\n{input}"
+        },
+        {
+            "model": "plugins",
+            "version": "json_parse",
+            "input_data": {
+                "input": "{input}"
+            },
+            "output_template": "{outputs[1].stage1}"
+        },
+        {
+            "model": "deepseek",
+            "version": "deepseek-chat",
+            "prompt": "请回答阶段1。",
+            "output_template": "{outputs[1].stage2}"
+        },
+        {
+            "model": "deepseek",
+            "version": "deepseek-chat",
+            "prompt": "请回答阶段2。",
+            "output_template": "{outputs[1].stage3}"
+        },
+        {
+            "model": "deepseek",
+            "version": "deepseek-chat",
+            "prompt": "请回答阶段3。",
+            "output_template": "阶段1回答: {outputs[2]}\n---\n阶段2回答: {outputs[3]}\n---\n阶段3回答: {outputs[4]}"
+        },
+        {
+            "model": "deepseek",
+            "version": "deepseek-chat",
+            "prompt": "请检查前面3个阶段的问题。",
+            "output_template": "用户查询如下:{query}\n\n- 请根据以上多个阶段的结果进行回答。\n\n- 请仔细检查各个阶段的回答,确保结果的可靠性。\n\n<steps>\n阶段1回答: {outputs[2]}\n\n阶段2回答: {outputs[3]}\n\n阶段3回答: {outputs[4]}\n\n多个阶段中的可能问题: {outputs[5]}\n</steps>\n\n"
+        },
+        {
+            "end": true
+        }
+    ]
+}

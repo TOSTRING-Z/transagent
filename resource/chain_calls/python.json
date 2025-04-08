@@ -1,0 +1,12 @@
+{
+    "chain_call": [
+        {
+            "model": "plugins",
+            "version": "python_execute",
+            "input_data": {
+                "code": "{query}"
+            },
+            "end": true
+        }
+    ]
+}

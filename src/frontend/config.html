@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配置</title>
+    <link rel="stylesheet" href="css/jsoneditor/dist/jsoneditor.min.css" />
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            max-height: 100vh;
+        }
+
+        .container-editor {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .top_div {
+            background: #f0f0f0;
+        }
+
+        .top_div>div {
+            height: 30px;
+        }
+
+        .middle_div {
+            flex-grow: 1;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+
+        .bottom_div {
+            background: #f9f9f9;
+            border: none;
+            padding: 0.8rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-editor">
+        <div class="top_div">
+            <div></div>
+        </div>
+        <div class="middle_div">
+            <div id="json-editor"></div>
+        </div>
+        <div class="bottom_div">
+            <button id="save-btn">保存配置</button>
+        </div>
+    </div>
+
+</body>
+<script src="js/jsoneditor.min.js"></script>
+<script>
+    const { ipcRenderer } = require('electron')
+    // 初始化JSON Editor
+    const editor = new JSONEditor(document.getElementById('json-editor'), {});
+
+    // 加载配置
+    ipcRenderer.invoke('get-config').then(config => {
+        editor.set(config);
+    });
+
+    // 保存配置
+    function showLog(log) {
+        const htmlString = `<div style="display: flex; pointer-events: none; height: 100%; width: 100%; justify-content: center; align-items: center; font-size: large; position: absolute;">
+                <b style="border: 2px solid #666; text-align: center; padding: 5px; background: white;">${log}</b>
+            </div>`;
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlString, 'text/html');
+        const newElement = doc.body.firstChild;
+        document.body.appendChild(newElement);
+        setInterval(() => { newElement.remove() }, 2000)
+    }
+    document.getElementById('save-btn').addEventListener('click', async () => {
+        const config = editor.get();
+        const statu = ipcRenderer.invoke('set-config', config);
+        if (statu)
+            showLog('配置已保存！');
+    });
+</script>
+
+</html>

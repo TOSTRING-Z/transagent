@@ -1,0 +1,190 @@
+{
+  "memory_length": 10,
+  "retry_time": 10,
+  "icon_time": 5,
+  "prompt": "Please explain the user's input in Chinese.",
+  "short_cut": "CommandOrControl+Shift+Space",
+  "info_template": "Step: {step}, Call: {model}, Version: {version}, Output:\n\n```json\n{output_format}\n```\n\n",
+  "llm_parmas": {
+    "max_tokens": 4000,
+    "temperature": 0.7,
+    "stream": true
+  },
+  "func_status": {
+    "clip": true,
+    "react": true,
+    "markdown": true,
+    "math": true,
+    "text": false
+  },
+  "default": {
+    "model": "deepseek",
+    "version": "deepseek-chat",
+    "plugin": "baidu_translate"
+  },
+  "models": {
+    "ollama": {
+      "api_url": "http://localhost:11434/api/chat",
+      "versions": [
+        "deepseek-coder-v2",
+        "deepseek-r1:14b",
+        {
+          "version": "gemma3:12b",
+          "vision": [
+            "image"
+          ],
+          "ollama": true
+        }
+      ]
+    },
+    "deepseek": {
+      "api_url": "https://api.deepseek.com/chat/completions",
+      "api_key": "",
+      "versions": [
+        "deepseek-coder",
+        "deepseek-chat",
+        "deepseek-reasoner"
+      ]
+    },
+    "qianfan": {
+      "api_url": "https://qianfan.baidubce.com/v2/chat/completions",
+      "api_key": "",
+      "versions": [
+        "deepseek-v3",
+        "ernie-speed-128k",
+        "ernie-lite-8k",
+        "ernie-tiny-8k"
+      ]
+    },
+    "chatglm": {
+      "api_url": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+      "api_key": "",
+      "versions": [
+        "glm-4-flash",
+        "glm-zero-preview",
+        "glm-4-plus",
+        "glm-4-0520",
+        "glm-4-alltools",
+        "glm-4-long",
+        {
+          "version": "glm-4v-flash",
+          "vision": [
+            "image"
+          ]
+        },
+        {
+          "version": "glm-4v-plus",
+          "vision": [
+            "image"
+          ]
+        }
+      ]
+    },
+    "fireworks": {
+      "api_url": "https://api.fireworks.ai/inference/v1/chat/completions",
+      "api_key": "",
+      "versions": [
+        "accounts/fireworks/models/deepseek-r1-distill-llama-8b",
+        "accounts/fireworks/models/qwen2p5-coder-32b-instruct-128k"
+      ]
+    },
+    "together": {
+      "api_key": "",
+      "api_url": "https://api.together.xyz/v1/chat/completions",
+      "versions": [
+        "deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free",
+        {
+          "version": "meta-llama/Llama-Vision-Free",
+          "vision": [
+            "image"
+          ]
+        },
+        "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
+      ]
+    },
+    "siliconflow": {
+      "api_url": "https://api.siliconflow.cn/v1/chat/completions",
+      "api_key": "",
+      "versions": [
+        "AIDC-AI/Marco-o1",
+        "Qwen/Qwen2.5-7B-Instruct",
+        "internlm/internlm2_5-7b-chat",
+        "meta-llama/Meta-Llama-3.1-8B-Instruct",
+        "THUDM/glm-4-9b-chat",
+        "deepseek-ai/deepseek-vl2",
+        {
+          "version": "Pro/Qwen/Qwen2-VL-7B-Instruct",
+          "vision": [
+            "image"
+          ]
+        }
+      ]
+    }
+  },
+  "plugins": {
+    "python_execute": {
+      "params": {
+        "python_bin": "python",
+        "delay_time": 10,
+        "threshold": 10000
+      },
+      "enabled": false
+    },
+    "file_load": {
+      "extra": [
+        {
+          "type": "file-reader"
+        }
+      ],
+      "show": false,
+      "params": {
+        "threshold": 10000
+      },
+      "enabled": false
+    },
+    "search_files": {
+      "enabled": false
+    },
+    "list_files": {
+      "params": {
+        "threshold": 50
+      },
+      "enabled": false
+    },
+    "write_to_file": {
+      "enabled": false
+    },
+    "replace_in_file": {
+      "enabled": false
+    }
+  },
+  "mcp_server": {
+    "biotools": {
+      "url": "http://172.27.0.3:3001/sse",
+      "enabled": true
+    }
+  },
+  "chain_call": [
+    {
+      "model": "plugins",
+      "version": "python_execute",
+      "input_data": {
+        "code": "{query}"
+      },
+      "end": true
+    }
+  ],
+  "tool_call": {
+    "memory_length": 20,
+    "mcp_timeout": 600,
+    "extra_prompt": "biotools/mcp_server/prompt.md",
+    "llm_parmas": {
+      "max_tokens": 8000,
+      "temperature": 0.5,
+      "stream": true,
+      "response_format": {
+        "type": "json_object"
+      }
+    }
+  }
+}

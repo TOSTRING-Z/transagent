@@ -1,0 +1,15 @@
+{
+    "chain_call": [
+        {
+            "model": "plugins",
+            "version": "file_load",
+            "input_data": {
+                "file_path": "{file_path}"
+            }
+        },
+        {
+            "input_template": "如下是pdf中的文字内容:\n\n<pdf>{output_formats[0]}</pdf>\n\n如下是user输入内容:\n\n<user>{query}</user>\n\n请根据pdf中内容回答user输入。回复要求如下：\n- 过滤多余的文字，例如行号、页码和水印等。 \n- 尽可能多的思考细节、潜在相关和可能相关的内容。 \n- 对于原文中没有的内容，不需要猜测，提出观点和输出和原文可能产生不一致的内容。\n- 按照规范的格式输出。",
+            "end": true
+        }
+    ]
+}
