@@ -77,15 +77,15 @@ config.json
 # linux
 docker run -it --name biotools --rm \
 -p 3001:3001 \
--v /path/to/bixchat/biotools/tmp:/tmp \
--v /path/to/bixchat/biotools/data:/data
+-v /mnt/ubuntu_zgr/install/bixchat/biotools/tmp:/tmp \
+-v /mnt/ubuntu_zgr/install/bixchat/biotools/data:/data \
 biotools
 
 # window
 docker run -it --name biotools --rm `
 -p 3001:3001 `
--v C:/path/to/bixchat/biotools/tmp:/tmp `
--v C:/path/to/bixchat/biotools/data:/data `
+-v C:/Users/Administrator/Desktop/Document/bixchat/biotools/tmp:/tmp `
+-v C:/Users/Administrator/Desktop/Document/bixchat/biotools/data:/data `
 biotools
 
 # 测试
