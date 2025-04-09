@@ -43,7 +43,7 @@ docker run -it --name biotools --rm `
 biotools
 
 # 测试
-docker exec biotools bash -c '. /opt/conda/etc/profile.d/conda.sh && conda activate' && bedtools --help
+docker exec biotools bash -c '. /opt/conda/etc/profile.d/conda.sh && conda activate && bedtools --help'
 ```
 
 - 可视化终端配置
@@ -89,7 +89,7 @@ docker run -it --name biotools --rm `
 biotools
 
 # 测试
-docker exec biotools bash -c '. /opt/conda/etc/profile.d/conda.sh && conda activate' && bedtools --help
+docker exec biotools bash -c '. /opt/conda/etc/profile.d/conda.sh && conda activate && bedtools --help'
 ```
 
 ## MCP服务配置
