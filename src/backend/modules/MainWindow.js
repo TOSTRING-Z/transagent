@@ -536,7 +536,7 @@ class MainWindow extends Window {
     }
 
     setPrompt(filePath=null) {
-        if (!!filePath && !fs.existsSync(filePath)) {
+        if (!!filePath && fs.existsSync(filePath)) {
             const config = utils.getConfig();
             if (!!this.funcItems.react.statu) {
                 config.tool_call.extra_prompt = filePath;
