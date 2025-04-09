@@ -54,7 +54,10 @@ function main(params) {
         })
 
         return new Promise((resolve, reject) => {
-            const child = exec(`${params.bash} ${code}`);
+            const child = exec(`${params.bash}`);
+            child.stdin(code);
+            child.stdin.end();
+            
             ipcMain.on('terminal-input', (event, input) => {
                 if (!input) {
                     child.stdin.end();

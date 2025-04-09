@@ -54,7 +54,7 @@ config.json
 "plugins": {
   "cli_execute": {
     "params": {
-      "bash": "docker exec biotools bash -c '. /opt/conda/etc/profile.d/conda.sh && conda activate' &&",
+      "bash": "docker exec biotools bash -c '. /opt/conda/etc/profile.d/conda.sh && conda activate && bash'",
       "delay_time": 5,
       "threshold": 10000,
       "cli_prompt": "/path/to/biotools/mcp_server/cli_prompt.md"
