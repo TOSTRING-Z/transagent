@@ -144,7 +144,7 @@
     },
     "cli_execute": {
       "params": {
-        "bash": "docker exec biotools bash -c '. /opt/conda/etc/profile.d/conda.sh && conda activate && bash'",
+        "bash": "docker exec biotools bash -c '. /opt/conda/etc/profile.d/conda.sh && conda activate && {code}'",
         "cli_prompt": "/path/to/cli_prompt.md",
         "delay_time": 5,
         "threshold": 10000
