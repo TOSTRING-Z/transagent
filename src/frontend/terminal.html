@@ -9,13 +9,65 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #1e1e1e;
-            font-family: 'Courier New', monospace;
+            background: #2d3436;
+            color: white;
+            font-family: Arial;
+        }
+
+        /* 自定义标题栏 */
+        .title-bar {
+            -webkit-app-region: drag;
+            /* 允许拖动 */
+            height: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            background: #1e272e;
+            -webkit-user-select: none;
+            /* Safari */
+            -moz-user-select: none;
+            /* Firefox */
+            -ms-user-select: none;
+            /* IE10+/Edge */
+            user-select: none;
+            /* Standard */
+        }
+
+        /* 窗口控制按钮 */
+        .window-controls {
+            display: flex;
+            -webkit-app-region: no-drag;
+            /* 禁止拖动干扰按钮点击 */
+        }
+
+        .window-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 8px;
+            cursor: pointer;
+        }
+
+        .close-btn {
+            background: #ff5e57;
+        }
+
+        .minimize-btn {
+            background: #ffbb2e;
+        }
+
+        /* 内容区域 */
+        .content {
+            padding: 0px;
+            width: 100%;
+            height: calc(100vh - 30px);
+            overflow: auto;
         }
 
         #terminal {
             width: 100%;
-            height: 100vh;
+            height: 100%;
             padding: 20px;
             box-sizing: border-box;
             max-width: 1200px;
@@ -44,11 +96,34 @@
 </head>
 
 <body>
-    <div id="terminal"></div>
+    <!-- 自定义标题栏 -->
+    <div class="title-bar">
+        <div class="title">Terminal</div>
+        <div class="window-controls">
+            <div class="window-btn minimize-btn" id="minimize-btn"></div>
+            <div class="window-btn close-btn" id="close-btn"></div>
+        </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="content">
+        <div id="terminal"></div>
+    </div>
+
     <script>
+        // 窗口控制逻辑
+        const { ipcRenderer } = require('electron')
+
+        document.getElementById('minimize-btn').addEventListener('click', () => {
+            ipcRenderer.send('minimize-window')
+        })
+
+        document.getElementById('close-btn').addEventListener('click', () => {
+            ipcRenderer.send('close-window')
+        })
+
         const { Terminal } = require('@xterm/xterm');
         const { FitAddon } = require('@xterm/addon-fit');
-        const { ipcRenderer } = require('electron');
 
         // 终端字体写入样式
         const writeOfColor = (txt, fontCss = "", bgColor = "") => {
@@ -66,12 +141,11 @@
         const initTerm = () => {
             const terminal = new Terminal({
                 rendererType: 'canvas', // 渲染类型
-                rows: 30, // 行数
-                cols: 80, // 列数
+                rows: 20, // 行数
+                cols: 30, // 列数
                 convertEol: true, // 启用时，光标将设置为下一行的开头
                 disableStdin: false, // 是否应禁用输入
                 windowsMode: true, // 根据窗口换行
-                cursorStyle: 'line', // 光标样式
                 cursorBlink: true, // 光标闪烁
                 theme: {
                     cursor: 'help', // 设置光标
@@ -109,7 +183,7 @@
             // 记录用户输入和光标位置
             let userInput = '';
             let cursorPosition = 0;
-            
+
             // 当向web终端敲入字符时候的回调
             terminal.onData((data) => {
                 // 检查是否是回车键（ASCII 13）
@@ -117,8 +191,17 @@
                     console.log(userInput, '传入服务器');
                     ipcRenderer.send('terminal-input', userInput);
                     userInput = ''; // 清空输入缓存
+                    ipcRenderer.send('terminal-input', null);
                     terminal.write("\r\n");
-                } else if (data.charCodeAt(0) === 127) {
+                }
+                else if (data.charCodeAt(0) === 3) {  // 3 是 Ctrl+C 的 ASCII 码
+                    console.log('[Ctrl+C] 发送中断信号');
+                    ipcRenderer.send('terminal-signal', 'ctrl_c');  // 明确发送信号类型
+                    terminal.write('^C\r\n');  // 在终端显示 ^C 并换行
+                    userInput = '';  // 清空输入缓存
+                    return;  // 跳过后续处理
+                }
+                else if (data.charCodeAt(0) === 127) {
                     // 处理删除键
                     if (userInput.length > 0 && cursorPosition > 0) {
                         userInput = userInput.substring(0, cursorPosition - 1) + userInput.substring(cursorPosition);
@@ -157,17 +240,17 @@
                 } else {
                     // 插入新字符
                     userInput = userInput.substring(0, cursorPosition) + data + userInput.substring(cursorPosition);
-                    
+
                     // 先写入新字符
                     terminal.write(data);
-                    
+
                     // 如果后面还有字符，需要重新输出
                     if (cursorPosition < userInput.length - data.length) {
                         terminal.write(userInput.substring(cursorPosition + data.length));
                         // 将光标移回正确位置
                         terminal.write('\x1B[' + (userInput.length - cursorPosition - data.length) + 'D');
                     }
-                    
+
                     cursorPosition += data.length;
                 }
             });

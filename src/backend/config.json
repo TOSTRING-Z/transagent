@@ -2,7 +2,7 @@
   "memory_length": 10,
   "retry_time": 10,
   "icon_time": 5,
-  "prompt": "Please explain the user's input in Chinese.",
+  "prompt": null,
   "short_cut": "CommandOrControl+Shift+Space",
   "info_template": "Step: {step}, Call: {model}, Version: {version}, Output:\n\n```json\n{output_format}\n```\n\n",
   "llm_parmas": {
@@ -46,14 +46,11 @@
         "deepseek-reasoner"
       ]
     },
-    "qianfan": {
-      "api_url": "https://qianfan.baidubce.com/v2/chat/completions",
+    "aliyuncs": {
+      "api_url": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
       "api_key": "",
       "versions": [
-        "deepseek-v3",
-        "ernie-speed-128k",
-        "ernie-lite-8k",
-        "ernie-tiny-8k"
+        "qwen-plus"
       ]
     },
     "chatglm": {
@@ -78,6 +75,16 @@
             "image"
           ]
         }
+      ]
+    },
+    "qianfan": {
+      "api_url": "https://qianfan.baidubce.com/v2/chat/completions",
+      "api_key": "",
+      "versions": [
+        "deepseek-v3",
+        "ernie-speed-128k",
+        "ernie-lite-8k",
+        "ernie-tiny-8k"
       ]
     },
     "fireworks": {
@@ -126,10 +133,27 @@
       "path": "{resourcesPath}/resource/plugins/script/baidu_translate.js",
       "show": true
     },
+    "baidu_search": {
+      "path": "{resourcesPath}/resource/plugins/script/baidu_search.js",
+      "params": {
+        "jina": "",
+        "num_results": 5,
+        "text_max_len": 2000
+      },
+      "enabled": false
+    },
+    "cli_execute": {
+      "params": {
+        "bash": "docker exec biotools bash -c '. /opt/conda/etc/profile.d/conda.sh && conda activate' && ",
+        "delay_time": 5,
+        "threshold": 10000
+      },
+      "enabled": true
+    },
     "python_execute": {
       "params": {
         "python_bin": "python",
-        "delay_time": 10,
+        "delay_time": 5,
         "threshold": 10000
       },
       "enabled": false
@@ -178,7 +202,7 @@
     "mcp_timeout": 600,
     "extra_prompt": "{resourcesPath}/resource/system_prompts/prompt.md",
     "llm_parmas": {
-      "max_tokens": 8000,
+      "max_tokens": 4000,
       "temperature": 0.5,
       "stream": true,
       "response_format": {

@@ -14,7 +14,56 @@
             color: #333;
             display: flex;
             flex-direction: column;
-            max-height: 100vh;
+        }
+
+        /* 自定义标题栏 */
+        .title-bar {
+            -webkit-app-region: drag;
+            /* 允许拖动 */
+            height: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            -webkit-user-select: none;
+            /* Safari */
+            -moz-user-select: none;
+            /* Firefox */
+            -ms-user-select: none;
+            /* IE10+/Edge */
+            user-select: none;
+            /* Standard */
+        }
+
+        /* 窗口控制按钮 */
+        .window-controls {
+            display: flex;
+            -webkit-app-region: no-drag;
+            /* 禁止拖动干扰按钮点击 */
+        }
+
+        .window-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 8px;
+            cursor: pointer;
+        }
+
+        .close-btn {
+            background: #ff5e57;
+        }
+
+        .minimize-btn {
+            background: #ffbb2e;
+        }
+
+        /* 内容区域 */
+        .content {
+            padding: 0px;
+            width: 100%;
+            height: calc(100vh - 30px);
+            overflow: auto;
         }
 
         .container-editor {
@@ -26,10 +75,6 @@
 
         .top_div {
             background: #f0f0f0;
-        }
-
-        .top_div>div {
-            height: 30px;
         }
 
         .middle_div {
@@ -47,22 +92,45 @@
 </head>
 
 <body>
-    <div class="container-editor">
-        <div class="top_div">
-            <div></div>
-        </div>
-        <div class="middle_div">
-            <div id="json-editor"></div>
-        </div>
-        <div class="bottom_div">
-            <button id="save-btn">保存配置</button>
+    <!-- 自定义标题栏 -->
+    <div class="title-bar">
+        <div class="title">Terminal</div>
+        <div class="window-controls">
+            <div class="window-btn minimize-btn" id="minimize-btn"></div>
+            <div class="window-btn close-btn" id="close-btn"></div>
         </div>
     </div>
+
+    <!-- 内容区域 -->
+    <div class="content">
+        <div class="container-editor">
+            <div class="top_div">
+                <div></div>
+            </div>
+            <div class="middle_div">
+                <div id="json-editor"></div>
+            </div>
+            <div class="bottom_div">
+                <button id="save-btn">保存配置</button>
+            </div>
+        </div>
+    </div>
+
 
 </body>
 <script src="js/jsoneditor.min.js"></script>
 <script>
+    // 窗口控制逻辑
     const { ipcRenderer } = require('electron')
+
+    document.getElementById('minimize-btn').addEventListener('click', () => {
+        ipcRenderer.send('minimize-window')
+    })
+
+    document.getElementById('close-btn').addEventListener('click', () => {
+        ipcRenderer.send('close-window')
+    })
+
     // 初始化JSON Editor
     const editor = new JSONEditor(document.getElementById('json-editor'), {});
 

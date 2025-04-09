@@ -1,6 +1,4 @@
-const { spawn } = require('child_process');
-const { tmpdir } = require('os');
-const { writeFileSync, unlinkSync } = require('fs');
+const { exec } = require('child_process');
 const path = require('path');
 const { BrowserWindow, ipcMain } = require('electron');
 
@@ -14,11 +12,6 @@ function threshold(data, threshold) {
 
 function main(params) {
     return async ({ code }) => {
-        // Create temporary file
-        const tempFile = path.join(tmpdir(), `temp_${Date.now()}.py`)
-        writeFileSync(tempFile, code)
-        console.log(tempFile)
-
         let terminalWindow = null;
         // Create terminal window
         terminalWindow = new BrowserWindow({
@@ -55,7 +48,7 @@ function main(params) {
         })
 
         return new Promise((resolve, reject) => {
-            const child = spawn(params.python_bin, [tempFile]);
+            const child = exec(`${params.bash} ${code}`);
             ipcMain.on('terminal-input', (event, input) => {
                 if (!input) {
                     child.stdin.end();
@@ -88,7 +81,6 @@ function main(params) {
             });
 
             child.on('close', (code) => {
-                unlinkSync(tempFile);
                 setTimeout(() => {
                     if (!!terminalWindow)
                         terminalWindow.close();
@@ -108,14 +100,14 @@ function main(params) {
 }
 
 function getPrompt() {
-    const prompt = `## python_execute
-Description: Execute Python code locally, such as file reading, data analysis, and code execution.
+    const prompt = `## cli_execute
+Description: Execute bash code locally, such as file reading, data analysis, and code execution.
 Parameters:
-- code: (Required) Executable Python code snippet (Python code output must retain "\n" and spaces, please strictly follow the code format, incorrect indentation and line breaks will cause code execution to fail)
+- code: (Required) Executable bash code snippet (please strictly follow the code format, incorrect indentation and line breaks will cause code execution to fail)
 Usage:
 {
   "thinking": "[Thinking process]",
-  "tool": "python_execute",
+  "tool": "cli_execute",
   "params": {
     "code": "[value]"
   }

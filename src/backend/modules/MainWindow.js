@@ -414,17 +414,17 @@ class MainWindow extends Window {
                 submenu: this.getVersionsSubmenu()
             },
             {
-                label: "Feature Selection",
+                label: "Function Selection",
                 submenu: [
                     {
                         click: this.funcItems.clip.click,
-                        label: 'Copy Translation',
+                        label: 'Copy Tool',
                         type: 'checkbox',
                         checked: this.funcItems.clip.statu,
                     },
                     {
                         click: this.funcItems.markdown.click,
-                        label: 'MarkDown',
+                        label: 'Auto MarkDown',
                         type: 'checkbox',
                         checked: this.funcItems.markdown.statu,
                     },
@@ -535,11 +535,18 @@ class MainWindow extends Window {
         ]
     }
 
-    setPrompt(prompt) {
-        const config = utils.getConfig();
-        config.prompt = prompt;
-        utils.setConfig(config);
-        this.window.webContents.send('prompt', prompt);
+    setPrompt(filePath=null) {
+        if (!!filePath && !fs.existsSync(filePath)) {
+            const config = utils.getConfig();
+            if (!!this.funcItems.react.statu) {
+                config.tool_call.extra_prompt = filePath;
+            } else {
+                config.prompt = filePath;
+                const prompt = fs.readFileSync(filePath, 'utf-8');
+                this.window.webContents.send('prompt', prompt);
+            }
+            utils.setConfig(config);
+        }
     }
 
     loadPrompt() {
@@ -554,8 +561,7 @@ class MainWindow extends Window {
                     const filePath = result.filePaths[0];
                     store.set('lastPromptDirectory', path.dirname(filePath));
                     console.log(filePath);
-                    const prompt = fs.readFileSync(filePath, 'utf-8');
-                    this.setPrompt(prompt);
+                    this.setPrompt(filePath);
                 }
             })
             .catch(err => {

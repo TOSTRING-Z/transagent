@@ -14,6 +14,7 @@ function getFileExtension(filename) {
         return null;
     }
 }
+
 function readLines(data, startLine, endLine, params) {
     const lines = data.split('\r\n');
     if (!startLine || !endLine) {

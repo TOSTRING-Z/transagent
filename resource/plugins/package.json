@@ -2,25 +2,15 @@
   "name": "plugins",
   "version": "1.0.0",
   "description": "plugins",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.7.0",
-    "@modelcontextprotocol/server-puppeteer": "^0.6.2",
-    "@modelcontextprotocol/server-sequential-thinking": "^0.6.2",
-    "axios": "^1.7.9",
+    "axios": "^1.8.4",
     "axios-cookiejar-support": "^5.0.5",
     "cheerio": "^1.0.0",
     "he": "^1.2.0",
-    "jsdom": "^26.0.0",
-    "string": "^3.3.3"
+    "jsdom": "^26.0.0"
   },
   "devDependencies": {
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.2"
   }
 }

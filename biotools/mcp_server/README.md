@@ -39,7 +39,7 @@ docker load -i biotools.tar
 docker run -it --name biotools --rm -v /mnt/ubuntu_zgr/install/bixchat/biotools/tmp:/tmp -v /mnt/ubuntu_zgr/install/bixchat/biotools/data:/data -p 3001:3001 biotools
 
 # window
-docker run -it --rm -v C:/Users/Administrator/Desktop/Document/bixchat/biotools/tmp:/tmp -v C:/Users/Administrator/Desktop/Document/bixchat/biotools/data:/data -p 3001:3001 biotools
+docker run -it --name biotools --rm -v C:/Users/Administrator/Desktop/Document/bixchat/biotools/tmp:/tmp -v C:/Users/Administrator/Desktop/Document/bixchat/biotools/data:/data -p 3001:3001 biotools
 
 # dev
 npx @modelcontextprotocol/inspector

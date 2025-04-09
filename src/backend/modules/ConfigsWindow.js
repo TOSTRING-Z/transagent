@@ -19,10 +19,9 @@ class ConfigsWindow extends Window {
             this.window = new BrowserWindow({
                 width: 600,
                 height: 600,
-                titleBarStyle: 'hidden',
-                titleBarOverlay: {
-                    height: 20
-                },
+                frame: false, // 隐藏默认标题栏和边框
+                transparent: true, // 可选：实现透明效果
+                resizable: true, // 允许调整窗口大小
                 icon: path.join(__dirname, 'icon/icon.ico'),
                 webPreferences: {
                     nodeIntegration: true,
@@ -33,6 +32,14 @@ class ConfigsWindow extends Window {
             this.window.loadFile('src/frontend/config.html')
             this.window.on('closed', () => {
                 this.window = null;
+            })
+
+            ipcMain.on('minimize-window', () => {
+                BrowserWindow.getFocusedWindow().minimize()
+            })
+    
+            ipcMain.on('close-window', () => {
+                BrowserWindow.getFocusedWindow().close()
             })
         }
     }

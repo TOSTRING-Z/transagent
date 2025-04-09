@@ -166,6 +166,14 @@
       font-weight: bold;
       font-size: 1.2rem;
       padding: 0;
+      -webkit-user-select: none;
+      /* Safari */
+      -moz-user-select: none;
+      /* Firefox */
+      -ms-user-select: none;
+      /* IE10+/Edge */
+      user-select: none;
+      /* Standard */
     }
 
     #submit.success {
@@ -429,6 +437,14 @@
       background: white;
       font-size: small;
       cursor: pointer;
+      -webkit-user-select: none;
+      /* Safari */
+      -moz-user-select: none;
+      /* Firefox */
+      -ms-user-select: none;
+      /* IE10+/Edge */
+      user-select: none;
+      /* Standard */
     }
 
     .ellipsis-div {
@@ -559,7 +575,8 @@
             <div class="btn" id="plan">Planning Mode</div>
           </div>
           <div class="btn ellipsis-div" id="file_reader" hidden>Select File</div>
-          <textarea class="w-full p-2 rounded-md mb-2" rows="1" placeholder="System Prompt" id="system_prompt" hidden></textarea>
+          <textarea class="w-full p-2 rounded-md mb-2" rows="1" placeholder="System Prompt" id="system_prompt"
+            hidden></textarea>
         </div>
         <div class="flex relative">
           <textarea class="flex-grow p-2 rounded-l-lg" rows="1" placeholder="User Prompt/Text" id="input"></textarea>
