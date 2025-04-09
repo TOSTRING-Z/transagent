@@ -1,5 +1,6 @@
 const { exec } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 const { BrowserWindow, ipcMain } = require('electron');
 
 function threshold(data, threshold) {
@@ -10,7 +11,12 @@ function threshold(data, threshold) {
     }
 }
 
+let cli_prompt = "Execute bash code locally, such as file reading, data analysis, and code execution.";
+
 function main(params) {
+    if (!!params.cli_prompt && fs.existsSync(params.cli_prompt)) {
+        cli_prompt = fs.readFileSync(params.cli_prompt, 'utf-8');
+    }
     return async ({ code }) => {
         let terminalWindow = null;
         // Create terminal window
@@ -101,7 +107,7 @@ function main(params) {
 
 function getPrompt() {
     const prompt = `## cli_execute
-Description: Execute bash code locally, such as file reading, data analysis, and code execution.
+Description: ${cli_prompt}
 Parameters:
 - code: (Required) Executable bash code snippet (please strictly follow the code format, incorrect indentation and line breaks will cause code execution to fail)
 Usage:
