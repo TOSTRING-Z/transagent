@@ -31,7 +31,12 @@ bed_data_db = {
 
 bed_config = {"gene_bed_path": "/data/human/gene.bed"}
 
+exp_data_db = {
+    "GTEx":"/data/exp/GTEx.csv.gz"
+}
 
+# /data/zgr/data/TRAPT/tool/other/figure4/bw_download/deeptools_run.sh
+# /data/zgr/data/TRAPT/tool/new/script/3.11/case_esr1.py
 async def execute_bash(
     command: str = "echo hello!", timeout: Optional[float] = 600.0
 ) -> str:
@@ -72,6 +77,11 @@ async def get_bed_data(biological_type: str) -> str:
     if biological_type in bed_data_db:
         return bed_data_db[biological_type]
     return "Biological type {biological_type} not found in local database"
+
+async def get_express_data(data_source: str) -> str:
+    if data_source in bed_data_db:
+        return exp_data_db[data_source]
+    return "Data source {data_source} not found in local database"
 
 
 async def get_gene_position(genes: list = ["TP53"]) -> str:
@@ -156,7 +166,8 @@ async def fetch_tool(
 async def list_tools() -> list[types.Tool]:
     # 定义异步函数list_tools，用于列出可用的工具
     # 返回: Tool对象列表，描述可用工具
-    biological_list = ", ".join(list(bed_data_db.keys()))
+    biological_type_list = ", ".join(list(bed_data_db.keys()))
+    data_source_list = ", ".join(list(exp_data_db.keys()))
     return [
         types.Tool(
             name="execute_bedtools",  # 工具名称
@@ -209,7 +220,23 @@ Returns:
                 "properties": {
                     "biological_type": {
                         "type": "string",
-                        "description": f"Type of biological element ({biological_list})",
+                        "description": f"Biological types in local database ({biological_type_list})",
+                    }
+                },
+            },
+        ),
+        types.Tool(
+            name="get_express_data",
+            description="""Get express data for a given data source from the local database (hg38).
+Returns:
+    The path to the [data_source]-bed file.""",
+            inputSchema={
+                "type": "object",
+                "required": ["data_source"],
+                "properties": {
+                    "data_source": {
+                        "type": "string",
+                        "description": f"Data sources in local database ({data_source_list})",
                     }
                 },
             },
