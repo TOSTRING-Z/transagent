@@ -31,7 +31,7 @@ docker run -it --name biotools --rm \
 -p 3001:3001 \
 -v /mnt/ubuntu_zgr/install/bixchat/biotools/tmp:/tmp \
 -v /mnt/ubuntu_zgr/install/bixchat/biotools/data:/data \
--v /mnt/ubuntu_zgr/install/bixchat/biotools/mcp_server/server_bixchat.py /app/server.py \
+-v /mnt/ubuntu_zgr/install/bixchat/biotools/mcp_server/server_bixchat.py:/app/server.py \
 biotools
 
 # window
@@ -39,7 +39,7 @@ docker run -it --name biotools --rm `
 -p 3001:3001 `
 -v C:/Users/Administrator/Desktop/Document/bixchat/biotools/tmp:/tmp `
 -v C:/Users/Administrator/Desktop/Document/bixchat/biotools/data:/data `
--v /C:/Users/Administrator/Desktop/Document/bixchat/biotools/mcp_server/server_bixchat.py /app/server.py `
+-v /C:/Users/Administrator/Desktop/Document/bixchat/biotools/mcp_server/server_bixchat.py:/app/server.py `
 biotools
 
 # 测试
