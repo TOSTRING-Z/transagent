@@ -49,8 +49,9 @@ ADD .bashrc /root/.bashrc
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-# https://reg-gen.readthedocs.io/en/latest/rgt/introduction.html
 ADD homer_config.txt /opt/conda/share/homer/config.txt
+
+# https://reg-gen.readthedocs.io/en/latest/rgt/introduction.html
 
 LABEL org.opencontainers.image.title="biotools"
 
