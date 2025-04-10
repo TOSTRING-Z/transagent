@@ -5,10 +5,18 @@
 
 ```bash
 # 构建 (使用代理Clash)
+* linux
 docker build \
   --add-host=host.docker.internal:host-gateway \
   --build-arg HTTP_PROXY=http://host.docker.internal:7890 \
   --build-arg HTTPS_PROXY=http://host.docker.internal:7890 \
+  -t biotools:latest .
+
+* windows
+docker build `
+  --add-host=host.docker.internal:host-gateway `
+  --build-arg HTTP_PROXY=http://host.docker.internal:7890 `
+  --build-arg HTTPS_PROXY=http://host.docker.internal:7890 `
   -t biotools:latest .
 
 # 构建 (无代理)
@@ -39,11 +47,11 @@ docker run -it --name biotools --rm `
 -p 3001:3001 `
 -v C:/Users/Administrator/Desktop/Document/bixchat/biotools/tmp:/tmp `
 -v C:/Users/Administrator/Desktop/Document/bixchat/biotools/data:/data `
--v /C:/Users/Administrator/Desktop/Document/bixchat/biotools/mcp_server/server_bixchat.py:/app/server.py `
+-v C:/Users/Administrator/Desktop/Document/bixchat/biotools/mcp_server/server_bixchat.py:/app/server.py `
 biotools
 
 # 测试
-docker exec biotools bash -c '. /opt/conda/etc/profile.d/conda.sh && conda activate && bedtools --help'
+docker exec -it biotools bash -c '. /opt/conda/etc/profile.d/conda.sh && conda activate && bedtools --help'
 ```
 
 - 可视化终端配置
@@ -89,7 +97,7 @@ docker run -it --name biotools --rm `
 biotools
 
 # 测试
-docker exec biotools bash -c '. /opt/conda/etc/profile.d/conda.sh && conda activate && bedtools --help'
+docker exec -it biotools bash -c '. /opt/conda/etc/profile.d/conda.sh && conda activate && bedtools --help'
 ```
 
 ## MCP服务配置
