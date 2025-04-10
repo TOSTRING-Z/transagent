@@ -49,8 +49,7 @@ ADD .bashrc /root/.bashrc
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-RUN perl /opt/conda/share/homer/.//configureHomer.pl -install hg38
-RUN perl /opt/conda/share/homer/.//configureHomer.pl -install hg19
+ADD homer_config.txt /opt/conda/share/homer/config.txt
 
 # https://reg-gen.readthedocs.io/en/latest/rgt/introduction.html
 
