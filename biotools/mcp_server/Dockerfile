@@ -39,6 +39,8 @@ RUN conda install -y bioconda::picard
 RUN conda install -y -n beta_chip bioconda::macs2
 RUN conda install -y conda-forge::pandas
 RUN conda install -y conda-forge::seaborn
+RUN conda install -y bioconda::bioconductor-org.hs.eg.db
+RUN conda install -y bioconda::bioconductor-txdb.hsapiens.ucsc.hg38.knowngene
 
 FROM python:3.12-slim-bookworm
 
@@ -56,3 +58,4 @@ ADD homer_config.txt /opt/conda/share/homer/config.txt
 LABEL org.opencontainers.image.title="biotools"
 
 ENTRYPOINT . /opt/conda/etc/profile.d/conda.sh && conda activate && /app/.venv/bin/python /app/server.py
+   
