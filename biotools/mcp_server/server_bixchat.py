@@ -106,7 +106,7 @@ async def get_bed_data(biological_type: str) -> str:
 @validate_required_params("data_source", "genes")
 async def get_express_data(data_source: str, genes: list) -> str:
     try:
-        if data_source in bed_data_db:
+        if data_source in exp_data_db:
             exp_file = exp_data_db[data_source]
             exp = pd.read_csv(exp_file, index_col=0)
             exp_genes = exp[exp.index.map(lambda gene: gene in genes)]
