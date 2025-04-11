@@ -324,5 +324,5 @@ starlette_app = Starlette(
 import uvicorn  # 导入uvicorn ASGI服务器
 
 uvicorn.run(
-    starlette_app, host="0.0.0.0", port=3003
+    starlette_app, host="0.0.0.0", port=3001
 )  # 运行Starlette应用，监听0.0.0.0和指定端口
