@@ -33,14 +33,78 @@ bed_config = {"gene_bed_path": "/data/human/gene.bed"}
 
 exp_data_db = {"GTEx": "/data/exp/GTEx.csv.gz"}
 
+from functools import wraps
+from typing import Callable, Any, Dict, Tuple, Optional
 
+
+def validate_required_params(
+    *required_params: str, param_types: Optional[Dict[str, Tuple[type, str]]] = None
+):
+    """
+    参数验证装饰器
+
+    Args:
+        *required_params: 必须存在的参数名列表
+        param_types: 参数类型检查字典 {参数名: (期望类型, 类型描述)}
+
+    Example:
+        @validate_required_params('data_source', 'genes',
+                                param_types={'genes': (list, '列表')})
+        async def get_express_data(data_source: str, genes: list) -> str:
+            ...
+    """
+
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs) -> Any:
+            # 合并所有参数
+            all_params = kwargs.copy()
+            if args:
+                # 获取同步方法的参数名
+                import inspect
+
+                sig = inspect.signature(func)
+                params = list(sig.parameters.keys())
+                all_params.update(dict(zip(params, args)))
+
+            # 检查必填参数
+            missing = [
+                p
+                for p in required_params
+                if p not in all_params or all_params[p] is None
+            ]
+            if missing:
+                return f"缺少以下参数: {', '.join(missing)}"
+
+            # 检查参数类型
+            type_errors = []
+            if param_types:
+                for param, (expected_type, type_name) in param_types.items():
+                    if param in all_params and not isinstance(
+                        all_params[param], expected_type
+                    ):
+                        type_errors.append(f"{param}必须是{type_name}类型")
+
+            if type_errors:
+                return "；".join(type_errors)
+
+            # 调用原函数
+            return await func(*args, **kwargs)
+
+        return async_wrapper
+
+    return decorator
+
+
+@validate_required_params("biological_type")
 async def get_bed_data(biological_type: str) -> str:
     if biological_type in bed_data_db:
         return bed_data_db[biological_type]
     return "Biological type {biological_type} not found in local database"
 
 
-async def get_express_data(data_source: str = "GTEx", genes: list = ["TP53"]) -> str:
+@validate_required_params("data_source", "genes")
+async def get_express_data(data_source: str, genes: list) -> str:
     try:
         if data_source in bed_data_db:
             exp_file = exp_data_db[data_source]
@@ -55,7 +119,8 @@ async def get_express_data(data_source: str = "GTEx", genes: list = ["TP53"]) ->
         return str(e)
 
 
-async def get_gene_position(genes: list = ["TP53"]) -> str:
+@validate_required_params("genes")
+async def get_gene_position(genes: list) -> str:
     try:
         gene_bed = pd.read_csv(
             bed_config["gene_bed_path"], index_col=None, header=None, sep="\t"
@@ -71,6 +136,7 @@ async def get_gene_position(genes: list = ["TP53"]) -> str:
         return str(e)
 
 
+@validate_required_params("subcommand", "options")
 async def execute_bedtools(
     subcommand: str = "intersect",
     options: str = "--help",
