@@ -12,6 +12,7 @@ const { JSDOM } = jsdom;
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { Client } = require('ssh2');
 
 class MainWindow extends Window {
     constructor(windowManager) {
@@ -135,7 +136,47 @@ class MainWindow extends Window {
                             const filePath = result.filePaths[0];
                             store.set('lastFileDirectory', path.dirname(filePath));
                             console.log(filePath);
-                            resolve(filePath)
+                            if (!!this.funcItems.react) {
+                                const ssh_config = inner.model.plugins.versions.find(item => item.version == "cli_execute")?.params?.ssh_config;
+                                if (!!ssh_config) {
+                                    const conn = new Client();
+                                    conn
+                                        .on('ready', () => {
+                                            console.log('SSH Connection Ready');
+                                            conn.sftp(async (err, sftp) => {
+                                                if (err) throw err;
+
+                                                const base_name = path.basename(filePath);
+                                                const remotePath = `/tmp/${base_name}`;
+
+                                                this.window.webContents.send('upload-progress', { state: "start" })
+                                                sftp.fastPut(filePath, remotePath, {}, (err) => {
+                                                    if (err) {
+                                                        console.error('上传失败:', err);
+                                                    } else {
+                                                        console.log(`文件上传成功: ${filePath} -> remote:${remotePath}`);
+                                                    }
+                                                    conn.end();
+                                                    this.window.webContents.send('upload-progress', { state: "end" })
+                                                });
+
+                                            });
+
+                                        })
+                                        .on('error', (err) => {
+                                            console.error('Connection Error:', err);
+                                        })
+                                        .on('close', () => {
+                                            console.log('Connection Closed');
+                                        })
+                                        .connect(ssh_config);
+
+                                } else {
+                                    resolve(filePath)
+                                }
+                            } else {
+                                resolve(filePath)
+                            }
                         }
                     })
                     .catch(err => {
@@ -338,7 +379,7 @@ class MainWindow extends Window {
                 this.window.webContents.send("extra_load", e.statu && inner.model_obj[global.model][global.version]?.extra)
             }
             else {
-                this.window.webContents.send("extra_load", e.statu ? [{ "type": "act-plan" }] : utils.getConfig("extra"));
+                this.window.webContents.send("extra_load", e.statu ? [{ "type": "act-plan" }, { "type": "file-upload" }] : utils.getConfig("extra"));
             }
         }
         extraReact();
@@ -535,7 +576,7 @@ class MainWindow extends Window {
         ]
     }
 
-    setPrompt(filePath=null) {
+    setPrompt(filePath = null) {
         if (!!filePath && fs.existsSync(filePath)) {
             const config = utils.getConfig();
             if (!!this.funcItems.react.statu) {

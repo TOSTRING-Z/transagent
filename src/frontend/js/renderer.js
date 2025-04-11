@@ -14,12 +14,14 @@ document.addEventListener("click", (event) => {
 });
 
 const system_prompt = document.getElementById("system_prompt");
-const file_reader = document.getElementById("file_reader");
+const file_upload = document.getElementById("file_upload");
 const act_plan = document.getElementById("act_plan");
 const auto = document.getElementById("auto");
 const act = document.getElementById("act");
 const plan = document.getElementById("plan");
 const pause = document.getElementById("pause");
+const progress_container = document.getElementById('progress-container')
+const progress_bar = document.getElementById('progress-bar')
 
 const content = document.getElementById("content");
 const input = document.getElementById("input");
@@ -88,7 +90,7 @@ plan.addEventListener("click", async function (e) {
   toggleMode("plan");
 })
 
-file_reader.addEventListener("click", async function (e) {
+file_upload.addEventListener("click", async function (e) {
   formData.file_path = await window.electronAPI.getFilePath();
   if (!!formData.file_path) {
     e.target.innerText = getFileName(formData.file_path);
@@ -566,15 +568,15 @@ window.electronAPI.handleQuery(async (data) => {
 
 window.electronAPI.handleExtraLoad((data) => {
   system_prompt.style.display = "none";
-  file_reader.style.display = "none";
+  file_upload.style.display = "none";
   act_plan.style.display = "none";
   data?.forEach(item => {
     switch (item.type) {
       case "system-prompt":
         system_prompt.style.display = "block";
         break;
-      case "file-reader":
-        file_reader.style.display = "block";
+      case "file-upload":
+        file_upload.style.display = "block";
         break;
       case "act-plan":
         act_plan.style.display = "flex";
@@ -619,4 +621,19 @@ submit.addEventListener("click", () => {
   window.electronAPI.clickSubmit(formData);
   pause.style.display = "none";
   pause.innerHTML = "";
+})
+
+window.electronAPI.uploadProgress((info) => {
+  switch (info.state) {
+    case "start":
+      progress_bar.style.width = `0%`;
+      progress_container.style.display = "block";
+      break;
+    case "end":
+      progress_bar.style.width = `100%`
+      setTimeout(()=>{
+        progress_container.style.display = "none";
+      },500);
+      break;
+  }
 })

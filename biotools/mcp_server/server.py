@@ -31,12 +31,9 @@ bed_data_db = {
 
 bed_config = {"gene_bed_path": "/data/human/gene.bed"}
 
-exp_data_db = {
-    "GTEx":"/data/exp/GTEx.csv.gz"
-}
+exp_data_db = {"GTEx": "/data/exp/GTEx.csv.gz"}
 
-# /data/zgr/data/TRAPT/tool/other/figure4/bw_download/deeptools_run.sh
-# /data/zgr/data/TRAPT/tool/new/script/3.11/case_esr1.py
+
 async def execute_bash(
     command: str = "echo hello!", timeout: Optional[float] = 600.0
 ) -> str:
@@ -77,6 +74,7 @@ async def get_bed_data(biological_type: str) -> str:
     if biological_type in bed_data_db:
         return bed_data_db[biological_type]
     return "Biological type {biological_type} not found in local database"
+
 
 async def get_express_data(data_source: str) -> str:
     if data_source in bed_data_db:

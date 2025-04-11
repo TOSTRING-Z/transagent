@@ -1,4 +1,4 @@
-# docker环境 
+# docker 环境
 
 [docker](https://www.anaconda.com/docs/tools/working-with-conda/applications/docker#docker)
 [mcp-fetch](https://github.com/modelcontextprotocol/servers/blob/main/src/fetch/Dockerfile)
@@ -29,14 +29,15 @@ docker save -o biotools.tar biotools:latest
 docker load -i biotools.tar
 ```
 
-## BixChat可视化虚拟终端启动方式
+## BixChat 可视化虚拟终端启动方式 (推荐方式)
 
-- 启动docker容器
+- 启动 docker 容器
 
 ```bash
 # linux
 docker run -it --name biotools --rm \
 -p 3001:3001 \
+-p 3002:22 \
 -v /mnt/ubuntu_zgr/install/bixchat/biotools/tmp:/tmp \
 -v /mnt/ubuntu_zgr/install/bixchat/biotools/data:/data \
 -v /mnt/ubuntu_zgr/install/bixchat/biotools/mcp_server/server_bixchat.py:/app/server.py \
@@ -45,13 +46,11 @@ biotools
 # window
 docker run -it --name biotools --rm `
 -p 3001:3001 `
+-p 3002:22 `
 -v C:/Users/Administrator/Desktop/Document/bixchat/biotools/tmp:/tmp `
 -v C:/Users/Administrator/Desktop/Document/bixchat/biotools/data:/data `
 -v C:/Users/Administrator/Desktop/Document/bixchat/biotools/mcp_server/server_bixchat.py:/app/server.py `
 biotools
-
-# 测试
-docker exec -it biotools bash -c '. /opt/conda/etc/profile.d/conda.sh && conda activate && bedtools --help'
 ```
 
 - 可视化终端配置
@@ -62,7 +61,12 @@ config.json
 "plugins": {
   "cli_execute": {
     "params": {
-      "bash": "docker exec biotools bash -c '. /opt/conda/etc/profile.d/conda.sh && conda activate && {code}'",
+      "ssh_config": {
+        "host": "127.0.0.1",
+        "port": 3002,
+        "username": "root",
+        "password": "password"
+      },
       "delay_time": 5,
       "threshold": 10000,
       "cli_prompt": "/path/to/biotools/mcp_server/cli_prompt.md"
@@ -78,8 +82,42 @@ config.json
 }
 ```
 
+- 系统信息配置
+
+```bash
+# 查看系统信息
+echo -n '{
+  "system_type": "linux",
+  "system_platform": "'$( (lsb_release -si 2>/dev/null || grep -E '^ID=' /etc/os-release | cut -d= -f2) | tr '[:upper:]' '[:lower:]')$((lsb_release -sr 2>/dev/null || grep -E '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"') | cut -d. -f1)'",
+  "system_arch": "'$(uname -m | sed 's/aarch64/arm64/;s/x86_64/amd64/')'"
+}' | jq -c . 2>/dev/null || cat
+```
+
+config.json
+
+```json
+"tool_call": {
+  "memory_length": 20,
+  "mcp_timeout": 6000,
+  "extra_prompt": "{resourcesPath}/resource/system_prompts/prompt.md",
+  "tmpdir": "/tmp",
+  "system_type": "linux",
+  "system_platform": "debian12",
+  "system_arch": "x86_64",
+  "llm_parmas": {
+    "max_tokens": 4000,
+    "temperature": 0.5,
+    "stream": true,
+    "response_format": {
+      "type": "json_object"
+    }
+  }
+}
+```
+
 ## 第三方客户端启动方式
-- 启动docker容器
+
+- 启动 docker 容器
 
 ```bash
 # linux
@@ -97,10 +135,10 @@ docker run -it --name biotools --rm `
 biotools
 
 # 测试
-docker exec -it biotools bash -c '. /opt/conda/etc/profile.d/conda.sh && conda activate && bedtools --help'
+docker exec -it biotools bash -i -c 'bedtools --help'
 ```
 
-## MCP服务配置
+- MCP 服务配置
 
 config.json
 
@@ -113,7 +151,7 @@ config.json
 }
 ```
 
-# MCP环境
+# MCP 环境
 
 [python-sdk](https://github.com/modelcontextprotocol/python-sdk)
 
@@ -134,6 +172,7 @@ mcp dev mcp_server/server.py
 ```
 
 # dev
+
 ```bash
 npx @modelcontextprotocol/inspector
 ```

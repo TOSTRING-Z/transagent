@@ -2,7 +2,7 @@
     "chain_call": [
         {
             "model": "plugins",
-            "version": "python_execute",
+            "version": "cli_execute",
             "input_data": {
                 "code": "{query}"
             },

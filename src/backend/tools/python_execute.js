@@ -47,15 +47,16 @@ function main(params) {
         });
 
         ipcMain.on('minimize-window', () => {
-            BrowserWindow.getFocusedWindow().minimize()
+            terminalWindow?.minimize()
         })
 
         ipcMain.on('close-window', () => {
-            BrowserWindow.getFocusedWindow().close()
+            terminalWindow?.close()
         })
 
         return new Promise((resolve, reject) => {
             const child = spawn(params.python_bin, [tempFile]);
+            
             ipcMain.on('terminal-input', (event, input) => {
                 if (!input) {
                     child.stdin.end();

@@ -144,7 +144,12 @@
     },
     "cli_execute": {
       "params": {
-        "bash": "docker exec biotools bash -c '. /opt/conda/etc/profile.d/conda.sh && conda activate && {code}'",
+        "ssh_config": {
+          "host": "127.0.0.1",
+          "port": 3002,
+          "username": "root",
+          "password": "password"
+        },
         "cli_prompt": "/path/to/cli_prompt.md",
         "delay_time": 5,
         "threshold": 10000
@@ -162,7 +167,7 @@
     "file_load": {
       "extra": [
         {
-          "type": "file-reader"
+          "type": "file-upload"
         }
       ],
       "show": false,
@@ -202,6 +207,10 @@
     "memory_length": 20,
     "mcp_timeout": 600,
     "extra_prompt": "{resourcesPath}/resource/system_prompts/prompt.md",
+    "tmpdir": "/tmp",
+    "system_type": "linux",
+    "system_platform": "debian12",
+    "system_arch": "x86_64",
     "llm_parmas": {
       "max_tokens": 4000,
       "temperature": 0.5,

@@ -1,7 +1,10 @@
 const { exec } = require('child_process');
+const { tmpdir } = require('os');
+const { writeFileSync, unlinkSync } = require('fs');
 const path = require('path');
 const fs = require('fs');
 const { BrowserWindow, ipcMain } = require('electron');
+const { Client } = require('ssh2');
 
 function threshold(data, threshold) {
     if (!!data && data?.length > threshold) {
@@ -18,8 +21,13 @@ function main(params) {
         cli_prompt = fs.readFileSync(params.cli_prompt, 'utf-8');
     }
     return async ({ code }) => {
-        let terminalWindow = null;
+        // Create temporary file
+        const tempFile = path.join(tmpdir(), `temp_${Date.now()}.sh`)
+        writeFileSync(tempFile, code)
+        console.log(tempFile)
+
         // Create terminal window
+        let terminalWindow = null;
         terminalWindow = new BrowserWindow({
             width: 800,
             height: 600,
@@ -46,58 +54,130 @@ function main(params) {
         });
 
         ipcMain.on('minimize-window', () => {
-            BrowserWindow.getFocusedWindow().minimize()
+            terminalWindow?.minimize()
         })
 
         ipcMain.on('close-window', () => {
-            BrowserWindow.getFocusedWindow().close()
+            terminalWindow?.close()
         })
 
         return new Promise((resolve, reject) => {
-            const child = exec(params.bash?.replace("{code}",code));
-
-            ipcMain.on('terminal-input', (event, input) => {
-                if (!input) {
-                    child.stdin.end();
-                } else {
-                    child.stdin.write(`${input}`);
-                }
-            });
-            ipcMain.on('terminal-signal', (event, input) => {
-                switch (input) {
-                    case "ctrl_c":
-                        child.kill();
-                        break;
-                
-                    default:
-                        break;
-                }
-            });
-
             let output = null;
             let error = null;
 
-            child.stdout.on('data', (data) => {
-                output = data.toString();
-                terminalWindow.webContents.send('terminal-data', output);
-            });
+            if (!!params?.ssh_config) {
+                const conn = new Client();
 
-            child.stderr.on('data', (data) => {
-                error = data.toString();
-                terminalWindow.webContents.send('terminal-data', error);
-            });
+                conn.on('ready', () => {
+                    console.log('SSH Connection Ready');
+                    conn.exec(code, (err, stream) => {
+                        if (err) {
+                            error = err.message;
+                            resolve(JSON.stringify({
+                                success: false,
+                                output: threshold(output, params.threshold),
+                                error: error
+                            }));
+                        }
 
-            child.on('close', (code) => {
-                setTimeout(() => {
-                    if (!!terminalWindow)
-                        terminalWindow.close();
-                    resolve(JSON.stringify({
-                        success: code === 0,
-                        output: threshold(output, params.threshold),
-                        error: error
-                    }));
-                }, params.delay_time * 1000);
-            });
+                        stream.on('close', (code, signal) => {
+                            console.log(`命令执行完毕: 退出码 ${code}, 信号 ${signal}`);
+                            conn.end(); // 关闭连接
+                            unlinkSync(tempFile);
+                            setTimeout(() => {
+                                if (!!terminalWindow)
+                                    terminalWindow.close();
+                                resolve(JSON.stringify({
+                                    success: code === 0,
+                                    output: threshold(output, params.threshold),
+                                    error: error
+                                }));
+                            }, params.delay_time * 1000);
+                        })
+
+                        stream.stdout.on('data', (data) => {
+                            output = data.toString();
+                            terminalWindow.webContents.send('terminal-data', output);
+                        })
+
+                        stream.stderr.on('data', (data) => {
+                            error = data.toString();
+                            terminalWindow.webContents.send('terminal-data', error);
+                        });
+
+                        ipcMain.on('terminal-input', (event, input) => {
+                            if (!input) {
+                                stream.end()
+                            } else {
+                                stream.write(input)
+                            }
+                        });
+
+                        ipcMain.on('terminal-signal', (event, input) => {
+                            switch (input) {
+                                case "ctrl_c":
+                                    stream.close();
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                        });
+                    })
+                })
+                    .on('error', (err) => {
+                        console.error('Connection Error:', err);
+                        return err.message;
+                    })
+                    .on('close', () => {
+                        console.log('Connection Closed');
+                    })
+                    .connect(params.ssh_config);
+
+            } else {
+                const child = exec(`${params.bash} ${tempFile}`);
+                child.stdout.on('data', (data) => {
+                    output = data.toString();
+                    terminalWindow.webContents.send('terminal-data', output);
+                });
+
+                child.stderr.on('data', (data) => {
+                    error = data.toString();
+                    terminalWindow.webContents.send('terminal-data', error);
+                });
+
+                child.on('close', (code) => {
+                    unlinkSync(tempFile);
+                    setTimeout(() => {
+                        if (!!terminalWindow)
+                            terminalWindow.close();
+                        resolve(JSON.stringify({
+                            success: code === 0,
+                            output: threshold(output, params.threshold),
+                            error: error
+                        }));
+                    }, params.delay_time * 1000);
+                });
+
+                ipcMain.on('terminal-input', (event, input) => {
+                    if (!input) {
+                        child.stdin.end();
+                    } else {
+                        child.stdin.write(`${input}`);
+                    }
+                });
+
+                ipcMain.on('terminal-signal', (event, input) => {
+                    switch (input) {
+                        case "ctrl_c":
+                            child.kill();
+                            break;
+
+                        default:
+                            break;
+                    }
+                });
+            }
 
             terminalWindow.on('close', () => {
                 terminalWindow = null;

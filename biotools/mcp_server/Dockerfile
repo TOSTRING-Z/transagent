@@ -44,6 +44,13 @@ RUN conda install -y bioconda::bioconductor-txdb.hsapiens.ucsc.hg38.knowngene
 
 FROM python:3.12-slim-bookworm
 
+# 安装SSH服务
+RUN apt-get update && apt-get install -y openssh-server && \
+    mkdir /var/run/sshd && \
+    echo 'root:password' | chpasswd && \
+    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY --from=conda /opt/conda /opt/conda
 COPY --from=uv /app/.venv /app/.venv
 ADD server.py /app/server.py
@@ -57,5 +64,8 @@ ADD homer_config.txt /opt/conda/share/homer/config.txt
 
 LABEL org.opencontainers.image.title="biotools"
 
-ENTRYPOINT . /opt/conda/etc/profile.d/conda.sh && conda activate && /app/.venv/bin/python /app/server.py
+# 暴露端口
+EXPOSE 22 3001
+
+ENTRYPOINT . /opt/conda/etc/profile.d/conda.sh && conda activate && service ssh start && /app/.venv/bin/python /app/server.py
    

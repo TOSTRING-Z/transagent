@@ -552,6 +552,21 @@
       background: #129124;
       color: white;
     }
+
+    /* 进度条 */
+    .progress-container {
+      display: none;
+      width: 100px;
+      height: 20px;
+      background: #eee;
+      margin: 10px 0;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: #2196F3;
+      transition: width 0.3s ease;
+    }
   </style>
 </head>
 
@@ -568,13 +583,16 @@
       <!-- Input area -->
       <div class="p-4 fixed bottom-0 left-0 right-0" id="bottom_div">
         <div class="bg-gradient"></div>
-        <div class="flex mb-2 flex-col items-start">
+        <div class="flex mb-2 flex-row items-center">
           <div class="flex-row items-start" id="act_plan" hidden>
             <div class="btn" id="auto">Auto Mode</div>
             <div class="btn active" id="act">Execution Mode</div>
             <div class="btn" id="plan">Planning Mode</div>
           </div>
-          <div class="btn ellipsis-div" id="file_reader" hidden>Select File</div>
+          <div class="btn ellipsis-div" id="file_upload" hidden>File Upload</div>
+          <div id="progress-container" class="progress-container">
+            <div id="progress-bar" class="progress-bar"></div>
+          </div>
           <textarea class="w-full p-2 rounded-md mb-2" rows="1" placeholder="System Prompt" id="system_prompt"
             hidden></textarea>
         </div>

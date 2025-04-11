@@ -287,9 +287,9 @@ You complete the given task iteratively, breaking it down into clear steps and s
 
 # System Information
 
-- Operating system type: {type}
-- Operating system platform: {platform}
-- CPU architecture: {arch}
+- Operating system type: {system_type}
+- Operating system platform: {system_platform}
+- CPU architecture: {system_arch}
 
 ===
 
@@ -326,7 +326,7 @@ All task messages submitted by users will also be saved in the "memory list". If
     this.environment_details = {
       memory_list: [],
       language: utils.getLanguage(),
-      tmpdir: os.tmpdir(),
+      tmpdir: utils.getConfig("tool_call")?.tmpdir || os.tmpdir(),
       time: utils.formatDate(),
       mode: this.modes.ACT,
     }
@@ -362,9 +362,9 @@ All task messages submitted by users will also be saved in the "memory list". If
 
   async step(data) {
     this.system_prompt = this.task_prompt.format({
-      type: os.type(),
-      platform: os.platform(),
-      arch: os.arch(),
+      system_type: utils.getConfig("tool_call")?.system_type || os.type(),
+      system_platform: utils.getConfig("tool_call")?.system_platform || os.platform(),
+      system_arch: utils.getConfig("tool_call")?.system_arch || os.arch(),
       tool_prompt: this.tool_prompt.join("\n\n"),
       mcp_prompt: this.mcp_prompt,
       extra_prompt: this.get_extra_prompt(data.extra_prompt)

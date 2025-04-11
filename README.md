@@ -383,9 +383,9 @@ _- 可配置显示组件 -_
 - system-prompt: 系统提示输入框
   - 对应可用字段为:
     - prompt: 初始系统提示词
-- file-reader: 文件读取按钮
+- file-upload: 文件读取按钮
   - 对应可用字段为:
-    - file-reader: 读取文件的路径
+    - file-upload: 读取文件的路径
 
 _- 更多案例见： -_
 

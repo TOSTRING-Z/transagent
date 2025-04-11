@@ -19,4 +19,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   streamData: (callback) => ipcRenderer.on('stream-data', (_event, chunk) => callback(chunk)),
   infoData: (callback) => ipcRenderer.on('info-data', (_event, info) => callback(info)),
   userData: (callback) => ipcRenderer.on('user-data', (_event, info) => callback(info)),
+  uploadProgress: (callback) => ipcRenderer.on('upload-progress', (_event, info) => callback(info)),
 })

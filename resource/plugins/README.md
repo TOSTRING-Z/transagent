@@ -25,7 +25,7 @@ config.json
   "file_load": {
     "extra": [
       {
-        "type": "file-reader"
+        "type": "file-upload"
       }
     ],
     "show": false,
