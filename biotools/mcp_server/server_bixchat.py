@@ -196,8 +196,16 @@ async def fetch_tool(
         "get_express_data": get_express_data,
     }
     try:
-        result = await tools[name](**arguments)
-        return [types.TextContent(type="text", text=result)]
+        if name in tools:
+            result = await tools[name](**arguments)
+            return [types.TextContent(type="text", text=result)]
+        else:
+            return [
+                types.TextContent(
+                    type="text",
+                    text=f"The '{name}' MCP service does not exist. Please check and try again!",
+                )
+            ]
     except Exception as e:
         return [types.TextContent(type="text", text=str(e))]
 
@@ -262,7 +270,7 @@ Returns:
                 "properties": {
                     "biological_type": {
                         "type": "string",
-                        "description": f"Biological types in local database ({biological_type_list})",
+                        "description": f"Biological types in local database (must be: {biological_type_list})",
                     }
                 },
             },
@@ -278,7 +286,7 @@ Returns:
                 "properties": {
                     "data_source": {
                         "type": "string",
-                        "description": f"Data sources in local database ({data_source_list})",
+                        "description": f"Data sources in local database (must be: {data_source_list})",
                     },
                     "genes": {
                         "type": "array",
@@ -316,5 +324,5 @@ starlette_app = Starlette(
 import uvicorn  # 导入uvicorn ASGI服务器
 
 uvicorn.run(
-    starlette_app, host="0.0.0.0", port=3001
+    starlette_app, host="0.0.0.0", port=3003
 )  # 运行Starlette应用，监听0.0.0.0和指定端口
