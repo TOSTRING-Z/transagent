@@ -205,15 +205,19 @@ Returns:
             name="get_express_data",
             description="""Get express data for a given data source from the local database (hg38).
 Returns:
-    The path to the [data_source]-bed file.""",
+    The genes expression file.""",
             inputSchema={
                 "type": "object",
-                "required": ["data_source"],
+                "required": ["data_source", "genes"],
                 "properties": {
                     "data_source": {
                         "type": "string",
                         "description": f"Data sources in local database ({data_source_list})",
-                    }
+                    },
+                    "genes": {
+                        "type": "array",
+                        "description": "A list of gene names (e.g. ['TP53'])",
+                    },
                 },
             },
         ),
