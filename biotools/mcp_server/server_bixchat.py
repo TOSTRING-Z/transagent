@@ -40,21 +40,35 @@ async def get_bed_data(biological_type: str) -> str:
     return "Biological type {biological_type} not found in local database"
 
 
-async def get_express_data(data_source: str) -> str:
-    if data_source in bed_data_db:
-        return exp_data_db[data_source]
-    return "Data source {data_source} not found in local database"
+async def get_express_data(data_source: str = "GTEx", genes: list = ["TP53"]) -> str:
+    try:
+        if data_source in bed_data_db:
+            exp_file = exp_data_db[data_source]
+            exp = pd.read_csv(exp_file, index_col=0)
+            exp_genes = exp[exp.index.map(lambda gene: gene in genes)]
+            uuid_ = uuid.uuid1()
+            exp_genes_path = f"{tmp_docker}/exp_genes_{uuid_}.csv"
+            exp_genes.to_csv(exp_genes_path)
+            return exp_genes_path
+        return "Data source {data_source} not found in local database"
+    except Exception as e:
+        return str(e)
 
 
 async def get_gene_position(genes: list = ["TP53"]) -> str:
-    gene_bed = pd.read_csv(
-        bed_config["gene_bed_path"], index_col=None, header=None, sep="\t"
-    )
-    gene_position = gene_bed[gene_bed[4].map(lambda gene: gene in genes)]
-    uuid_ = uuid.uuid1()
-    docker_gene_position_path = f"{tmp_docker}/gene_position_{uuid_}.bed"
-    gene_position.to_csv(docker_gene_position_path, header=False, index=False, sep="\t")
-    return docker_gene_position_path
+    try:
+        gene_bed = pd.read_csv(
+            bed_config["gene_bed_path"], index_col=None, header=None, sep="\t"
+        )
+        gene_position = gene_bed[gene_bed[4].map(lambda gene: gene in genes)]
+        uuid_ = uuid.uuid1()
+        docker_gene_position_path = f"{tmp_docker}/gene_position_{uuid_}.bed"
+        gene_position.to_csv(
+            docker_gene_position_path, header=False, index=False, sep="\t"
+        )
+        return docker_gene_position_path
+    except Exception as e:
+        return str(e)
 
 
 async def execute_bedtools(
@@ -113,6 +127,7 @@ async def fetch_tool(
         "get_bed_data": get_bed_data,
         "get_gene_position": get_gene_position,
         "execute_bedtools": execute_bedtools,
+        "get_express_data": get_express_data,
     }
     try:
         result = await tools[name](**arguments)
