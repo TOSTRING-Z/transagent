@@ -89,6 +89,10 @@ class Utils {
         return true;
     }
 
+    getSshConfig() {
+        const ssh_config = this.inner.model.plugins.versions.find(item => item.version == "cli_execute")?.params?.ssh_config;
+        return ssh_config;
+    }
     getIsPlugin(model) {
         return Object.values(this.inner.model_name).includes(model);
     }

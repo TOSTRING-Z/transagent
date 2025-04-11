@@ -101,6 +101,7 @@ config.json
   "mcp_timeout": 6000,
   "extra_prompt": "{resourcesPath}/resource/system_prompts/prompt.md",
   "tmpdir": "/tmp",
+  "language": "english",
   "system_type": "linux",
   "system_platform": "debian12",
   "system_arch": "x86_64",
@@ -113,6 +114,9 @@ config.json
     }
   }
 }
+
+* tmpdir: 运行结果保存的路径（请和docker映射路径保存一致）
+* language: 大模型回答使用的语言
 ```
 
 ## 第三方客户端启动方式

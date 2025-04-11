@@ -83,8 +83,8 @@ class MainWindow extends Window {
 
         // Send message to renderer process after window loaded
         this.window.webContents.on('did-finish-load', () => {
-            this.setPrompt(utils.getConfig("prompt"));
             this.initFuncItems();
+            this.initPrompt();
         });
 
         // Intercept page navigation
@@ -137,7 +137,7 @@ class MainWindow extends Window {
                             store.set('lastFileDirectory', path.dirname(filePath));
                             console.log(filePath);
                             if (!!this.funcItems.react) {
-                                const ssh_config = inner.model.plugins.versions.find(item => item.version == "cli_execute")?.params?.ssh_config;
+                                const ssh_config = utils.getSshConfig();
                                 if (!!ssh_config) {
                                     const conn = new Client();
                                     conn
@@ -379,7 +379,12 @@ class MainWindow extends Window {
                 this.window.webContents.send("extra_load", e.statu && inner.model_obj[global.model][global.version]?.extra)
             }
             else {
-                this.window.webContents.send("extra_load", e.statu ? [{ "type": "act-plan" }, { "type": "file-upload" }] : utils.getConfig("extra"));
+                const ssh_config = utils.getSshConfig();
+                let extra = [{ "type": "act-plan" }];
+                if (!!ssh_config) {
+                    extra.push({ "type": "file-upload" });
+                }
+                this.window.webContents.send("extra_load", e.statu ?  extra: utils.getConfig("extra"));
             }
         }
         extraReact();
@@ -392,6 +397,12 @@ class MainWindow extends Window {
         this.funcItems.math.event = this.getMathEvent(this.funcItems.math);
         this.funcItems.text.event = this.getTextEvent(this.funcItems.text);
         this.funcItems.react.event = this.getReactEvent(this.funcItems.react);
+    }
+
+    initPrompt() {
+        const filePath = utils.getConfig("prompt");
+        const prompt = fs.readFileSync(filePath, 'utf-8');
+        this.window.webContents.send('prompt', prompt);
     }
 
     updateVersionsSubmenu() {

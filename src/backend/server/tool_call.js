@@ -351,7 +351,7 @@ All task messages submitted by users will also be saved in the "memory list". If
 
   environment_update(data) {
     this.environment_details.time = utils.formatDate();
-    this.environment_details.language = utils.getLanguage();
+    this.environment_details.language = utils.getConfig("language")?.system_type || utils.getLanguage();
     this.environment_details.memory_list = JSON.stringify(this.memory_list.slice(this.memory_list.length - utils.getConfig("memory_length") * 10, this.memory_list.length), null, 4)
     envMessage(this.env.format(this.environment_details));
   }

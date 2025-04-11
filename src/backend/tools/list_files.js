@@ -22,8 +22,9 @@ function shouldExclude(path) {
 }
 
 
-function main(params) {
-  return async ({ path, recursive = false }) => {
+function main(params = { threshold: 1000 }) {
+  return ({ path, recursive = false, regex = null }) => {
+    const regexObj = regex ? new RegExp(regex) : null;
     try {
       const items = fs.readdirSync(path);
       const result = [];
@@ -31,17 +32,21 @@ function main(params) {
       items.forEach(item => {
         const fullPath = path_.join(path, item);
         if (shouldExclude(fullPath)) return;
+        if (regexObj && !regexObj.test(item)) return;
 
         const stat = fs.statSync(fullPath);
 
         if (stat.isDirectory() && recursive) {
-          result.push(...main({ input: fullPath, recursive }));
+          const subResult = main(params)({ path: fullPath, recursive, regex });
+          if (Array.isArray(subResult)) {
+            result.push(...subResult);
+          }
         } else {
           result.push(fullPath);
         }
       });
       if (result.length > params.threshold) {
-        return 'Too much content returned, please try another solution!';
+        return ['Too much content returned, please try another solution!'];
       }
       return result;
     } catch (error) {
@@ -51,25 +56,21 @@ function main(params) {
   }
 }
 
-if (require.main === module) {
-  const input = process.argv[2];
-  const recursive = process.argv.includes('--recursive');
-  console.log(main({ input, recursive }).join('\n'));
-}
-
 function getPrompt() {
   const prompt = `## list_files
 Description: Request to list files and directories in the specified directory. Do not use this tool to confirm the existence of files you may have created, as the user will let you know if the file was successfully created.
 Parameters:
 - path: (Required) The folder path to read
 - recursive: (Optional) true or false, if recursive is true, it will recursively list all files and directories. If recursive is false or not provided, it will only list the top-level content.
+- regex: (Optional) Regular expression pattern to filter files by name
 Usage:
 {
   "thinking": "[Thinking process]",
   "tool": "list_files",
   "params": {
     "path": "[value]",
-    "recursive": [value]
+    "recursive": [value],
+    "regex": "[value]"
   }
 }`
   return prompt

@@ -205,9 +205,10 @@
   ],
   "tool_call": {
     "memory_length": 20,
-    "mcp_timeout": 600,
+    "mcp_timeout": 6000,
     "extra_prompt": "{resourcesPath}/resource/system_prompts/prompt.md",
     "tmpdir": "/tmp",
+    "language": "english",
     "system_type": "linux",
     "system_platform": "debian12",
     "system_arch": "x86_64",
