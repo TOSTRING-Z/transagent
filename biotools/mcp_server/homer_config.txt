@@ -9,9 +9,9 @@
 SOFTWARE
 homer	v5.1	Code/Executables, ontologies, motifs for HOMER	http://homer.ucsd.edu/homer/data/software/homer.v5.1.zip	./	
 ORGANISMS
-human	v7.0	Homo sapiens (human) accession and ontology information	http://homer.ucsd.edu/homer/data/organisms/human.v7.0.zip	/data/homer/accession/	9606,NCBI Gene
+human	v7.0	Homo sapiens (human) accession and ontology information	http://homer.ucsd.edu/homer/data/organisms/human.v7.0.zip	../../../../data/homer/accession/	9606,NCBI Gene
 PROMOTERS
 GENOMES
-hg19	v7.0	human genome and annotation for UCSC hg19	http://homer.ucsd.edu/homer/data/genomes/hg19.v7.0.zip	/data/homer/genomes/hg19/	human,default
-hg38	v7.0	human genome and annotation for UCSC hg38	http://homer.ucsd.edu/homer/data/genomes/hg38.v7.0.zip	/data/homer/genomes/hg38/	human,default
+hg19	v7.0	human genome and annotation for UCSC hg19	http://homer.ucsd.edu/homer/data/genomes/hg19.v7.0.zip	../../../../data/homer/genomes/hg19/	human,default
+hg38	v7.0	human genome and annotation for UCSC hg38	http://homer.ucsd.edu/homer/data/genomes/hg38.v7.0.zip	../../../../data/homer/genomes/hg38/	human,default
 SETTINGS
