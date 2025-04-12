@@ -36,6 +36,23 @@
       text-decoration: underline;
     }
 
+    table {
+      display: block;
+      /* 关键：让 table 变为块级元素 */
+      overflow-x: auto;
+      /* 横向滚动条 */
+      width: 100%;
+      /* 限制宽度 */
+      white-space: nowrap;
+      /* 禁止内容换行 */
+    }
+
+    th,
+    td {
+      border: 1px solid #f1f1f1;
+      padding: 4px;
+    }
+
     menu,
     ol,
     ul {
