@@ -22,8 +22,8 @@ function main(params) {
         let terminalWindow = null;
         // Create terminal window
         terminalWindow = new BrowserWindow({
-            width: 800,
-            height: 600,
+            width: 1200,
+            height: 800,
             frame: false, // 隐藏默认标题栏和边框
             transparent: true, // 可选：实现透明效果
             resizable: true, // 允许调整窗口大小
@@ -35,11 +35,6 @@ function main(params) {
         });
 
         terminalWindow.loadFile('src/frontend/terminal.html');
-
-        // 在窗口加载完成后打开开发者工具
-        terminalWindow.webContents.on('did-finish-load', () => {
-            terminalWindow.webContents.openDevTools();
-        });
 
         // 或者你也可以在窗口显示后立即打开开发者工具
         terminalWindow.on('ready-to-show', () => {

@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const { BrowserWindow, ipcMain } = require('electron');
 const { Client } = require('ssh2');
+const { utils } = require('../modules/globals');
 
 function threshold(data, threshold) {
     if (!!data && data?.length > threshold) {
@@ -23,33 +24,41 @@ function main(params) {
     return async ({ code }) => {
         // Create temporary file
         const tempFile = path.join(tmpdir(), `temp_${Date.now()}.sh`)
+        if (!!params?.bashrc) {
+            code = `source ${params.bashrc};\n${code}`;
+        }
         writeFileSync(tempFile, code)
         console.log(tempFile)
 
         // Create terminal window
         let terminalWindow = null;
         terminalWindow = new BrowserWindow({
-            width: 800,
-            height: 600,
+            width: 1200,
+            height: 800,
             frame: false, // 隐藏默认标题栏和边框
             transparent: true, // 可选：实现透明效果
             resizable: true, // 允许调整窗口大小
             icon: path.join(__dirname, 'icon/icon.ico'),
             webPreferences: {
+                devTools: true, // 保持 DevTools 开启
                 nodeIntegration: true,
                 contextIsolation: false // 允许在渲染进程使用Electron API
             }
+        });
+
+        // 监听 DevTools 打开事件，移除 Autofill 相关功能
+        terminalWindow.webContents.on('devtools-opened', () => {
+            terminalWindow.webContents.executeJavaScript(`
+                if (window.DevToolsAPI) {
+                    window.DevToolsAPI.setExperimentsDisabledForTest('autofill');
+                }
+            `);
         });
 
         terminalWindow.loadFile('src/frontend/terminal.html');
 
         // 在窗口加载完成后打开开发者工具
         terminalWindow.webContents.on('did-finish-load', () => {
-            terminalWindow.webContents.openDevTools();
-        });
-
-        // 或者你也可以在窗口显示后立即打开开发者工具
-        terminalWindow.on('ready-to-show', () => {
             terminalWindow.webContents.openDevTools();
         });
 
@@ -64,8 +73,8 @@ function main(params) {
         return new Promise((resolve, reject) => {
             let output = null;
             let error = null;
-
-            if (!!params?.ssh_config) {
+            const sshConfig = utils.getSshConfig();
+            if (!!sshConfig) {
                 const conn = new Client();
 
                 conn.on('ready', () => {
@@ -132,7 +141,7 @@ function main(params) {
                     .on('close', () => {
                         console.log('Connection Closed');
                     })
-                    .connect(params.ssh_config);
+                    .connect(sshConfig);
 
             } else {
                 const child = exec(`${params.bash} ${tempFile}`);

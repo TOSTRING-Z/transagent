@@ -387,15 +387,26 @@ const formatText = (token) => {
   return highlightResult;
 }
 
+const formatImage = (token) => {
+  return `<img class="size-48 shadow-xl rounded-md mb-1" src="${token.href}" alt="${token.text}"></img>`;
+}
+
+const formatLink = (token) => {
+  return `<a href="${token.href}">${token.text}</a>`;
+}
+
 const renderer = {
   code(token) {
     return formatCode(token);
   },
   html(token) {
-    return formatCode(token);
+    return formatText(token);
   },
   link(token) {
-    return formatText(token);
+    return formatLink(token);
+  },
+  image(token) {
+    return formatImage(token);
   },
   text(token) {
     if (token.hasOwnProperty("tokens")) {

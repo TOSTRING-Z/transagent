@@ -55,6 +55,8 @@ class Plugins {
     }
 }
 
+Plugins.instance = null;
+
 module.exports = {
     Plugins
 }

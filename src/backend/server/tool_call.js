@@ -386,6 +386,9 @@ All task messages submitted by users will also be saved in the "memory list". If
       data.output_format = observation;
       pushMessage("user", data.output_format, data.id, this.memory_id);
       this.environment_update(data);
+      if (tool_info.tool == "display_file") {
+        data.event.sender.send('stream-data', { id: data.id, content: `${output}\n\n` });
+      }
       if (this.state == State.PAUSE) {
         const { question, options } = output;
         data.event.sender.send('stream-data', { id: data.id, content: question, end: true });
@@ -411,23 +414,27 @@ All task messages submitted by users will also be saved in the "memory list". If
   async act({ tool, params }) {
     try {
       if (!this.tools.hasOwnProperty(tool)) {
-        const observation = `Tool ${tool} does not exist! Please check if the tool name is incorrect or if the MCP service call format is wrong.`;
+        const observation = `{
+  "tool_call": "${tool}",
+  "observation": "Tool does not exist",
+  "error": "Please check if the tool name is incorrect or if the MCP service call format is wrong"
+}`;
         return { observation, output: null };
       }
       const will_tool = this.tools[tool].func;
       const output = await will_tool(params);
-      const observation = `Tool ${tool} has been executed, output as follows:
-{
-    "observation": ${JSON.stringify(output, null, 4)},
-    "error": ""
+      const observation = `{
+  "tool_call": "${tool}",
+  "observation": ${JSON.stringify(output, null, 4)},
+  "error": ""
 }`;
       return { observation, output };
     } catch (error) {
       console.log(error);
-      const observation = `Tool ${tool} has been executed, output as follows:
-{
-    "observation": "",
-    "error": "${error.message}"
+      const observation = `{
+  "tool_call": "${tool}",
+  "observation": "Tool has been executed",
+  "error": "${error.message}"
 }`;
       return { observation, output: error.message };
     }
@@ -447,10 +454,10 @@ All task messages submitted by users will also be saved in the "memory list". If
       }
     } catch (error) {
       console.log(error);
-      data.output_format = `Tool was not executed, output as follows:
-{
-    "observation": "",
-    "error": "Your response is not a pure JSON text, or there is a problem with the JSON format: ${error.message}"
+      data.output_format = `{
+  "tool_call": "${tool}",
+  "observation": "Tool was not executed",
+  "error": "Your response is not a pure JSON text, or there is a problem with the JSON format: ${error.message}"
 }`;
       pushMessage("user", data.output_format, data.id, this.memory_id);
       this.environment_update(data);
@@ -483,6 +490,14 @@ All task messages submitted by users will also be saved in the "memory list". If
             let { role, content, id, memory_id, react } = messages[i];
             if (role == "user") {
               if (!!react) {
+                const content_json = utils.extractJson(content);
+                if (!!content_json) {
+                  const tool_info = JSON5.parse(content_json);
+                  if (tool_info?.tool_call == "display_file") {
+                    const observation = tool_info.observation;
+                    this.window.webContents.send('stream-data', { id: id, content: `${observation}\n\n`, end: true });
+                  }
+                }
                 let content_format = content.replaceAll("\`", "'").replaceAll("`", "'");
                 this.window.webContents.send('info-data', { id: id, content: `Step ${i}, Output: \n\n\`\`\`json\n${content_format}\n\`\`\`\n\n` });
               }
@@ -493,6 +508,7 @@ All task messages submitted by users will also be saved in the "memory list". If
             } else {
               if (!!react) {
                 try {
+                  content = utils.extractJson(content) || content;
                   const tool_info = JSON5.parse(content);
                   if (!!tool_info?.thinking) {
                     this.memory_list.push({ assistant: tool_info.thinking, memory_id: memory_id });

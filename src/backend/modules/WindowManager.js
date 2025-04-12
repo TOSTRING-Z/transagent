@@ -22,6 +22,8 @@ class WindowManager {
     }
 }
 
+WindowManager.instance = null;
+
 module.exports = {
     WindowManager
 };

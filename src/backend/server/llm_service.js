@@ -28,7 +28,7 @@ function clearMessages() {
 }
 
 function saveMessages(filePath) {
-    fs.writeFile(filePath, JSON.stringify(messages), err => {
+    fs.writeFile(filePath, JSON.stringify(messages, null, 2), err => {
         if (err) {
             console.log("写入失败");
             return;
