@@ -1,50 +1,29 @@
-# 全面超级增强子目录 用以 选择组织/细胞特异性位点 的智能体 构建
+# Biotools
 
-# 数据
-```bash
-rsync -rz -P root@172.20.13.132:/var/www/html/eRNAbase/public/data/annotation/human data/
-```
+## MCP server
 
-# 软件
-```bash
-cp src/backend/server/{agent,llm_service,stream,tool_call}.js transagent/src/backend/server/
-cp  {ConfigsWindow,globals,Install,MainWindow,Utils,Window,WindowManager}.js transagent/src/backend/modules/
-```
+[mcp_server](mcp_server)
 
+# 简单案例
 
-# 任务案例
-查看TP53在增强子上的覆盖情况
-intersect
--a /tmp/gene_position@a3e84069-1030-11f0-8abc-bcfce71289ab.bed -b /data/human/human_Super_Enhancer_SEdbv2.bed -u
+## 区域注释
 
-## 问题
+查看TP53基因在增强子上的覆盖情况
+查看ESR1,GATA3,FOXA1基因在相关增强子和SNP上的覆盖情况
 
-查看ESR1,GATA3,FOXA1在相关增强子和SNP上的覆盖情况
+## 表达分析
 
-### 工具
+查看TP53基因的表达情况
 
-基因位置查询 (input: 基因列表, out_file: Gene-bed文件路径)
-bed文件查询 (input: 生物学类型;Enhancer, out_str: Enhancer-bed文件路径)
-执行bedtools (input: Gene-bed文件路径,Enhancer-bed文件路径, out_file: 结果文件)
+## 转录调控子活性分析
 
-## 问题
+寻找调控/tmp/diff.txt中基因的关键调控子
 
-分析这套乳腺癌数据中关键调控子上SNP的覆盖情况
+# 复杂案例
 
-使用增强子来筛选细胞类型特异性区域
+Case1：
+  输入Med1或者H3K27AC ChIP-seq，识别出peak和Super enhancer（DeepTools画出来区域活性图），SE区域HOMER（出motif的图），调用DeepTools画出来TF ChIP-seq在SE相关基因上的绑定活性，IGV可视化重点基因的多个track；下游靶基因的表达特异性（TCGA或者gtex）
 
-### 工具
-
-询问用户数据类型 (基因列表/bed文件)
-IF 基因列表:
-  转录调控子预测 (input: 基因列表, out_file: 关键转录调控子)
-  bed文件查询 (input: 生物学类型;TR, out_str: TR bed文件路径)
-  bed文件查询 (input: 生物学类型;SNP, out_str: SNP bed文件路径)
-  执行bedtools (input: TR-bed文件路径,SNP-bed文件路径, out_file: 结果文件)
-IF bed文件:
-  区域基因搜索 (input: bed文件,  out_file: 基因列表文件)
-  转录调控子预测 (input: 基因列表, out_file: 关键转录调控子)
-  bed文件查询 (input: 生物学类型;TR, out_str: TR-bed文件路径)
-  bed文件查询 (input: 生物学类型;SNP, out_str: SNP-bed文件路径)
-  执行bedtools (input: TR-bed文件路径,SNP-bed文件路径, out_file: 结果文件)
-
+Case2:
+  https://www.ncbi.nlm.nih.gov/sra?term=SRP198938  （KYSE200）; 
+  https://www.ncbi.nlm.nih.gov/sra?term=SRP123449 (TT)；TP63 ChIP-seq：https://www.ncbi.nlm.nih.gov/sra?term=SRP257490；这个文章是通过做了SE，然后crc环找到了TP63/SOX2/KLF5调控食管鳞癌，咱看只用SE的homer能不能富集出来这些TF

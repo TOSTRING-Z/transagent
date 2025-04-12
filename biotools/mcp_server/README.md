@@ -61,16 +61,14 @@ config.json
 "plugins": {
   "cli_execute": {
     "params": {
-      "ssh_config": {
-        "host": "127.0.0.1",
-        "port": 3002,
-        "username": "root",
-        "password": "password"
-      },
+      "cli_prompt": "/path/to/cli_prompt.md",
+      "bashrc": "/root/.bashrc",
       "delay_time": 5,
-      "threshold": 10000,
-      "cli_prompt": "/path/to/biotools/mcp_server/cli_prompt.md"
+      "threshold": 10000
     },
+    "enabled": true
+  },
+  "display_file": {
     "enabled": true
   }
 },
@@ -105,6 +103,12 @@ config.json
   "system_type": "linux",
   "system_platform": "debian12",
   "system_arch": "x86_64",
+  "ssh_config": {
+    "host": "172.0.0.1",
+    "port": 3002,
+    "username": "root",
+    "password": "password"
+  },
   "llm_parmas": {
     "max_tokens": 4000,
     "temperature": 0.5,
