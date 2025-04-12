@@ -33,34 +33,20 @@ function main(params) {
         // Create terminal window
         let terminalWindow = null;
         terminalWindow = new BrowserWindow({
-            width: 1200,
-            height: 800,
+            width: 800,
+            height: 600,
             frame: false, // 隐藏默认标题栏和边框
             transparent: true, // 可选：实现透明效果
             resizable: true, // 允许调整窗口大小
             icon: path.join(__dirname, 'icon/icon.ico'),
             webPreferences: {
-                devTools: true, // 保持 DevTools 开启
+                // devTools: true, // 保持 DevTools 开启
                 nodeIntegration: true,
                 contextIsolation: false // 允许在渲染进程使用Electron API
             }
         });
 
-        // 监听 DevTools 打开事件，移除 Autofill 相关功能
-        terminalWindow.webContents.on('devtools-opened', () => {
-            terminalWindow.webContents.executeJavaScript(`
-                if (window.DevToolsAPI) {
-                    window.DevToolsAPI.setExperimentsDisabledForTest('autofill');
-                }
-            `);
-        });
-
         terminalWindow.loadFile('src/frontend/terminal.html');
-
-        // 在窗口加载完成后打开开发者工具
-        terminalWindow.webContents.on('did-finish-load', () => {
-            terminalWindow.webContents.openDevTools();
-        });
 
         ipcMain.on('minimize-window', () => {
             terminalWindow?.minimize()
@@ -125,6 +111,7 @@ function main(params) {
                         ipcMain.on('terminal-signal', (event, input) => {
                             switch (input) {
                                 case "ctrl_c":
+                                    conn.end();
                                     stream.close();
                                     break;
 
