@@ -2,13 +2,11 @@
 
 ![BixChat](img/BixChat.png)
 
-BixChat 是一款功能强大的跨平台转录调控Agent应用程序，支持Windows和Linux系统。通过ReAct架构，即思考、行动和观察，能够帮助使用研究人员完成复杂的转录调控分析任务。于此同时，我们提供了多种方式便于用户快速集成新的工具，其中包括了MCP服务和自定义工具工具，因此，BixChat是一个通用的架构，能够在根据研究人员的需求进行定制化的配置。
+BixChat是一款功能强大的跨平台转录调控Agent应用程序，支持Windows和Linux系统。通过ReAct架构，即思考、行动和观察，能够帮助使用研究人员完成复杂的转录调控分析任务。于此同时，我们提供了多种方式便于用户快速集成新的工具，其中包括了MCP服务和自定义工具工具，因此，BixChat是一个通用的架构，能够在根据研究人员的需求进行定制化的配置。
 
 ## 特色功能
 
 ### Ollama支持
-
-![BixChat](img/BixChat-copy.png)
 
 - 为了进一步提供数据分析的隐私保护需求，我们集成Ollama功能，支持接入用户本地部署的私有大模型。
 
@@ -22,7 +20,7 @@ BixChat 是一款功能强大的跨平台转录调控Agent应用程序，支持W
 
 ### biotools
 
-- 我们提供了一个通用的转录调控MCP服务名为“biotools”，用户可以使用多种工具快速接入。
+- 我们提供了一个通用的转录调控MCP服务[biotools](./biotools)，用户可以使用本软件快速接入。
 
 ### 虚拟化环境
 
@@ -36,21 +34,12 @@ BixChat 是一款功能强大的跨平台转录调控Agent应用程序，支持W
 - 我们预留了系统提示词的注入接口，通过简单的修改配置文件，可以方便研究人员个性化的微调智能体行为
 
 ### 记忆
-- 我们进一步优化了记忆模块，在面对超长上下文任务中，我们采用了长期记忆加短期记忆结合的方式。短期记忆即智能体保留几个对话周期的消息，而长期记忆即智能体保留10倍与短期记忆的用户消息和智能体思考内容。而对于智能体需要回忆的内容，我们提供了“记忆回溯”工具，能够让智能体进一步具有回忆的能力。
+- 我们进一步优化了记忆模块，在面对超长上下文任务中，我们采用了长期记忆加短期记忆结合的方式。短期记忆即智能体保留几个对话周期的消息，而长期记忆即智能体保留10倍与短期记忆的用户消息和智能体思考内容。而对于智能体需要回忆的内容，我们提供了`记忆回溯`工具，能够让智能体进一步具有回忆的能力。
 
 ### 其它功能
 - 为了满足研究人员一站式需求，我们在软件中也集成了基础对话，链式调用，对话保存与加载等功能。
 
 ## 案例
-
-### 下面是 Agent 实现 PDF 文件文字自动化提取，通过调用视觉大模型来实现 OCR。
-
-![todolist](img/todolist.png)
-![categories](img/categories.png)
-
-### 下面是 Agent 实现 PDF 文件文字自动化提取，通过调用视觉大模型来实现 OCR。
-
-![todolist](img/pdf_ocr.png)
 
 ## 系统要求
 
@@ -84,64 +73,13 @@ _- 由于版本快速迭代，建议自己编译以体验最新功能. -_
 
 > Agent参数配置
 
-config.json
-
-```json
-"tool_call": {
-  "memory_length": 20,
-  "mcp_timeout": 600,
-  "extra_prompt": "/你的系统提示词路径/prompt.md",
-  "llm_parmas": {
-    "max_tokens": 8000,
-    "temperature": 0.5,
-    "stream": true,
-    "response_format": {
-      "type": "json_object"
-    }
-  }
-}
-```
-
-> Agent工具配置
-
-config.json
-
-```json
-"python_execute": {
-  "params": {
-    "python_bin": "python",
-    "delay_time": 10,
-    "threshold": 10000
-  },
-  "enabled": true
-}
-```
-
-_- 更多案例见： -_
-
-[resource/plugins](resource/plugins)
-
-
-> Agent工具配置
-
-config.json
-
-```json
-"python_execute": {
-  "params": {
-    "python_bin": "python",
-    "delay_time": 10,
-    "threshold": 10000
-  },
-  "enabled": true
-}
-```
+[mcp_server](biotools/mcp_server)
 
 > 安装工具依赖
 
-[工具页面: resource/plugins](resource/plugins)
+[plugins](resource/plugins)
 
-> 配置大模型示例 (`ollama支持`)
+> 大模型配置示例 (`ollama支持`)
 
 config.json
 
@@ -389,7 +327,7 @@ _- 可配置显示组件 -_
 
 _- 更多案例见： -_
 
-[resource/chain_calls](resource/chain_calls)
+[chain_calls](resource/chain_calls)
 
 ## 具体咨询请联系：
 
