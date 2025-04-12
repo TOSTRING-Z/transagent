@@ -33,7 +33,68 @@ bed_config = {"gene_bed_path": "/data/human/gene.bed"}
 
 exp_data_db = {"GTEx": "/data/exp/GTEx.csv.gz"}
 
+from functools import wraps
+from typing import Callable, Any, Dict, Tuple, Optional
 
+def validate_required_params(
+    *required_params: str, param_types: Optional[Dict[str, Tuple[type, str]]] = None
+):
+    """
+    参数验证装饰器
+
+    Args:
+        *required_params: 必须存在的参数名列表
+        param_types: 参数类型检查字典 {参数名: (期望类型, 类型描述)}
+
+    Example:
+        @validate_required_params('data_source', 'genes',
+                                param_types={'genes': (list, '列表')})
+        async def get_express_data(data_source: str, genes: list) -> str:
+            ...
+    """
+
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs) -> Any:
+            # 合并所有参数
+            all_params = kwargs.copy()
+            if args:
+                # 获取同步方法的参数名
+                import inspect
+
+                sig = inspect.signature(func)
+                params = list(sig.parameters.keys())
+                all_params.update(dict(zip(params, args)))
+
+            # 检查必填参数
+            missing = [
+                p
+                for p in required_params
+                if p not in all_params or all_params[p] is None
+            ]
+            if missing:
+                return f"缺少以下参数: {', '.join(missing)}"
+
+            # 检查参数类型
+            type_errors = []
+            if param_types:
+                for param, (expected_type, type_name) in param_types.items():
+                    if param in all_params and not isinstance(
+                        all_params[param], expected_type
+                    ):
+                        type_errors.append(f"{param}必须是{type_name}类型")
+
+            if type_errors:
+                return "；".join(type_errors)
+
+            # 调用原函数
+            return await func(*args, **kwargs)
+
+        return async_wrapper
+
+    return decorator
+
+@validate_required_params("command")
 async def execute_bash(
     command: str = "echo hello!", timeout: Optional[float] = 600.0
 ) -> str:
@@ -69,30 +130,47 @@ async def execute_bash(
     except Exception as e:
         return f"Execution error: {str(e)}"
 
-
+@validate_required_params("biological_type")
 async def get_bed_data(biological_type: str) -> str:
     if biological_type in bed_data_db:
         return bed_data_db[biological_type]
     return "Biological type {biological_type} not found in local database"
 
 
-async def get_express_data(data_source: str) -> str:
-    if data_source in bed_data_db:
-        return exp_data_db[data_source]
-    return "Data source {data_source} not found in local database"
+@validate_required_params("data_source", "genes")
+async def get_express_data(data_source: str, genes: list) -> str:
+    try:
+        if data_source in exp_data_db:
+            exp_file = exp_data_db[data_source]
+            exp = pd.read_csv(exp_file, index_col=0)
+            exp_genes = exp[exp.index.map(lambda gene: gene in genes)]
+            uuid_ = uuid.uuid1()
+            exp_genes_path = f"{tmp_docker}/exp_genes_{uuid_}.csv"
+            exp_genes.to_csv(exp_genes_path)
+            return exp_genes_path
+        return "Data source {data_source} not found in local database"
+    except Exception as e:
+        return str(e)
 
 
-async def get_gene_position(genes: list = ["TP53"]) -> str:
-    gene_bed = pd.read_csv(
-        bed_config["gene_bed_path"], index_col=None, header=None, sep="\t"
-    )
-    gene_position = gene_bed[gene_bed[4].map(lambda gene: gene in genes)]
-    uuid_ = uuid.uuid1()
-    docker_gene_position_path = f"{tmp_docker}/gene_position_{uuid_}.bed"
-    gene_position.to_csv(docker_gene_position_path, header=False, index=False, sep="\t")
-    return docker_gene_position_path
+@validate_required_params("genes")
+async def get_gene_position(genes: list) -> str:
+    try:
+        gene_bed = pd.read_csv(
+            bed_config["gene_bed_path"], index_col=None, header=None, sep="\t"
+        )
+        gene_position = gene_bed[gene_bed[4].map(lambda gene: gene in genes)]
+        uuid_ = uuid.uuid1()
+        docker_gene_position_path = f"{tmp_docker}/gene_position_{uuid_}.bed"
+        gene_position.to_csv(
+            docker_gene_position_path, header=False, index=False, sep="\t"
+        )
+        return docker_gene_position_path
+    except Exception as e:
+        return str(e)
 
 
+@validate_required_params("subcommand", "options")
 async def execute_bedtools(
     subcommand: str = "intersect",
     options: str = "--help",
@@ -146,14 +224,23 @@ async def fetch_tool(
     # 返回: 包含文本、图像或嵌入资源的列表
 
     tools = {
-        "execute_bash": execute_bash,
         "get_bed_data": get_bed_data,
         "get_gene_position": get_gene_position,
         "execute_bedtools": execute_bedtools,
+        "get_express_data": get_express_data,
+        "execute_bedtools": execute_bedtools,
     }
     try:
-        result = await tools[name](**arguments)
-        return [types.TextContent(type="text", text=result)]
+        if name in tools:
+            result = await tools[name](**arguments)
+            return [types.TextContent(type="text", text=result)]
+        else:
+            return [
+                types.TextContent(
+                    type="text",
+                    text=f"The '{name}' MCP service does not exist. Please check and try again!",
+                )
+            ]
     except Exception as e:
         return [types.TextContent(type="text", text=str(e))]
 
@@ -218,7 +305,7 @@ Returns:
                 "properties": {
                     "biological_type": {
                         "type": "string",
-                        "description": f"Biological types in local database ({biological_type_list})",
+                        "description": f"Biological types in local database (must be: {biological_type_list})",
                     }
                 },
             },
@@ -227,54 +314,51 @@ Returns:
             name="get_express_data",
             description="""Get express data for a given data source from the local database (hg38).
 Returns:
-    The path to the [data_source]-bed file.""",
+    The genes expression file.""",
             inputSchema={
                 "type": "object",
-                "required": ["data_source"],
+                "required": ["data_source", "genes"],
                 "properties": {
                     "data_source": {
                         "type": "string",
-                        "description": f"Data sources in local database ({data_source_list})",
-                    }
+                        "description": f"Data sources in local database (must be: {data_source_list})",
+                    },
+                    "genes": {
+                        "type": "array",
+                        "description": "A list of gene names (e.g. ['TP53'])",
+                    },
                 },
             },
         ),
         types.Tool(
             name="execute_bash",
             description="""Execute the bash tool with the given command.
-
-当前工具可以用于复杂的生物信息分析流程，包括复杂的数据分析，绘图和系统级别指令调用。已经安装的工具如下：
-- homer: 用于ChIP-seq和motif分析的工具
-    Example: `execute_bash("findMotifsGenome.pl peaks.txt hg38 output_dir -size 200 -mask")`
-- deeptools: 用于高通量测序数据的可视化
-    Example: `execute_bash("computeMatrix reference-point --referencePoint TSS -b 1000 -a 1000 -R genes.bed -S coverage.bw -out matrix.gz")`
+当前工具可以用于复杂的生物信息分析流程，包括复杂的数据分析，绘图和系统级别指令调用。已经安装的软件如下：
+- homer: 用于ChIP-seq和motif分析的软件
+    Example: findMotifsGenome.pl input.bed hg38 output_dir -size 200 -mask
 - chipseeker: 用于ChIP-seq数据的注释
-    Example: `execute_bash("Rscript -e 'library(ChIPseeker); peakAnno <- annotatePeak("peaks.bed", tssRegion=c(-1000, 1000), TxDb=TxDb.Hsapiens.UCSC.hg19.knownGene)'")`
+    Example: mkdir -p output_dir && Rscript -e 'library(ChIPseeker); peakAnno <- annotatePeak("input.bed", tssRegion=c(-1000, 1000), TxDb=TxDb.Hsapiens.UCSC.hg38.knownGene); write.csv(peakAnno@annoStat,"output_dir/ChIPseeker_annoStat.csv")'
 - ucsc-liftover: 用于基因组坐标转换
-    Example: `execute_bash("liftOver input.bed hg19ToHg38.over.chain output.bed unmapped.bed")`
-- cistrome_beta: 用于ChIP-seq数据分析的beta版本工具
-    Example: `execute_bash("cistrome beta --input peaks.bed --genome hg38 --output output_dir")`
+    Example: liftOver input.bed /data/bam2bw/hg19ToHg38.over.chain.gz output.bed unmapped.bed
+- BETA: Find Target Genes with only binding data: regulatiry potential score
+    Example: awk '{print $1"\t"$2"\t"$3}' input.bed > BETA_input.bed && BETA minus -p BETA_input.bed -g hg38 -n BETA_targets -o output_dir
 - fastqc: 用于测序数据的质量控制
-    Example: `execute_bash("fastqc seq.fastq -o output_dir")`
+    Example: fastqc seq.fastq -o output_dir
 - trim_galore: 用于测序数据的适配器修剪
-    Example: `execute_bash("trim_galore --paired --quality 20 --length 20 read1.fastq read2.fastq")`
+    Example: trim_galore --paired --quality 20 --length 20 read1.fastq read2.fastq
 - bowtie2: 用于序列比对
-    Example: `execute_bash("bowtie2 -x index -1 read1.fastq -2 read2.fastq -S output.sam")`
-- picard: 用于处理高通量测序数据的工具
-    Example: `execute_bash("picard MarkDuplicates I=input.bam O=marked_duplicates.bam M=metrics.txt")`
+    Example: bowtie2 -x index -1 read1.fastq -2 read2.fastq -S output.sam
+- picard: 用于处理高通量测序数据的软件
+    Example: picard MarkDuplicates I=input.bam O=marked_duplicates.bam M=metrics.txt
 - macs2: 用于ChIP-seq峰值检测
-    Example: `execute_bash("macs2 callpeak -t ChIP.bam -c Control.bam -f BAM -g hs -n output_prefix")`
+    Example: macs2 callpeak -t ChIP.bam -c Control.bam -f BAM -g hs -n output_prefix
+- deeptools: 用于高通量测序数据的可视化
+    Example: computeMatrix reference-point --referencePoint TSS -b 1000 -a 1000 -R input.bed -S input.bw -out matrix.gz && plotProfile -m matrix.gz --plotTitle "final profile" --plotFileFormat svg -out output.svg
 - pandas: 用于数据分析和操作
-    Example: `execute_bash("python -c 'import pandas as pd; df = pd.read_csv("data.csv"); print(df.head())'")
+    Example: python -c 'import pandas as pd; df = pd.read_csv("data.csv"); print(df.head())'
 - seaborn: 用于数据可视化
-    Example: `execute_bash("python -c 'import seaborn as sns; tips = sns.load_dataset("tips"); sns.boxplot(x="day", y="total_bill", data=tips)'")
-
-Returns:
-    The output of the bash command.
-
-Examples:
-    >>> execute_bash("ls -l")
-    'total 4\ndrwxr-xr-x 2 root root 4096 Apr  5 12:34 data'""",
+    Example: python -c 'import seaborn as sns; tips = sns.load_dataset("tips"); sns.boxplot(x="day", y="total_bill", data=tips)'
+""",
             inputSchema={
                 "type": "object",
                 "required": ["command"],
