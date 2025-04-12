@@ -1,6 +1,6 @@
 # BixChat
 
-![BixChat](img/BixChat.png)
+![BixChat](public/img/BixChat.png)
 
 BixChat是一款功能强大的跨平台Agent应用程序，支持Windows和Linux系统。通过ReAct架构，即思考、行动和观察，能够帮助使用研究人员完成复杂的生物信息分析任务。于此同时，我们提供了多种方式便于用户快速集成新的工具，其中包括了MCP服务和自定义工具工具，因此，BixChat是一个通用的架构，能够在根据研究人员的需求进行定制化的配置。
 
@@ -39,7 +39,9 @@ BixChat是一款功能强大的跨平台Agent应用程序，支持Windows和Linu
 ### 其它功能
 - 为了满足研究人员一站式需求，我们在软件中也集成了基础对话，链式调用，对话保存与加载等功能。
 
-## 案例
+## 示例
+
+![TP53 analysis](public/video/TP53_analysis.gif)
 
 ## 系统要求
 
