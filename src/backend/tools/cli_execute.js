@@ -15,7 +15,43 @@ function threshold(data, threshold) {
     }
 }
 
-let cli_prompt = "Execute bash code locally, such as file reading, data analysis, and code execution.";
+let cli_prompt = `The current tools can be used for complex bioinformatics analysis pipelines, including sophisticated data analysis, plotting, and system-level command execution. The installed software includes:  
+
+- **HOMER**: Used for ChIP-seq and motif analysis.  
+  *Example*: findMotifsGenome.pl input.bed hg38 output_dir -size 200 -mask  
+
+- **ChIPseeker**: Used for annotating ChIP-seq data.  
+  *Example*: mkdir -p output_dir && Rscript -e 'library(ChIPseeker); peakAnno <- annotatePeak("input.bed", tssRegion=c(-1000, 1000), TxDb=TxDb.Hsapiens.UCSC.hg38.knownGene); write.csv(peakAnno@annoStat,"output_dir/ChIPseeker_annoStat.csv")'  
+
+- **UCSC LiftOver**: Used for genomic coordinate conversion.  
+  *Example*: liftOver input.bed /data/bam2bw/hg19ToHg38.over.chain.gz output.bed unmapped.bed  
+
+- **BETA**: Identifies target genes using only binding data (regulatory potential score).  
+  *Example*: awk '{print $1"\t"$2"\t"$3}' input.bed > BETA_input.bed && BETA minus -p BETA_input.bed -g hg38 -n BETA_targets -o output_dir  
+
+- **FastQC**: Used for sequencing data quality control.  
+  *Example*: fastqc seq.fastq -o output_dir  
+
+- **Trim Galore**: Used for adapter trimming in sequencing data.  
+  *Example*: trim_galore --paired --quality 20 --length 20 read1.fastq read2.fastq  
+
+- **Bowtie2**: Used for sequence alignment.  
+  *Example*: bowtie2 -x index -1 read1.fastq -2 read2.fastq -S output.sam  
+
+- **Picard**: Used for processing high-throughput sequencing data.  
+  *Example*: picard MarkDuplicates I=input.bam O=marked_duplicates.bam M=metrics.txt  
+
+- **MACS2**: Used for ChIP-seq peak calling.  
+  *Example*: macs2 callpeak -t ChIP.bam -c Control.bam -f BAM -g hs -n output_prefix  
+
+- **DeepTools**: Used for visualizing high-throughput sequencing data.  
+  *Example*: computeMatrix reference-point --referencePoint TSS -b 1000 -a 1000 -R input.bed -S input.bw -out matrix.gz && plotProfile -m matrix.gz --plotTitle "final profile" --plotFileFormat svg -out output.svg  
+
+- **Pandas**: Used for data analysis and manipulation.  
+  *Example*: python -c 'import pandas as pd; df = pd.read_csv("data.csv"); print(df.head())'  
+
+- **Seaborn**: Used for data visualization.  
+  *Example*: python -c 'import seaborn as sns; tips = sns.load_dataset("tips"); sns.boxplot(x="day", y="total_bill", data=tips)'`;
 
 function main(params) {
     if (!!params.cli_prompt && fs.existsSync(params.cli_prompt)) {
