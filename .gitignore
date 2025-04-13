@@ -1,4 +1,4 @@
-out
+dist
 node_modules
 glm_token.py
 .vscode

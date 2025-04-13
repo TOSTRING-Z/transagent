@@ -6,47 +6,72 @@
   "homepage": ".",
   "author": "TOSTRING_Z",
   "private": true,
-  "config": {
-    "forge": {
-      "packagerConfig": {
-        "name": "bixchat",
-        "icon": "src/backend/icon/icon",
-        "platform": "all",
-        "asar": true,
-        "compression": "maximum",
-        "quiet": false,
-        "ignore": [
-          ".vscode",
-          ".git",
-          "package-lock.json",
-          "test"
-        ],
-        "extraResource": [
-          "resource"
-        ]
-      },
-      "makers": [
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "icon": "src/backend/icon/icon.ico"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-deb",
-          "config": {
-            "icon": "src/backend/icon/icon.png"
-          }
-        }
-      ]
+  "build": {
+    "files": [
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/*.{o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/.DS_Store",
+      "!.gitignore",
+      "!.vscode",
+      "!.git",
+      "!package-lock.json",
+      "!biotools/{data,tmp}",
+      "!out",
+      "!public",
+      "!resource/plugins/node_modules",
+      "!**/.venv",
+      "!**/_pycache_",
+      "!**/*.map",
+      "!**/*.log"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "src/backend/icon/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "src/backend/icon/icon.ico",
+      "uninstallerIcon": "src/backend/icon/uninstall.ico",
+      "installerHeader": "src/backend/icon/icon.bmp",
+      "installerSidebar": "src/backend/icon/icon.bmp",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "BixChat",
+      "menuCategory": "BixChat"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "src/backend/icon/icon.icns"
+    },
+    "linux": {
+      "target": [
+        "deb",
+        "rpm",
+        "AppImage"
+      ],
+      "icon": "src/backend/icon/icon.png"
     }
+  },
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win --x64",
+    "dist:mac": "electron-builder --mac --x64",
+    "dist:linux": "electron-builder --linux"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.9.0",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
-    "electron-squirrel-startup": "^1.0.1",
-    "electron-store": "^10.0.1",
+    "electron-store": "^8.2.0",
     "jsdom": "^26.0.0",
     "json5": "^2.2.3",
     "officeparser": "^5.1.1",
@@ -54,29 +79,20 @@
     "string": "^3.3.3",
     "xlsx": "^0.18.5"
   },
-  "scripts": {
-    "start": "electron-forge start",
-    "electron-start": "electron .",
-    "package": "electron-forge package",
-    "make-win": "electron-forge make ./ bixchat --platform=win32 --arch=x64 --verbose",
-    "make": "electron-forge make --verbose",
-    "make-debug": "DEBUG=electron-forge:* electron-forge make"
-  },
   "devDependencies": {
     "@electron-forge/cli": "^7.8.0",
     "@electron-forge/core": "^7.8.0",
     "@electron-forge/maker-deb": "^7.8.0",
+    "@electron-forge/maker-dmg": "^7.8.0",
     "@electron-forge/maker-rpm": "^7.8.0",
     "@electron-forge/maker-squirrel": "^7.8.0",
     "@electron-forge/maker-zip": "^7.8.0",
     "@eslint/js": "^9.24.0",
     "@types/node": "^22.14.0",
     "electron": "^35.1.4",
+    "electron-builder": "^24.13.3",
     "eslint": "^9.24.0",
     "globals": "^16.0.0",
-    "node-abi": "^4.2.0",
-    "tailwindcss": "^4.1.3",
-    "ts-node": "^10.9.2",
-    "typescript-eslint": "^8.29.1"
+    "node-abi": "^4.2.0"
   }
 }

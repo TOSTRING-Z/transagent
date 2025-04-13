@@ -54,12 +54,10 @@ BixChat是一款功能强大的跨平台Agent应用程序，支持Windows和Linu
 nvm use 23
 # 安装环境
 npm install
-# 启动electron
-npm run electron-start
+# 启动
+npm run start
 # 打包
-npm run package
-# or
-npm run make
+npm run dist
 ```
 
 _- 由于版本快速迭代，建议自己编译以体验最新功能. -_

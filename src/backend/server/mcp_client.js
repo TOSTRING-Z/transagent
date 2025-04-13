@@ -1,5 +1,6 @@
 const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
 const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
+const { SSEClientTransport } = require("@modelcontextprotocol/sdk/client/sse.js");
 
 class MCPClient {
     constructor() {
@@ -16,7 +17,6 @@ class MCPClient {
                 }
             }
         );
-        this.SSEClientTransport;
         this.transports = {};
         this.mcp_prompt = "";
     }
@@ -81,8 +81,6 @@ class MCPClient {
     }
 
     async setTransport({ name, config }) {
-        if (!this.SSEClientTransport)
-            this.SSEClientTransport = (await import("@modelcontextprotocol/sdk/client/sse.js")).SSEClientTransport;
         let enabled = true;
         if (config.hasOwnProperty("enabled")) {
             enabled = config.enabled;
@@ -90,7 +88,7 @@ class MCPClient {
         }
         if (!this.transports.hasOwnProperty(name) && enabled) {
             if (config.hasOwnProperty("url")) {
-                const transport = new this.SSEClientTransport(new URL(config.url));
+                const transport = new SSEClientTransport(new URL(config.url));
                 this.transports[name] = transport;
             }
             else {
