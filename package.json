@@ -4,7 +4,11 @@
   "description": "bixchat",
   "main": "src/backend/main.js",
   "homepage": ".",
-  "author": "TOSTRING_Z",
+  "author": {
+    "name": "TOSTRING_Z",
+    "email": "mp798378522@gmail.com",
+    "url": "https://github.com/TOSTRING-Z"
+  },
   "private": true,
   "build": {
     "files": [
@@ -53,7 +57,6 @@
     "linux": {
       "target": [
         "deb",
-        "rpm",
         "AppImage"
       ],
       "icon": "src/backend/icon/icon.png"

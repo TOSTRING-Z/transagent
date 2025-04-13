@@ -401,8 +401,10 @@ class MainWindow extends Window {
 
     initPrompt() {
         const filePath = utils.getConfig("prompt");
-        const prompt = fs.readFileSync(filePath, 'utf-8');
-        this.window.webContents.send('prompt', prompt);
+        if (fs.existsSync(filePath)) {
+            const prompt = fs.readFileSync(filePath, 'utf-8');
+            this.window.webContents.send('prompt', prompt);
+        }
     }
 
     updateVersionsSubmenu() {
