@@ -63,8 +63,8 @@ class MainWindow extends Window {
 
     create() {
         this.window = new BrowserWindow({
-            width: 600,
-            height: 600,
+            width: 800,
+            height: 800,
             icon: path.join(__dirname, '../icon/icon.ico'),
             webPreferences: {
                 preload: path.join(__dirname, '../preload.js')

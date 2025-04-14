@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy"
     content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; font-src https://cdnjs.cloudflare.com file:; img-src 'self' data:;" />
+  <title>BixChat - Transcriptional regulation analysis platform</title>
   <link rel="stylesheet" href="css/build.css" />
   <link rel="stylesheet" href="css/atom-one-light.min.css" />
   <script>
@@ -592,6 +593,104 @@
       background: #2196F3;
       transition: width 0.3s ease;
     }
+
+    /* 小卡片 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .base-container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 20px;
+      flex: 1;
+    }
+
+    .base-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 3rem;
+    }
+
+    .base-icon {
+      width: 50px;
+      height: 50px;
+      background: #2d8cf0;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+    }
+
+    .base-title {
+      color: #1a1a1a;
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+
+    .options-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 25px;
+    }
+
+    .option-card {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      transition: transform 0.2s ease;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      border: 2px solid transparent;
+    }
+
+    .option-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+      border-color: #2d8cf0;
+    }
+
+    .option-icon {
+      width: 40px;
+      height: 40px;
+      background: #e6f7ff;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #2d8cf0;
+    }
+
+    .option-title {
+      color: #1a1a1a;
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+
+    .option-desc {
+      color: #666;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 768px) {
+      .base-container {
+        margin: 1rem auto;
+      }
+
+      .base-header {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
   </style>
 </head>
 
@@ -602,7 +701,34 @@
     <div class="w-full flex-grow">
       <!-- Chat messages -->
       <div class="overflow-y-auto" id="top_div">
-        <div class="p-4 flex flex-col space-y-4" id="messages"></div>
+        <div class="p-4 flex flex-col space-y-4" id="messages">
+          <div class="base-container">
+            <div class="base-header">
+              <div class="base-icon">B</div>
+              <h1 class="base-title">I am BixChat, an AI agent specialized in transcriptional regulation analysis.</h1>
+            </div>
+
+            <div class="options-container">
+              <div class="option-card">
+                <div class="option-icon">📍</div>
+                <h3 class="option-title">Regional annotation analysis</h3>
+                <p class="option-desc">Enhancer annotation, transcription factor binding prediction, SNP site analysis"</p>
+              </div>
+
+              <div class="option-card">
+                <div class="option-icon">📈</div>
+                <h3 class="option-title">Gene expression analysis</h3>
+                <p class="option-desc">Tissue/cell/disease-specific expression profiling, co-expression network analysis, and expression pattern visualization</p>
+              </div>
+
+              <div class="option-card">
+                <div class="option-icon">🧬</div>
+                <h3 class="option-title">Sequence data analysis</h3>
+                <p class="option-desc">Motif discovery, sequence alignment, deepTools analysis</p>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="space-x-2 items-start" id="pause"></div>
       </div>
       <!-- Input area -->
