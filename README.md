@@ -62,7 +62,7 @@ npm run dist
 
 _- 由于版本快速迭代，建议自己编译以体验最新功能. -_
 
-## 若安装失败请手动复制配置文件(resource/config.json)到如下地址:
+## 若安装失败请手动复制配置文件(resources/config.json)到如下地址:
 
 - linux: /home/[用户]/.bixchat/config.json
 - windown: C:\Users\\[用户]\\.bixchat\config.json
@@ -75,7 +75,7 @@ _- 由于版本快速迭代，建议自己编译以体验最新功能. -_
 
 > 安装工具依赖
 
-[plugins](resource/plugins)
+[plugins](resources/plugins)
 
 > 大模型及软件细节配置示例 (`ollama支持`)
 
@@ -325,7 +325,7 @@ _- 可配置显示组件 -_
 
 _- 更多案例见： -_
 
-[chain_calls](resource/chain_calls)
+[chain_calls](resources/chain_calls)
 
 ## 若有问题请联系：
 邮箱: mp798378522@gamil.com

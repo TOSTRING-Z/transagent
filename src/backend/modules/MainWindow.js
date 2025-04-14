@@ -65,6 +65,7 @@ class MainWindow extends Window {
         this.window = new BrowserWindow({
             width: 800,
             height: 800,
+            icon: path.join(process.resourcesPath, 'resources/', 'icon/icon.ico'),
             webPreferences: {
                 preload: path.join(__dirname, '../preload.js')
             }
@@ -545,7 +546,7 @@ class MainWindow extends Window {
                     {
                         label: 'Save Conversation',
                         click: () => {
-                            const lastPath = path.join(store.get('lastSavePath') || path.join(process.resourcesPath, 'resource/', 'messages/'), `messages_${utils.formatDate()}.json`);
+                            const lastPath = path.join(store.get('lastSavePath') || path.join(process.resourcesPath, 'resources/', 'messages/'), `messages_${utils.formatDate()}.json`);
                             console.log(lastPath)
                             dialog.showSaveDialog(this.window, {
                                 defaultPath: lastPath,
@@ -566,7 +567,7 @@ class MainWindow extends Window {
                     {
                         label: 'Load Conversation',
                         click: () => {
-                            const lastPath = store.get('lastSavePath') || path.join(process.resourcesPath, 'resource/', 'messages/');
+                            const lastPath = store.get('lastSavePath') || path.join(process.resourcesPath, 'resources/', 'messages/');
                             dialog.showOpenDialog(this.window, {
                                 defaultPath: lastPath,
                                 filters: [
@@ -603,7 +604,7 @@ class MainWindow extends Window {
     }
 
     loadPrompt() {
-        const lastDirectory = store.get('lastPromptDirectory') || path.join(process.resourcesPath, 'resource/', 'system_prompts/');
+        const lastDirectory = store.get('lastPromptDirectory') || path.join(process.resourcesPath, 'resources/', 'system_prompts/');
         dialog
             .showOpenDialog(this.window, {
                 properties: ['openFile'],
@@ -656,7 +657,7 @@ class MainWindow extends Window {
     }
 
     loadChain() {
-        const lastDirectory = store.get('lastChainDirectory') || path.join(process.resourcesPath, 'resource/', 'chain_calls/');
+        const lastDirectory = store.get('lastChainDirectory') || path.join(process.resourcesPath, 'resources/', 'chain_calls/');
         dialog
             .showOpenDialog(this.window, {
                 properties: ['openFile'],

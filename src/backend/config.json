@@ -130,11 +130,11 @@
   },
   "plugins": {
     "baidu_translate": {
-      "path": "{resourcesPath}/resource/plugins/script/baidu_translate.js",
+      "path": "{resourcesPath}/resources/plugins/script/baidu_translate.js",
       "show": true
     },
     "baidu_search": {
-      "path": "{resourcesPath}/resource/plugins/script/baidu_search.js",
+      "path": "{resourcesPath}/resources/plugins/script/baidu_search.js",
       "params": {
         "jina": "",
         "num_results": 5,
@@ -204,7 +204,7 @@
   "tool_call": {
     "memory_length": 20,
     "mcp_timeout": 6000,
-    "extra_prompt": "{resourcesPath}/resource/system_prompts/prompt.md",
+    "extra_prompt": "{resourcesPath}/resources/system_prompts/prompt.md",
     "tmpdir": "/tmp",
     "language": "english",
     "system_type": "linux",

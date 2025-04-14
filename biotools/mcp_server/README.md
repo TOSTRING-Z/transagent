@@ -97,7 +97,7 @@ config.json
 "tool_call": {
   "memory_length": 20,
   "mcp_timeout": 6000,
-  "extra_prompt": "{resourcesPath}/resource/system_prompts/prompt.md",
+  "extra_prompt": "{resourcesPath}/resources/system_prompts/prompt.md",
   "tmpdir": "/tmp",
   "language": "english",
   "system_type": "linux",

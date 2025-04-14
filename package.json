@@ -36,16 +36,16 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "resources/icon.ico"
+      "icon": "resources/icon/icon.ico"
     },
     "nsis": {
       "oneClick": false,
       "allowElevation": true,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "resources/icon.ico",
-      "uninstallerIcon": "resources/uninstall.ico",
-      "installerHeader": "resources/icon.bmp",
-      "installerSidebar": "resources/icon.bmp",
+      "installerIcon": "resources/icon/icon.ico",
+      "uninstallerIcon": "resources/icon/uninstall.ico",
+      "installerHeader": "resources/icon/icon.bmp",
+      "installerSidebar": "resources/icon/icon.bmp",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "BixChat",
@@ -53,14 +53,14 @@
     },
     "mac": {
       "target": "dmg",
-      "icon": "resources/icon.icns"
+      "icon": "resources/icon/icon.icns"
     },
     "linux": {
       "target": [
         "deb",
         "AppImage"
       ],
-      "icon": "resources/icon.png"
+      "icon": "resources/icon/icon.png"
     }
   },
   "scripts": {

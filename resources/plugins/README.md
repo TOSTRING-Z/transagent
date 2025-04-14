@@ -61,15 +61,15 @@ config.json
 ```json
 "plugins": {
   "baidu_translate": {
-    "path": "{resourcesPath}/resource/plugins/script/baidu_translate.js",
+    "path": "{resourcesPath}/resources/plugins/script/baidu_translate.js",
     "show": true
   },
   "get_think": {
-    "path": "{resourcesPath}/resource/plugins/script/get_think.js",
+    "path": "{resourcesPath}/resources/plugins/script/get_think.js",
     "show": false
   },
   "json_parse": {
-    "path": "{resourcesPath}/resource/plugins/script/json_parse.js",
+    "path": "{resourcesPath}/resources/plugins/script/json_parse.js",
     "show": false
   }
 }
