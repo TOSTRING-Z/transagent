@@ -159,6 +159,9 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener("resize", function () {
     init_size();
   });
+
+
+  loadOptions();
 });
 
 user_message = `<div class="relative space-y-2 space-x-2" data-role="user" data-id="">
@@ -208,6 +211,72 @@ system_message = `<div class="relative space-y-2 space-x-2" data-role="system" d
   </div>
   <div class="message" data-content=""></div>
 </div>`
+
+// The HTML content that would normally be loaded from the file
+const htmlContent = `
+<div class="base-container">
+    <div class="base-header">
+      <div class="base-icon">B</div>
+      <h1 class="base-title">I am BixChat, an AI agent specialized in transcriptional regulation analysis.</h1>
+    </div>
+    <div class="options-container">
+      <div data-query="Coverage analysis of SNPs on the GATA2 gene" class="option-card">
+        <div class="option-icon">📍</div>
+        <h3 class="option-title">Regional annotation analysis</h3>
+        <p class="option-desc">Enhancer annotation, transcription factor binding prediction, SNP site analysis"</p>
+      </div>
+
+      <div data-query="Analyze TP53 gene expression across tissues and generate a heatmap visualization" class="option-card">
+        <div class="option-icon">📈</div>
+        <h3 class="option-title">Gene expression analysis</h3>
+        <p class="option-desc">Tissue/cell/disease-specific expression profiling, co-expression network analysis, and expression pattern visualization</p>
+      </div>
+
+      <div data-query="Analyze the enhancer coverage of ESR1, GATA3, FOXA1, and EP300 genes, and identify motifs in overlapping enhancers" class="option-card">
+        <div class="option-icon">🧬</div>
+        <h3 class="option-title">Sequence data analysis</h3>
+        <p class="option-desc">Motif discovery, sequence alignment, deepTools analysis</p>
+      </div>
+    </div>
+  </div>
+`;
+
+function loadOptions() {
+  // Note: In a real implementation, you would need to actually load the HTML file from the path
+  // Since we don't have the actual file loading code, we'll work with the provided HTML string
+  
+  // Create a DOM element from the HTML string (in reality, you would load this from the file)
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlContent, 'text/html');
+  const dom = doc.querySelector('.base-container');
+  
+  // Get all option cards and bind click events
+  const optionCards = dom.querySelectorAll('.option-card');
+  optionCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const query = card.dataset.query;
+      // Assuming the query function is available in the same scope
+      if (query) {
+        formData.query = query;
+        formData.prompt = system_prompt;
+        window.electronAPI.clickSubmit(formData);
+        dom.remove();
+      }
+    });
+    
+    // Add hover effect for better UX
+    card.style.cursor = 'pointer';
+    card.style.transition = 'transform 0.2s';
+    card.addEventListener('mouseenter', () => {
+      card.style.transform = 'scale(1.02)';
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = 'scale(1)';
+    });
+  });
+  
+  messages.append(dom);
+}
 
 function showLog(log) {
   const htmlString = `<div style="display: flex; pointer-events: none; height: 100%; width: 100%; justify-content: center; align-items: center; font-size: large; position: absolute;">
@@ -624,6 +693,7 @@ window.electronAPI.handleClear(() => {
   messages.innerHTML = null;
   pause.style.display = "none";
   pause.innerHTML = "";
+  loadOptions();
 })
 
 submit.addEventListener("click", () => {

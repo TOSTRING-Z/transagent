@@ -12,39 +12,40 @@
   "private": true,
   "build": {
     "files": [
+      "**/*",
       "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
       "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
       "!**/node_modules/*.d.ts",
       "!**/node_modules/.bin",
-      "!**/*.{o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
       "!.editorconfig",
       "!**/._*",
-      "!**/.DS_Store",
-      "!.gitignore",
-      "!.vscode",
-      "!.git",
-      "!package-lock.json",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,.venv,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}",
       "!biotools/{data,tmp}",
-      "!out",
-      "!public",
-      "!resource/plugins/node_modules",
-      "!**/.venv",
-      "!**/_pycache_",
-      "!**/*.map",
-      "!**/*.log"
+      "!public"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/",
+        "to": "resources/",
+        "filter": ["**/*", "!**/node_modules"]
+      }
     ],
     "win": {
       "target": "nsis",
-      "icon": "src/backend/icon/icon.ico"
+      "icon": "resources/icon.ico"
     },
     "nsis": {
       "oneClick": false,
       "allowElevation": true,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "src/backend/icon/icon.ico",
-      "uninstallerIcon": "src/backend/icon/uninstall.ico",
-      "installerHeader": "src/backend/icon/icon.bmp",
-      "installerSidebar": "src/backend/icon/icon.bmp",
+      "installerIcon": "resources/icon.ico",
+      "uninstallerIcon": "resources/uninstall.ico",
+      "installerHeader": "resources/icon.bmp",
+      "installerSidebar": "resources/icon.bmp",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "BixChat",
@@ -52,14 +53,14 @@
     },
     "mac": {
       "target": "dmg",
-      "icon": "src/backend/icon/icon.icns"
+      "icon": "resources/icon.icns"
     },
     "linux": {
       "target": [
         "deb",
         "AppImage"
       ],
-      "icon": "src/backend/icon/icon.png"
+      "icon": "resources/icon.png"
     }
   },
   "scripts": {

@@ -5,6 +5,7 @@ const { MCPClient } = require('./mcp_client.js')
 const JSON5 = require("json5")
 const fs = require('fs');
 const os = require('os');
+const path = require('path');
 
 class ToolCall extends ReActAgent {
 
@@ -339,7 +340,7 @@ All task messages submitted by users will also be saved in the "memory list". If
   get_extra_prompt(file) {
     try {
       const prompt_path = file?.format(process);
-      if (!prompt_path) {
+      if (!fs.existsSync(prompt_path)) {
         return fs.readFileSync(path.join(__dirname, '../extra_prompt.md'), 'utf-8');
       }
       return fs.readFileSync(file.format(process), 'utf-8');
@@ -351,9 +352,9 @@ All task messages submitted by users will also be saved in the "memory list". If
 
   environment_update(data) {
     this.environment_details.time = utils.formatDate();
-    this.environment_details.language = utils.getConfig("language")?.system_type || utils.getLanguage();
+    this.environment_details.language = data?.language || utils.getLanguage();
     this.environment_details.memory_list = JSON.stringify(this.memory_list.slice(this.memory_list.length - utils.getConfig("memory_length") * 10, this.memory_list.length), null, 4)
-    envMessage(this.env.format(this.environment_details));
+    data.env_message = envMessage(this.env.format(this.environment_details));
   }
 
   plan_act_mode(mode) {

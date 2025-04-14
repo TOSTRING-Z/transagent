@@ -3,7 +3,6 @@ const { streamJSON, streamSse } = require("./stream.js")
 
 let messages = [];
 let stop_ids = [];
-let env_message;
 
 function getStopIds() {
     return stop_ids;
@@ -19,7 +18,7 @@ function pushMessage(role, content, id, memory_id, show = true, react = true) {
 }
 
 function envMessage(content) {
-    env_message = { role: "user", content: content };
+    return { role: "user", content: content };
 }
 
 function clearMessages() {
@@ -66,7 +65,7 @@ function copy(data) {
     return JSON.parse(JSON.stringify(data));
 }
 
-function format_messages(messages_list, params) {
+function format_messages(messages_list, params, env_message=null) {
     params = params ? params : {};
     // 遍历 messages_list 数组，并删除每个对象的 id 属性
     messages_list = messages_list.map(message => {
@@ -180,7 +179,7 @@ async function chatBase(data) {
 
         let body = {
             model: data.version,
-            messages: format_messages(messages_list, data.params),
+            messages: format_messages(messages_list, data.params, data?.env_message),
             ...data.llm_parmas
         }
 

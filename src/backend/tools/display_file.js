@@ -30,13 +30,13 @@ class DisplayFile {
             if (err) {
               return reject(err);
             }
-            resolve(`文件下载成功: ${remotePath} -> ${localPath}`);
+            resolve(`File download successful: ${remotePath} -> ${localPath}`);
           });
         });
       }).connect(sshConfig);
 
       conn.on('error', (err) => {
-        reject(`SSH连接错误: ${err.message}`);
+        reject(`SSH connection error: ${err.message}`);
       });
     });
   }
@@ -47,7 +47,7 @@ class DisplayFile {
       return `![${path.basename(filePath)}](${filePath})`;
     } catch (err) {
       console.error('图片处理错误:', err);
-      return `图片加载失败: ${err.message}`;
+      return `Image loading failed: ${err.message}`;
     }
   }
 
@@ -117,7 +117,7 @@ class DisplayFile {
       return markdown;
     } catch (err) {
       console.error('表格处理错误:', err);
-      return `表格加载失败: ${err.message}`;
+      return `Table loading failed: ${err.message}`;
     }
   }
 
@@ -153,7 +153,7 @@ class DisplayFile {
       }
     } catch (err) {
       console.error('文本处理错误:', err);
-      return `文本加载失败: ${err.message}`;
+      return `Text loading failed: ${err.message}`;
     }
   }
 
@@ -190,9 +190,9 @@ class DisplayFile {
 
       // 添加下载链接
       if (!sshConfig || !sshConfig.host) {
-        result += '\n\n[下载本地文件](' + filePath + ')';
+        result += '\n\n[Local file](' + filePath + ')';
       } else {
-        result += '\n\n[文件已下载到本地](' + tempPath + ')';
+        result += '\n\n[File has been downloaded locally](' + tempPath + ')';
       }
       return result;
     }
