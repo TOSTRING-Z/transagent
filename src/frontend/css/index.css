@@ -49,6 +49,8 @@ body {
   font-family: 'Segoe UI', sans-serif;
   background: var(--bg);
   display: flex;
+  width: 100%;
+  overflow: hidden;
 }
 
 /* 左侧面板 */
@@ -84,11 +86,17 @@ body {
   z-index: 1;
 }
 
+/* 当侧边栏折叠时，主内容区 */
+.sidebar.collapsed+.main {
+  width: 100%;
+}
+
 /* 主内容区 */
 .main {
   flex: 1;
   position: relative;
   transition: margin-left 0.3s;
+  width: calc(100% - 240px);
 }
 
 /* 历史记录项 */
@@ -111,6 +119,10 @@ body {
 }
 
 /* 历史记录项 */
+.history-list>.active {
+  background: #dbeafe;
+}
+
 .history-item {
   position: relative;
   padding: 10px 15px;
@@ -121,21 +133,16 @@ body {
   white-space: nowrap;
 }
 
+.history-list {
+  overflow-y: auto;
+  height: 100%;
+}
+
 .history-text {
   overflow: hidden;
   text-overflow: ellipsis;
   position: relative;
   padding-right: 30px;
-}
-
-.history-text::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 30px;
-  background: linear-gradient(90deg, transparent, #f8f9fa 80%);
 }
 
 .history-menu {
@@ -145,6 +152,10 @@ body {
   transform: translateY(-50%);
   cursor: pointer;
   padding: 2px;
+  z-index: 1;
+}
+
+.history-menu>i.fas.fa-ellipsis-v {
   opacity: 0.6;
 }
 
@@ -155,7 +166,6 @@ body {
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
   border-radius: 6px;
   padding: 5px 0;
-  z-index: 100;
   display: none;
   right: 10px;
   top: 30px;
@@ -210,6 +220,7 @@ body {
   flex-direction: column;
   overflow-x: hidden;
   overflow-y: hidden;
+  margin-top: 60px;
 }
 
 /* Message bubbles */
@@ -223,9 +234,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  position: relative;
-  top: 9px;
   max-width: calc(100%);
+  margin-top: 9px;
 }
 
 .text {
@@ -245,7 +255,6 @@ body {
 
 .message.user {
   align-self: flex-end;
-  background: #eeeeee;
 }
 
 /* Input area */
@@ -413,36 +422,7 @@ body {
   height: 2rem;
   display: flex;
   align-items: start;
-}
-
-.menu-container::before {
-  content: '';
-  position: absolute;
-  top: 0.1rem;
-  left: -0.1rem;
-  width: 2.2rem;
-  height: 2.2rem;
-  background: #f9f9f9;
-  border-radius: 100%;
-  /* border: 1px solid red; */
-  z-index: 2;
-}
-
-.menu {
-  position: absolute;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  font-size: 24px;
-  z-index: 2;
-  transition: transform 0.3s;
-  font-size: small;
-  top: 3px;
+  z-index: 1;
 }
 
 .menu.system {
@@ -453,42 +433,34 @@ body {
   background-color: transparent;
 }
 
-.menu-item {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0 100% 0 0;
-  background: #3a9ced;
-  position: absolute;
-  opacity: 0;
-  transition: opacity 0.3s;
-  pointer-events: none;
-  z-index: 1;
-  align-items: center;
-  justify-content: center;
+.message-actions {
   display: flex;
-  left: 1.25rem;
-  bottom: 1.25rem;
+  justify-content: flex-start;
+  gap: 12px;
+  padding-left: 30px;
 }
 
-.menu-item>svg {
-  height: 10px;
-  transform:
-    rotate(-45deg) translate(-0.1rem) rotate(0deg);
+.action-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  font-size: 16px;
+  transition: color 0.2s;
 }
 
-.menu-container.active .menu-item {
-  opacity: 1;
-  pointer-events: auto;
+.message-actions>.active {
+  display: block !important;
+  margin-top: -30px;
 }
 
-.menu-container .menu-item:nth-child(2) {
-  transform:
-    rotate(0deg) translate(0, 0.3rem) rotate(0deg)
+.action-btn:hover {
+  color: var(--primary);
 }
 
-.menu-container .menu-item:nth-child(3) {
-  transform:
-    rotate(0deg) translate(0, 2.5rem) rotate(90deg)
+.action-btn.delete:hover {
+  color: var(--secondary);
 }
 
 /* Call Information */
@@ -703,6 +675,7 @@ body {
 }
 
 .progress-container {
+  display: none;
   height: 15px;
   width: 100px;
   background: #eee;
@@ -836,6 +809,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 2;
 }
 
 .menu-dropdown {
@@ -859,6 +833,17 @@ body {
 }
 
 /* 配置弹窗 */
+.open-config-btn {
+  padding: 10px 20px;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Configuration Modal */
 .config-modal {
   position: fixed;
   top: 0;
@@ -879,6 +864,49 @@ body {
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+}
+.config-content > h2 {
+  font-size: larger;
+  font-weight: bolder;
+}
+
+.form-group {
+  margin-bottom: 25px;
+}
+
+.form-group h3 {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: larger;
+  font-weight: bolder;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.form-row label {
+  width: 120px;
+  font-weight: 500;
+}
+
+.form-row input, .form-row select {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
 }
 
 /* 添加自定义提示框样式 */
@@ -890,7 +918,7 @@ body {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
+  z-index: 1;
   justify-content: center;
   align-items: center;
 }

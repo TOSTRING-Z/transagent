@@ -24,6 +24,10 @@ const global = {
     model: utils.getConfig("default")["model"],
     version: utils.getConfig("default")["version"],
     is_plugin: utils.getIsPlugin(this.model),
+    chat: {
+        id: null,
+        name: null
+    },
     last_clipboard_content: null,
     concat: false,
     id: 0

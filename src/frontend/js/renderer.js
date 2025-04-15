@@ -30,6 +30,10 @@ const messages = document.getElementById("messages");
 const top_div = document.getElementById("top_div");
 const bottom_div = document.getElementById("bottom_div");
 
+const version = document.getElementById("version");
+const tokens = document.getElementById("tokens");
+const seconds = document.getElementById("seconds");
+
 const formData = {
   query: null,
   prompt: null,
@@ -40,6 +44,9 @@ const formData = {
 global = {
   math_statu: true,
   markdown_statu: true,
+  tokens: 0,
+  seconds_timer: null,
+  seconds: 0,
   scroll_top: {
     info: true,
     data: true,
@@ -109,9 +116,12 @@ function autoResizeTextarea(textarea) {
 }
 
 function init_size() {
+  let system_prompt_height = system_prompt.clientHeight;
+  let input_height = input.clientHeight;
+  let bottom_div_height = bottom_div.clientHeight;
   system_prompt.style.height = input_h + "px";
   input.style.height = input_h + "px";
-  top_div.style.height = window.innerHeight - bottom_div.clientHeight + "px";
+  top_div.style.height = window.innerHeight - (bottom_div_height - system_prompt_height - input_height + (!!system_prompt_height ? 2 : 1) * input_h) + "px";
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -145,14 +155,11 @@ document.addEventListener("DOMContentLoaded", function () {
   })
 
   system_prompt.addEventListener("input", function () {
-    autoResizeTextarea(input);
+    autoResizeTextarea(system_prompt);
   });
-  system_prompt.addEventListener("click", function () {
-    autoResizeTextarea(input);
-  })
 
-  top_div.addEventListener("click", function () {
-    init_size();
+  system_prompt.addEventListener("click", function () {
+    autoResizeTextarea(system_prompt);
   })
 
   // Add event listener for window resize event
@@ -174,30 +181,8 @@ user_message = `<div class="relative space-y-2 space-x-2" data-role="user" data-
 </div>`;
 
 system_message = `<div class="relative space-y-2 space-x-2" data-role="system" data-id="">
-  <div class="absolute">
-    <div class="menu-container">
-      <img class="menu system" src="" alt="System Avatar">
-      <div class="menu-item">
-        <svg viewBox="0 0 1024 1024">
-            <path fill="#ffffff"
-                d="M950.857143 224.304762H799.695238V63.390476H224.304762v160.914286H73.142857v97.523809h87.771429v638.780953h697.295238V321.828571h92.647619v-97.523809zM321.828571 160.914286h385.219048v63.390476H321.828571V160.914286z m438.857143 702.171428H258.438095V321.828571h502.247619v541.257143z">
-            </path>
-            <path fill="#ffffff"
-                d="M355.961905 438.857143h97.523809v326.704762h-97.523809zM570.514286 438.857143h97.523809v326.704762h-97.523809z">
-            </path>
-        </svg>
-      </div>
-      <div class="menu-item">
-        <svg viewBox="0 0 1024 1024">
-          <path fill="#ffffff"
-              d="M725.333333 960H128c-23.466667 0-42.666667-19.2-42.666667-42.666667V277.333333c0-23.466667 19.2-42.666667 42.666667-42.666666h128V106.666667c0-23.466667 19.2-42.666667 42.666667-42.666667h597.333333c23.466667 0 42.666667 19.2 42.666667 42.666667v640c0 23.466667-19.2 42.666667-42.666667 42.666666h-128v128c0 23.466667-19.2 42.666667-42.666667 42.666667zM170.666667 874.666667h512V320H170.666667v554.666667z m170.666666-725.333334v85.333334h384c23.466667 0 42.666667 19.2 42.666667 42.666666v426.666667h85.333333V149.333333H341.333333z">
-          </path>
-          <path fill="#ffffff"
-              d="M298.666667 490.666667h128c23.466667 0 42.666667-19.2 42.666666-42.666667s-19.2-42.666667-42.666666-42.666667h-128c-23.466667 0-42.666667 19.2-42.666667 42.666667s19.2 42.666667 42.666667 42.666667M512 576H298.666667c-23.466667 0-42.666667 19.2-42.666667 42.666667s19.2 42.666667 42.666667 42.666666h213.333333c23.466667 0 42.666667-19.2 42.666667-42.666666s-19.2-42.666667-42.666667-42.666667">
-          </path>
-        </svg>
-      </div>
-    </div>
+  <div class="menu-container">
+    <img class="menu system" src="" alt="System Avatar">
   </div>
   <div class="info hidden">
     <div class="info-header">Call information</div>
@@ -210,6 +195,14 @@ system_message = `<div class="relative space-y-2 space-x-2" data-role="system" d
     <button class="btn">Stop generation</button>
   </div>
   <div class="message" data-content=""></div>
+  <div class="message-actions">
+    <button class="action-btn copy" title="复制">
+      <i class="far fa-copy"></i>
+    </button>
+    <button class="action-btn delete" title="删除">
+      <i class="far fa-trash-alt"></i>
+    </button>
+  </div>
 </div>`
 
 // The HTML content that would normally be loaded from the file
@@ -241,17 +234,24 @@ const htmlContent = `
   </div>
 `;
 
-function loadOptions() {
-  // Note: In a real implementation, you would need to actually load the HTML file from the path
-  // Since we don't have the actual file loading code, we'll work with the provided HTML string
+let optionDom = null;
 
-  // Create a DOM element from the HTML string (in reality, you would load this from the file)
+function loadOptions() {
+  // init
+  messages.innerHTML = null;
+  pause.style.display = "none";
+  pause.innerHTML = "";
+  global.seconds = 0;
+  global.tokens = 0;
+  tokens.innerText = global.tokens;
+  seconds.innerText = global.seconds;
+  // dom
   const parser = new DOMParser();
   const doc = parser.parseFromString(htmlContent, 'text/html');
-  const dom = doc.querySelector('.base-container');
+  optionDom = doc.querySelector('.base-container');
 
   // Get all option cards and bind click events
-  const optionCards = dom.querySelectorAll('.option-card');
+  const optionCards = optionDom.querySelectorAll('.option-card');
   optionCards.forEach(card => {
     card.addEventListener('click', () => {
       const query = card.dataset.query;
@@ -260,7 +260,6 @@ function loadOptions() {
         formData.query = query;
         formData.prompt = system_prompt;
         window.electronAPI.clickSubmit(formData);
-        dom.remove();
       }
     });
 
@@ -275,7 +274,7 @@ function loadOptions() {
     });
   });
 
-  messages.append(dom);
+  messages.append(optionDom);
 }
 
 function showLog(log) {
@@ -297,6 +296,14 @@ function copy_message(raw) {
   });
 }
 
+function getTokens(text) {
+  // 匹配中文（包括标点）
+  const chineseTokens = text.match(/[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]/g) || [];
+  // 匹配英文单词（包括数字、特殊符号，如 C++, Python3, 123, @#$, 但不算空格）
+  const englishTokens = text.match(/[^\s\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]+/g) || [];
+  return chineseTokens.length + englishTokens.length;
+}
+
 function infoAdd(info) {
   const messageSystem = document.querySelectorAll(`[data-id='${info.id}']`)[1];
   const info_content = messageSystem.getElementsByClassName('info-content')[0];
@@ -304,7 +311,9 @@ function infoAdd(info) {
   if (info_div && info_div.classList.contains('hidden')) {
     info_div.classList.remove('hidden');
   }
-  if (info.content) {
+  if (!!info.content) {
+    global.tokens += getTokens(info.content);
+    tokens.innerText = global.tokens;
     info_content.dataset.content += info.content;
     info_content.innerHTML = marked.parse(info_content.dataset.content);
     if (global.scroll_top.info)
@@ -338,16 +347,21 @@ function userAdd(data) {
 
 }
 
+
 function streamMessageAdd(chunk) {
   const messageSystem = document.querySelectorAll(`[data-id='${chunk.id}']`)[1];
   const message_content = messageSystem.getElementsByClassName('message')[0];
-  if (chunk.content) {
+  if (!!chunk.content) {
+    optionDom?.remove();
+    global.tokens += getTokens(chunk.content);
+    tokens.innerText = global.tokens;
     message_content.dataset.content += chunk.content;
     message_content.innerHTML = marked.parse(message_content.dataset.content);
     if (global.scroll_top.data)
       top_div.scrollTop = top_div.scrollHeight;
   }
   if (chunk.end) {
+    clearInterval(global.seconds_timer);
     message_content.innerHTML = marked.parse(message_content.dataset.content);
     const thinking = messageSystem.getElementsByClassName("thinking")[0];
     thinking.remove();
@@ -360,35 +374,15 @@ function streamMessageAdd(chunk) {
 
 function menuEvent(id, raw) {
   const messageSystem = document.querySelectorAll(`[data-id='${id}']`)[1];
-  const menuContainer = messageSystem.getElementsByClassName('menu-container')[0];
-  const menu = menuContainer.getElementsByClassName("menu")[0];
-  const menu_items = menuContainer.getElementsByClassName("menu-item");
-
-  [...menu_items].forEach((menu_item, i) => {
-    menu_item.addEventListener('click', (e) => {
-      e.stopPropagation();
-      menuContainer.classList.remove('active');
-      switch (i) {
-        case 0:
-          delete_message(id);
-          break;
-        case 1:
-          copy_message(raw);
-          break;
-
-        default:
-          break;
-      }
-
-    })
+  const copy = messageSystem.getElementsByClassName("copy")[0];
+  const del = messageSystem.getElementsByClassName("delete")[0];
+  copy.classList.add("active");
+  del.classList.add("active");
+  copy.addEventListener("click", () => {
+    copy_message(raw);
   })
-
-  menu.addEventListener('mouseenter', () => {
-    menuContainer.classList.add('active');
-  })
-
-  menuContainer.addEventListener('mouseleave', () => {
-    menuContainer.classList.remove('active');
+  del.addEventListener("click", () => {
+    delete_message(id);
   })
 }
 
@@ -568,7 +562,7 @@ window.electronAPI.handleMathFormat((math_statu) => {
   global.math_statu = math_statu;
   if (global.math_statu) {
     typesetMath = function () {
-      MathJax.typesetPromise().catch((err) => console.log(err));
+      window.MathJax.typesetPromise().catch((err) => console.log(err));
     }
     typesetMath();
   }
@@ -623,6 +617,23 @@ function addEventStop(messageSystem, id) {
 }
 
 window.electronAPI.handleQuery(async (data) => {
+  optionDom?.remove();
+  if (!global.seconds_timer) {
+    global.seconds = 0;
+    global.seconds_timer = setInterval(() => {
+      global.seconds += 0.1;
+      seconds.innerText = global.seconds.toFixed(1);
+    }, 100)
+  } else {
+    clearInterval(global.seconds_timer);
+    global.seconds_timer = setInterval(() => {
+      global.seconds += 0.1;
+      seconds.innerText = global.seconds.toFixed(1);
+    }, 100)
+  }
+  global.tokens = 0;
+  tokens.innerText = global.tokens;
+  version.innerText = data.version;
   let user_content;
   data.prompt = system_prompt.value;
   if (data.img_url) {
@@ -685,14 +696,17 @@ window.electronAPI.handleOptions(({ options, id }) => {
     top_div.scrollTop = top_div.scrollHeight;
 })
 
-window.electronAPI.handlePrompt((prompt) => {
+window.electronAPI.setPrompt((prompt) => {
   system_prompt.value = prompt;
 })
 
+window.electronAPI.initInfo((info) => {
+  system_prompt.value = info.prompt;
+  version.innerText = info.version;
+  info.chats.forEach(chat => addChatItem(chat));
+})
+
 window.electronAPI.handleClear(() => {
-  messages.innerHTML = null;
-  pause.style.display = "none";
-  pause.innerHTML = "";
   loadOptions();
 })
 
@@ -719,17 +733,79 @@ window.electronAPI.uploadProgress((info) => {
   }
 })
 
+const ai_model = document.getElementById("ai-model");
+const api_url = document.getElementById("api-url");
+const api_key = document.getElementById("api-key");
 
 // 配置弹窗控制
-function showConfig() {
+async function showConfig() {
   document.querySelector('.config-modal').style.display = 'flex';
+  const config = await window.electronAPI.getConfig();
+  ai_model.innerHTML = null;
+  for (const model in config.models) {
+    if (config.models[model].hasOwnProperty("api_key")) {
+      if (!api_url.value && !api_key.value) {
+        api_url.value = config.models[model]?.api_url || null;
+        api_key.value = config.models[model]?.api_key || null;
+      }
+      const option = createElement(`<option value="${model}">${model}</option>`);
+      ai_model.appendChild(option);
+    }
+  }
+  ai_model.addEventListener("change", (event) => {
+    api_url.value = config.models[event.target.value]?.api_url || null;
+    api_key.value = config.models[event.target.value]?.api_key || null;
+  })
+
+  document.getElementById('ssh-host').value = config.tool_call.ssh_config?.host || null;
+  document.getElementById('ssh-port').value = config.tool_call.ssh_config?.port || null;
+  document.getElementById('ssh-username').value = config.tool_call.ssh_config?.username || null;
+  document.getElementById('ssh-password').value = config.tool_call.ssh_config?.password || null;
+  document.getElementById('cli-prompt').value = config.plugins.cli_execute.params.cli_prompt || null;
 }
 
-function hideConfig(e) {
-  if (e.target.classList.contains('config-modal')) {
+function hideConfig(event) {
+  if (!event || event.target === document.querySelector('.config-modal')) {
     document.querySelector('.config-modal').style.display = 'none';
   }
 }
+
+async function saveConfig() {
+  const config = await window.electronAPI.getConfig();
+  const postConfig = {
+    ssh_config: {
+      host: document.getElementById('ssh-host').value,
+      port: parseInt(document.getElementById('ssh-port').value),
+      username: document.getElementById('ssh-username').value,
+      password: document.getElementById('ssh-password').value
+    },
+    cli_prompt: document.getElementById('cli-prompt').value,
+    ai_config: {
+      model: document.getElementById('ai-model').value,
+      api_url: document.getElementById('api-url').value,
+      api_key: document.getElementById('api-key').value,
+    }
+  };
+
+  config.tool_call.ssh_config = postConfig.ssh_config;
+  config.plugins.cli_execute.params.cli_prompt = postConfig.cli_prompt;
+  config.models[postConfig.ai_config.model].api_url = postConfig.ai_config.api_url;
+  config.models[postConfig.ai_config.model].api_key = postConfig.ai_config.api_key;
+
+  const state = await window.electronAPI.setConfig(config);
+
+  // In a real application, you would save this to localStorage or send to a server
+  console.log('State:', state);
+  showLog('Configuration saved successfully!');
+  hideConfig();
+}
+
+// Close modal when pressing Escape key
+document.addEventListener('keydown', function (event) {
+  if (event.key === 'Escape') {
+    hideConfig();
+  }
+});
 
 // 动态交互效果
 document.querySelectorAll('.btn').forEach(btn => {
@@ -747,9 +823,64 @@ function toggleSidebar() {
 }
 
 // 新对话
-function newChat() {
-  alert('开启新对话');
-  // 实际实现中这里会创建新聊天会话
+const new_item = `<div class="history-item" onclick="selectChat('@id')">
+    <div class="history-text"></div>
+    <div class="history-menu" onclick="showHistoryMenu(event, '@id')">
+    <i class="fas fa-ellipsis-v"></i>
+    <div class="history-menu-dropdown">
+    <div class="history-menu-item" onclick="renameChat('@id')">
+    <i class="fas fa-edit"></i> Rename
+    </div>
+    <div class="history-menu-item" onclick="deleteChat('@id')">
+    <i class="fas fa-trash"></i> Delete
+    </div>
+    </div>
+    </div>
+    </div>`;
+
+const history_list = document.getElementById("history-list");
+
+function addChatItem(chat) {
+  const item = createElement(new_item.replaceAll("@id", chat.id));
+  item.getElementsByClassName("history-text")[0].innerText = chat.name;
+  item.id = chat.id;
+  history_list.appendChild(item);
+}
+
+async function newChat() {
+  const chat = await window.electronAPI.newChat();
+  addChatItem(chat);
+  const items = history_list.getElementsByClassName("history-item");
+  [...items].forEach(item_ => {
+    if (item_.id == chat.id)
+      item_.classList.add("active");
+    else
+      item_.classList.remove("active");
+  });
+}
+
+// 选择聊天
+async function selectChat(chatId) {
+  await window.electronAPI.loadChat(chatId);
+  const items = history_list.getElementsByClassName("history-item");
+  [...items].forEach(item_ => {
+    if (item_.id == chatId)
+      item_.classList.add("active");
+    else
+      item_.classList.remove("active");
+  });
+}
+
+// 删除聊天
+async function deleteChat(chatId) {
+  if (confirm('Are you sure you want to delete this conversation?')) {
+    await window.electronAPI.delChat(chatId);
+    const items = history_list.getElementsByClassName("history-item");
+    [...items].forEach(item => {
+      if (item.id == chatId)
+        item.remove();
+    })
+  }
 }
 
 // 显示历史菜单
@@ -769,46 +900,44 @@ const renameDialog = document.getElementById('renameDialog');
 const renameInput = document.getElementById('renameInput');
 
 function showDialog() {
-    renameDialog.style.display = 'flex';
-    renameInput.focus();
+  renameDialog.style.display = 'flex';
+  renameInput.focus();
 }
 
 function hideDialog() {
-    renameDialog.style.display = 'none';
-    renameInput.value = '';
+  renameDialog.style.display = 'none';
+  renameInput.value = '';
 }
 
-function confirmRename() {
-    const newName = renameInput.value.trim();
-    if (newName) {
-        // 这里调用Electron主进程或执行重命名逻辑
-        console.log(`重命名对话 ${currentChatId} 为: ${newName}`);
-        // 实际更新UI...
-    }
-    hideDialog();
+async function confirmRename() {
+  const newName = renameInput.value.trim();
+  if (newName) {
+    // 这里调用Electron主进程或执行重命名逻辑
+    console.log(`重命名对话 ${currentChatId} 为: ${newName}`);
+    await window.electronAPI.renameChat({ id: currentChatId, name: newName });
+    // 实际更新UI...
+    const items = history_list.getElementsByClassName("history-item");
+    [...items].forEach(item_ => {
+      if (item_.id == currentChatId)
+        item_.getElementsByClassName("history-text")[0].innerText = newName;
+    });
+  }
+  hideDialog();
 }
 
 // 修改后的重命名函数
 function renameChat(chatId) {
-    currentChatId = chatId;
-    showDialog();
+  currentChatId = chatId;
+  showDialog();
 }
 
-// 删除聊天
-function deleteChat(chatId) {
-  if (confirm('确定要删除此对话吗？')) {
-    alert(`已删除对话 ${chatId}`);
-  }
-}
-
-// 选择聊天
-function selectChat(chatId) {
-  alert(`切换到对话 ${chatId}`);
-}
 
 // 点击其他地方关闭菜单
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.history-menu')) {
     document.querySelectorAll('.history-menu-dropdown').forEach(m => m.style.display = 'none');
+  }
+  if (!["input", "system_prompt"].includes(e.target.id)) {
+    init_size();
   }
 });

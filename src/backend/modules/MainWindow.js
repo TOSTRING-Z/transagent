@@ -83,7 +83,7 @@ class MainWindow extends Window {
         // Send message to renderer process after window loaded
         this.window.webContents.on('did-finish-load', () => {
             this.initFuncItems();
-            this.initPrompt();
+            this.initInfo();
         });
 
         // Intercept page navigation
@@ -222,11 +222,13 @@ class MainWindow extends Window {
                 while (this.tool_call.state != State.FINAL && this.tool_call.state != State.PAUSE) {
                     if (getStopIds().includes(data.id)) {
                         this.tool_call.state = State.FINAL
+                        _event.sender.send('stream-data', { id: data.id, content: "Stop!", end: true });
                         break;
                     }
                     data = { ...data, ...defaults, ...tool_call, step: ++step };
 
                     let options = await this.tool_call.step(data);
+                    this.setHistory()
                     if (this.tool_call.state == State.PAUSE) {
                         this.window.webContents.send("options", { options, id: data.id });
                     }
@@ -239,6 +241,7 @@ class MainWindow extends Window {
                 let chain_calls = utils.getConfig("chain_call");
                 for (const step in chain_calls) {
                     if (getStopIds().includes(data.id)) {
+                        _event.sender.send('stream-data', { id: data.id, content: "Stop!", end: true });
                         break;
                     }
                     data = { ...data, ...defaults, ...chain_calls[step], step: step };
@@ -252,6 +255,7 @@ class MainWindow extends Window {
                     }
                     data = { ...data, ...tool_parmas };
                     await this.chain_call.step(data);
+                    this.setHistory()
                     if (this.chain_call.state == State.FINAL) {
                         if (this.chain_call.is_plugin)
                             _event.sender.send('stream-data', { id: data.id, content: data.output_format, end: true });
@@ -268,13 +272,13 @@ class MainWindow extends Window {
             }
         })
 
-
         ipcMain.handle("delete-message", async (_event, id) => {
             let message_len = await deleteMessage(id);
+            this.setHistory();
             if (message_len <= utils.getConfig("memory_length")) {
                 this.tool_call.environment_details.memory_len = 0;
             }
-            console.log(`delect id: ${id}, length: ${message_len}`)
+            console.log(`delete id: ${id}, length: ${message_len}`)
             return message_len;
         })
 
@@ -299,6 +303,46 @@ class MainWindow extends Window {
             console.log(href)
             shell.openExternal(href);
         })
+
+        ipcMain.handle('new-chat', (_event) => {
+            clearMessages();
+            this.tool_call.clear_memory();
+            this.window.webContents.send('clear');
+            global.chat.id = utils.getChatId();
+            global.chat.name = utils.formatDate();
+            this.setHistory();
+            return global.chat
+        })
+
+        ipcMain.handle('load-chat', (_event, id) => {
+            clearMessages();
+            this.tool_call.clear_memory();
+            this.window.webContents.send('clear');
+            this.loadHistory(id);
+        })
+
+        ipcMain.on('del-chat', (_event, id) => {
+            clearMessages();
+            this.tool_call.clear_memory();
+            this.window.webContents.send('clear');
+            this.delHistory(id);
+        })
+
+        ipcMain.on('rename-chat', (_event, data) => {
+            this.renameHistory(data);
+        })
+
+        // 读取配置
+        ipcMain.handle('get-config-main', () => {
+            return utils.getConfig();
+        });
+
+        // 保存配置
+        ipcMain.handle('set-config-main', (_, config) => {
+            let state = utils.setConfig(config);
+            this.updateVersionsSubmenu()
+            return state;
+        });
     }
 
     send_query(data, model, version) {
@@ -383,7 +427,7 @@ class MainWindow extends Window {
                 if (!!ssh_config) {
                     extra.push({ "type": "file-upload" });
                 }
-                this.window.webContents.send("extra_load", e.statu ?  extra: utils.getConfig("extra"));
+                this.window.webContents.send("extra_load", e.statu ? extra : utils.getConfig("extra"));
             }
         }
         extraReact();
@@ -398,11 +442,12 @@ class MainWindow extends Window {
         this.funcItems.react.event = this.getReactEvent(this.funcItems.react);
     }
 
-    initPrompt() {
+    initInfo() {
         const filePath = utils.getConfig("prompt");
         if (fs.existsSync(filePath)) {
             const prompt = fs.readFileSync(filePath, 'utf-8');
-            this.window.webContents.send('prompt', prompt);
+            const chats = utils.getHistoryData();
+            this.window.webContents.send('init-info', { prompt, ...global, chats });
         }
     }
 
@@ -470,12 +515,6 @@ class MainWindow extends Window {
                 label: "Function Selection",
                 submenu: [
                     {
-                        click: this.funcItems.clip.click,
-                        label: 'Copy Tool',
-                        type: 'checkbox',
-                        checked: this.funcItems.clip.statu,
-                    },
-                    {
                         click: this.funcItems.markdown.click,
                         label: 'Auto MarkDown',
                         type: 'checkbox',
@@ -492,7 +531,13 @@ class MainWindow extends Window {
                         label: 'Text Formatting',
                         type: 'checkbox',
                         checked: this.funcItems.text.statu,
-                    }
+                    },
+                    {
+                        click: this.funcItems.clip.click,
+                        label: 'Copy Tool',
+                        type: 'checkbox',
+                        checked: this.funcItems.clip.statu,
+                    },
                 ]
             },
             {
@@ -540,48 +585,9 @@ class MainWindow extends Window {
                             clearMessages();
                             this.tool_call.clear_memory();
                             this.window.webContents.send('clear')
+                            this.setHistory();
                         }
-                    },
-                    {
-                        label: 'Save Conversation',
-                        click: () => {
-                            const lastPath = path.join(store.get('lastSavePath') || path.join(process.resourcesPath, 'resources/', 'messages/'), `messages_${utils.formatDate()}.json`);
-                            console.log(lastPath)
-                            dialog.showSaveDialog(this.window, {
-                                defaultPath: lastPath,
-                                filters: [
-                                    { name: 'JSON File', extensions: ['json'] },
-                                    { name: 'All Files', extensions: ['*'] }
-                                ]
-                            }).then(result => {
-                                if (!result.canceled) {
-                                    store.set('lastSavePath', path.dirname(result.filePath));
-                                    saveMessages(result.filePath);
-                                }
-                            }).catch(err => {
-                                console.error(err);
-                            });
-                        }
-                    },
-                    {
-                        label: 'Load Conversation',
-                        click: () => {
-                            const lastPath = store.get('lastSavePath') || path.join(process.resourcesPath, 'resources/', 'messages/');
-                            dialog.showOpenDialog(this.window, {
-                                defaultPath: lastPath,
-                                filters: [
-                                    { name: 'JSON File', extensions: ['json'] },
-                                    { name: 'All Files', extensions: ['*'] }
-                                ]
-                            }).then(result => {
-                                if (!result.canceled) {
-                                    this.tool_call.load_message(this.window, result.filePaths[0])
-                                }
-                            }).catch(err => {
-                                console.error(err);
-                            });
-                        }
-                    },
+                    }
                 ]
             }
 
@@ -674,6 +680,45 @@ class MainWindow extends Window {
             .catch(err => {
                 console.log(err);
             });
+    }
+
+    setHistory() {
+        if(!!global.chat.id && !!global.chat.name) {
+            const history_data = utils.getHistoryData();
+            let history = history_data.find(history_ => history_.id == global.chat.id);
+            if (!history) {
+                history = global.chat
+                history_data.push(history)
+                utils.setHistoryData(history_data);
+            }
+            const history_path = utils.getHistoryPath(global.chat.id);
+            saveMessages(history_path);
+        }
+    }
+
+    delHistory(id) {
+        let history_data = utils.getHistoryData();
+        history_data = history_data.filter(history => history.id != id);
+        utils.setHistoryData(history_data);
+    }
+
+    renameHistory(data) {
+        let history_data = utils.getHistoryData();
+        history_data = history_data.map(history => {
+            if (history.id == data.id){
+                history.name = data.name;
+            }
+            return history;
+        });
+        utils.setHistoryData(history_data);
+    }
+
+    loadHistory(id) {
+        const history_data = utils.getHistoryData();
+        const history = history_data.find(history_ => history_.id == id);
+        const history_path = utils.getHistoryPath(id);
+        this.tool_call.load_message(this.window, history_path)
+        global.chat = history
     }
 }
 

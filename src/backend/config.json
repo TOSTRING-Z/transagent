@@ -3,6 +3,7 @@
   "retry_time": 10,
   "icon_time": 5,
   "prompt": null,
+  "history_path": "{resourcesPath}/resources/history",
   "short_cut": "CommandOrControl+Shift+Space",
   "info_template": "Step: {step}, Call: {model}, Version: {version}, Output:\n\n```json\n{output_format}\n```\n\n",
   "llm_parmas": {

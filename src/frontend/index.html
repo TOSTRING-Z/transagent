@@ -13,15 +13,8 @@
   <link rel="stylesheet" href="css/atom-one-light.min.css" />
   <link rel="stylesheet" href="css/font-awesome/css/all.min.css" />
   <link rel="stylesheet" href="css/index.css" />
-  <script>
-    MathJax = {
-      tex: {
-        displayMath: [["$$", "$$"], ["\\[", "\\]"]],
-        inlineMath: [[["$", "$"]], ["\\(", "\\)"]]
-      }
-    }
-  </script>
-  <script src="js/tex-mml-chtml.js" id="MathJax-script" async></script>
+  <script id="MathJax-script" async src="js/tex-mml-chtml.js"></script>
+  <script src="js/check-for-tex.js" defer></script>
   <script src="js/marked.min.js"></script>
   <script src="js/masked_high_light.js"></script>
   <script src="js/highlight.min.js"></script>
@@ -32,11 +25,11 @@
       <!-- 在body底部添加自定义对话框 -->
       <div class="custom-dialog" id="renameDialog">
         <div class="dialog-content">
-            <h3>重命名对话</h3>
-            <input type="text" class="dialog-input" id="renameInput" placeholder="输入新名称">
+            <h3>Rename title</h3>
+            <input type="text" class="dialog-input" id="renameInput" placeholder="Enter a new title">
             <div class="dialog-buttons">
-                <button class="dialog-btn" onclick="hideDialog()">取消</button>
-                <button class="dialog-btn dialog-confirm" onclick="confirmRename()">确定</button>
+                <button class="dialog-btn" onclick="hideDialog()">Cancel</button>
+                <button class="dialog-btn dialog-confirm" onclick="confirmRename()">Confirm</button>
             </div>
         </div>
     </div>
@@ -48,24 +41,10 @@
 
     <button class="new-chat-btn" onclick="newChat()">
       <i class="fas fa-plus"></i>
-      <span class="btn-text">开启新对话</span>
+      <span class="btn-text">New chat</span>
     </button>
 
-    <div class="history-list">
-      <div class="history-item" onclick="selectChat(1)">
-        <div class="history-text">对话历史示例文本示例文本示例文本</div>
-        <div class="history-menu" onclick="showHistoryMenu(event, 1)">
-          <i class="fas fa-ellipsis-v"></i>
-          <div class="history-menu-dropdown">
-            <div class="history-menu-item" onclick="renameChat(1)">
-              <i class="fas fa-edit"></i> 重命名
-            </div>
-            <div class="history-menu-item" onclick="deleteChat(1)">
-              <i class="fas fa-trash"></i> 删除
-            </div>
-          </div>
-        </div>
-      </div>
+    <div id="history-list" class="history-list">
     </div>
   </div>
 
@@ -79,13 +58,62 @@
 
     <!-- 配置弹窗 -->
     <div class="config-modal" onclick="hideConfig(event)">
-      <div class="config-content">
-        <h2 style="color: var(--primary); margin-bottom: 20px;">
-          <i class="fas fa-tools"></i> 系统配置
-        </h2>
-        <!-- 配置表单内容 -->
+      <div class="config-content" onclick="event.stopPropagation()">
+          <h2 style="color: var(--primary); margin-bottom: 20px;">
+              <i class="fas fa-tools"></i> Agent Core Configuration
+          </h2>
+          
+          <div class="form-group">
+              <h3>SSH Configuration</h3>
+              <div class="form-row">
+                  <label>Host:</label>
+                  <input type="text" id="ssh-host" value="172.27.0.3">
+              </div>
+              <div class="form-row">
+                  <label>Port:</label>
+                  <input type="number" id="ssh-port" value="3002">
+              </div>
+              <div class="form-row">
+                  <label>Username:</label>
+                  <input type="text" id="ssh-username" value="root">
+              </div>
+              <div class="form-row">
+                  <label>Password:</label>
+                  <input type="text" id="ssh-password" value="password">
+              </div>
+          </div>
+
+          <div class="form-group">
+              <h3>CLI Prompt</h3>
+              <div class="form-row">
+                  <label>Prompt File Path:</label>
+                  <input type="text" id="cli-prompt" placeholder="/path/to/cli_prompt.md">
+              </div>
+          </div>
+
+          <div class="form-group">
+              <h3>Agent LLM Configuration</h3>
+              <div class="form-row">
+                  <label>Model:</label>
+                  <select id="ai-model">
+                  </select>
+              </div>
+              <div class="form-row">
+                  <label>API Url:</label>
+                  <input type="text" id="api-url" placeholder="Enter your API url">
+              </div>
+              <div class="form-row">
+                  <label>API Key:</label>
+                  <input type="text" id="api-key" placeholder="Enter your API key">
+              </div>
+          </div>
+
+          <div class="modal-actions">
+              <button class="dialog-btn" onclick="hideConfig()">Cancel</button>
+              <button class="dialog-btn dialog-confirm" onclick="saveConfig()">Save Configuration</button>
+          </div>
       </div>
-    </div>
+  </div>
 
     <div class="container-fluid min-h-screen flex">
       <div class="w-full flex-grow">

@@ -145,11 +145,42 @@ class Utils {
         const hours = date.getHours().toString().padStart(2, '0');
         const minutes = date.getMinutes().toString().padStart(2, '0');
         const seconds = date.getSeconds().toString().padStart(2, '0');
-        return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
 
     copy(data) {
         return JSON.parse(JSON.stringify(data));
+    }
+
+    getChatId() {
+        //返回chat-UUID
+        return `chat-${crypto.randomUUID()}`;
+    }
+
+    getHistoryData() {
+        const historyFilePath = path.join(os.homedir(), '.bixchat', 'history.json');
+        if (!fs.existsSync(historyFilePath)) {
+            return []
+        } else {
+            const data = fs.readFileSync(historyFilePath, 'utf-8');
+            let historyData = JSON.parse(data);
+            return historyData.data
+        }
+    }
+
+    setHistoryData(historyData) {
+        const historyFilePath = path.join(os.homedir(), '.bixchat', 'history.json');
+        fs.writeFileSync(historyFilePath, JSON.stringify({ data: historyData }, null, 2));
+    }
+
+    getHistoryPath(id) {
+        let history_path = this.getConfig("history_path")?.format(process);
+        if (!fs.existsSync(history_path)) {
+            history_path = path.join(process.resourcesPath, 'resources/', 'history/', `${id}.json`);
+        } else {
+            history_path = path.join(history_path, `${id}.json`);
+        }
+        return history_path;
     }
 }
 
