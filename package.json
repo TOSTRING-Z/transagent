@@ -53,14 +53,14 @@
     },
     "mac": {
       "target": "dmg",
-      "icon": "resources/icon/icon.icns"
+      "icon": "resources/icon/icon@256x256.icns"
     },
     "linux": {
       "target": [
         "deb",
         "AppImage"
       ],
-      "icon": "resources/icon/icon.png"
+      "icon": "resources/icon/icon@256x256.icns"
     }
   },
   "scripts": {
