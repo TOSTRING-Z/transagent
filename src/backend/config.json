@@ -11,10 +11,10 @@
     "stream": true
   },
   "func_status": {
-    "clip": false,
     "react": true,
     "markdown": true,
     "math": true,
+    "clip": false,
     "text": false
   },
   "default": {

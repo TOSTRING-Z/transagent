@@ -93,7 +93,7 @@ class Utils {
         const sshConfig = this.getConfig("tool_call")?.ssh_config;
         return sshConfig;
     }
-    
+
     getIsPlugin(model) {
         return Object.values(this.inner.model_name).includes(model);
     }

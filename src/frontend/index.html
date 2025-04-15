@@ -3,11 +3,15 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; font-src https://cdnjs.cloudflare.com file:; img-src 'self' data:;" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; 
+           script-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; 
+           style-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; 
+           font-src https://cdnjs.cloudflare.com file:; 
+           img-src 'self' data:;" />
   <title>BixChat - Transcriptional regulation analysis platform</title>
   <link rel="stylesheet" href="css/build.css" />
   <link rel="stylesheet" href="css/atom-one-light.min.css" />
+  <link rel="stylesheet" href="css/font-awesome/css/all.min.css" />
   <link rel="stylesheet" href="css/index.css" />
   <script>
     MathJax = {
@@ -25,40 +29,103 @@
 
 <body>
   <textarea id="content" hidden></textarea>
-
-  <div class="container-fluid min-h-screen flex">
-    <div class="w-full flex-grow">
-      <!-- Chat messages -->
-      <div class="overflow-y-auto" id="top_div">
-        <div class="p-4 flex flex-col space-y-4" id="messages"></div>
-        <div class="space-x-2 items-start" id="pause"></div>
-      </div>
-      <!-- Input area -->
-      <div class="p-4 fixed bottom-0 left-0 right-0" id="bottom_div">
-        <div class="bg-gradient"></div>
-        <div class="flex mb-2 flex-row items-center">
-          <div class="flex-row items-start" id="act_plan" hidden>
-            <div class="btn" id="auto">Auto Mode</div>
-            <div class="btn active" id="act">Execution Mode</div>
-            <div class="btn" id="plan">Planning Mode</div>
-          </div>
-          <div class="btn ellipsis-div" id="file_upload" hidden>File Upload</div>
-          <div id="progress-container" class="progress-container">
-            <div id="progress-bar" class="progress-bar"></div>
-          </div>
-          <textarea class="w-full p-2 rounded-md mb-2" rows="1" placeholder="System Prompt" id="system_prompt"
-            hidden></textarea>
+      <!-- 在body底部添加自定义对话框 -->
+      <div class="custom-dialog" id="renameDialog">
+        <div class="dialog-content">
+            <h3>重命名对话</h3>
+            <input type="text" class="dialog-input" id="renameInput" placeholder="输入新名称">
+            <div class="dialog-buttons">
+                <button class="dialog-btn" onclick="hideDialog()">取消</button>
+                <button class="dialog-btn dialog-confirm" onclick="confirmRename()">确定</button>
+            </div>
         </div>
-        <div class="flex relative">
-          <textarea class="flex-grow p-2 rounded-l-lg" rows="1" placeholder="User Prompt/Text" id="input"></textarea>
-          <button class="p-2 text-white rounded-r-lg" id="submit">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"
-              class="icon-2xl">
-              <path fill-rule="evenodd" clip-rule="evenodd"
-                d="M15.1918 8.90615C15.6381 8.45983 16.3618 8.45983 16.8081 8.90615L21.9509 14.049C22.3972 14.4953 22.3972 15.2189 21.9509 15.6652C21.5046 16.1116 20.781 16.1116 20.3347 15.6652L17.1428 12.4734V22.2857C17.1428 22.9169 16.6311 23.4286 15.9999 23.4286C15.3688 23.4286 14.8571 22.9169 14.8571 22.2857V12.4734L11.6652 15.6652C11.2189 16.1116 10.4953 16.1116 10.049 15.6652C9.60265 15.2189 9.60265 14.4953 10.049 14.049L15.1918 8.90615Z"
-                fill="currentColor"></path>
-            </svg>
-          </button>
+    </div>
+  <!-- 左侧面板 -->
+  <div class="sidebar">
+    <div class="collapse-btn" onclick="toggleSidebar()">
+      <i class="fas fa-chevron-left"></i>
+    </div>
+
+    <button class="new-chat-btn" onclick="newChat()">
+      <i class="fas fa-plus"></i>
+      <span class="btn-text">开启新对话</span>
+    </button>
+
+    <div class="history-list">
+      <div class="history-item" onclick="selectChat(1)">
+        <div class="history-text">对话历史示例文本示例文本示例文本</div>
+        <div class="history-menu" onclick="showHistoryMenu(event, 1)">
+          <i class="fas fa-ellipsis-v"></i>
+          <div class="history-menu-dropdown">
+            <div class="history-menu-item" onclick="renameChat(1)">
+              <i class="fas fa-edit"></i> 重命名
+            </div>
+            <div class="history-menu-item" onclick="deleteChat(1)">
+              <i class="fas fa-trash"></i> 删除
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主内容区 -->
+  <div class="main">
+
+    <!-- 配置按钮 -->
+    <div class="config-btn" onclick="showConfig()">
+      <i class="fas fa-cog"></i>
+    </div>
+
+    <!-- 配置弹窗 -->
+    <div class="config-modal" onclick="hideConfig(event)">
+      <div class="config-content">
+        <h2 style="color: var(--primary); margin-bottom: 20px;">
+          <i class="fas fa-tools"></i> 系统配置
+        </h2>
+        <!-- 配置表单内容 -->
+      </div>
+    </div>
+
+    <div class="container-fluid min-h-screen flex">
+      <div class="w-full flex-grow">
+        <!-- Chat messages -->
+        <div class="overflow-y-auto" id="top_div">
+          <div class="p-4 flex flex-col space-y-4" id="messages"></div>
+          <div class="space-x-2 items-start" id="pause"></div>
+        </div>
+        <!-- Input area -->
+        <div class="p-4 bottom-0 left-0 right-0" id="bottom_div">
+          <div class="bg-gradient"></div>
+          <div class="flex mb-2 flex-row items-center">
+            <div class="flex-row items-start" id="act_plan" hidden>
+              <div class="btn" id="auto">Auto Mode</div>
+              <div class="btn active" id="act">Execution Mode</div>
+              <div class="btn" id="plan">Planning Mode</div>
+            </div>
+            <div class="btn ellipsis-div" id="file_upload" hidden>File Upload</div>
+            <div id="progress-container" class="progress-container">
+              <div id="progress-bar" class="progress-bar"></div>
+            </div>
+            <textarea class="w-full p-2 rounded-md mb-2" rows="1" placeholder="System Prompt" id="system_prompt"
+              hidden></textarea>
+          </div>
+          <div class="flex relative">
+            <textarea class="flex-grow p-2 rounded-l-lg" rows="1" placeholder="User Prompt/Text" id="input"></textarea>
+            <button class="p-2 text-white rounded-r-lg" id="submit">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"
+                class="icon-2xl">
+                <path fill-rule="evenodd" clip-rule="evenodd"
+                  d="M15.1918 8.90615C15.6381 8.45983 16.3618 8.45983 16.8081 8.90615L21.9509 14.049C22.3972 14.4953 22.3972 15.2189 21.9509 15.6652C21.5046 16.1116 20.781 16.1116 20.3347 15.6652L17.1428 12.4734V22.2857C17.1428 22.9169 16.6311 23.4286 15.9999 23.4286C15.3688 23.4286 14.8571 22.9169 14.8571 22.2857V12.4734L11.6652 15.6652C11.2189 16.1116 10.4953 16.1116 10.049 15.6652C9.60265 15.2189 9.60265 14.4953 10.049 14.049L15.1918 8.90615Z"
+                  fill="currentColor"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="status-bar">
+            <span><i class="fas fa-robot"></i> <span id="version">deepseek-chat</span></span>
+            <span><i class="fas fa-hashtag"></i> <span id="tokens">0</span> tokens</span>
+            <span><i class="fas fa-clock"></i> <span id="seconds">0</span> s</span>
+          </div>
         </div>
       </div>
     </div>

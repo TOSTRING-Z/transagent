@@ -244,12 +244,12 @@ const htmlContent = `
 function loadOptions() {
   // Note: In a real implementation, you would need to actually load the HTML file from the path
   // Since we don't have the actual file loading code, we'll work with the provided HTML string
-  
+
   // Create a DOM element from the HTML string (in reality, you would load this from the file)
   const parser = new DOMParser();
   const doc = parser.parseFromString(htmlContent, 'text/html');
   const dom = doc.querySelector('.base-container');
-  
+
   // Get all option cards and bind click events
   const optionCards = dom.querySelectorAll('.option-card');
   optionCards.forEach(card => {
@@ -263,7 +263,7 @@ function loadOptions() {
         dom.remove();
       }
     });
-    
+
     // Add hover effect for better UX
     card.style.cursor = 'pointer';
     card.style.transition = 'transform 0.2s';
@@ -274,7 +274,7 @@ function loadOptions() {
       card.style.transform = 'scale(1)';
     });
   });
-  
+
   messages.append(dom);
 }
 
@@ -712,9 +712,103 @@ window.electronAPI.uploadProgress((info) => {
       break;
     case "end":
       progress_bar.style.width = `100%`
-      setTimeout(()=>{
+      setTimeout(() => {
         progress_container.style.display = "none";
-      },500);
+      }, 500);
       break;
   }
 })
+
+
+// 配置弹窗控制
+function showConfig() {
+  document.querySelector('.config-modal').style.display = 'flex';
+}
+
+function hideConfig(e) {
+  if (e.target.classList.contains('config-modal')) {
+    document.querySelector('.config-modal').style.display = 'none';
+  }
+}
+
+// 动态交互效果
+document.querySelectorAll('.btn').forEach(btn => {
+  btn.addEventListener('mouseover', () => btn.style.transform = 'translateY(-2px)');
+  btn.addEventListener('mouseout', () => btn.style.transform = 'none');
+});
+
+// 侧边栏折叠
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  sidebar.classList.toggle('collapsed');
+  const icon = document.querySelector('.collapse-btn i');
+  icon.classList.toggle('fa-chevron-left');
+  icon.classList.toggle('fa-chevron-right');
+}
+
+// 新对话
+function newChat() {
+  alert('开启新对话');
+  // 实际实现中这里会创建新聊天会话
+}
+
+// 显示历史菜单
+function showHistoryMenu(event, chatId) {
+  event.stopPropagation();
+  const menus = document.querySelectorAll('.history-menu-dropdown');
+  menus.forEach(menu => menu.style.display = 'none');
+
+  const menu = event.currentTarget.querySelector('.history-menu-dropdown');
+  menu.style.display = 'block';
+  currentChatId = chatId;
+}
+
+// 添加对话框控制逻辑
+let currentChatId = null;
+const renameDialog = document.getElementById('renameDialog');
+const renameInput = document.getElementById('renameInput');
+
+function showDialog() {
+    renameDialog.style.display = 'flex';
+    renameInput.focus();
+}
+
+function hideDialog() {
+    renameDialog.style.display = 'none';
+    renameInput.value = '';
+}
+
+function confirmRename() {
+    const newName = renameInput.value.trim();
+    if (newName) {
+        // 这里调用Electron主进程或执行重命名逻辑
+        console.log(`重命名对话 ${currentChatId} 为: ${newName}`);
+        // 实际更新UI...
+    }
+    hideDialog();
+}
+
+// 修改后的重命名函数
+function renameChat(chatId) {
+    currentChatId = chatId;
+    showDialog();
+}
+
+// 删除聊天
+function deleteChat(chatId) {
+  if (confirm('确定要删除此对话吗？')) {
+    alert(`已删除对话 ${chatId}`);
+  }
+}
+
+// 选择聊天
+function selectChat(chatId) {
+  alert(`切换到对话 ${chatId}`);
+}
+
+// 点击其他地方关闭菜单
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.history-menu')) {
+    document.querySelectorAll('.history-menu-dropdown').forEach(m => m.style.display = 'none');
+  }
+});
