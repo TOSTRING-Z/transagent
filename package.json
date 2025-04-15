@@ -1,6 +1,6 @@
 {
   "name": "bixchat",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "bixchat",
   "main": "src/backend/main.js",
   "homepage": ".",
