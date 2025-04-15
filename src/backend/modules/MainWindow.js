@@ -65,7 +65,7 @@ class MainWindow extends Window {
         this.window = new BrowserWindow({
             width: 800,
             height: 800,
-            icon: path.join(process.resourcesPath, 'resources/', 'icon/icon.ico'),
+            icon: path.join(process.resourcesPath, 'resources/', 'icon', 'icon.png'),
             webPreferences: {
                 preload: path.join(__dirname, '../preload.js')
             }
