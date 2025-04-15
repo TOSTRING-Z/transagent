@@ -1,5 +1,6 @@
 const { Window } = require("./Window");
 const { utils } = require('./globals');
+const { Plugins } = require('./Plugins');
 
 const { BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
@@ -37,7 +38,7 @@ class ConfigsWindow extends Window {
             ipcMain.on('minimize-window', () => {
                 BrowserWindow.getFocusedWindow().minimize()
             })
-    
+
             ipcMain.on('close-window', () => {
                 BrowserWindow.getFocusedWindow().close()
             })
@@ -61,6 +62,8 @@ class ConfigsWindow extends Window {
         ipcMain.handle('set-config', (_, config) => {
             let state = utils.setConfig(config);
             this.windowManager.mainWindow.updateVersionsSubmenu()
+            const plugins = new Plugins();
+            plugins.init()
             return state;
         });
     }

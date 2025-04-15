@@ -1,4 +1,5 @@
 const { Window } = require("./Window")
+const { Plugins } = require('./Plugins');
 const { store, global, inner, utils } = require('./globals')
 const { clearMessages, saveMessages, deleteMessage, stopMessage, getStopIds } = require('../server/llm_service');
 const { captureMouse } = require('../mouse/capture_mouse');
@@ -341,6 +342,8 @@ class MainWindow extends Window {
         ipcMain.handle('set-config-main', (_, config) => {
             let state = utils.setConfig(config);
             this.updateVersionsSubmenu()
+            const plugins = new Plugins();
+            plugins.init()
             return state;
         });
     }
