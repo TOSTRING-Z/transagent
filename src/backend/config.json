@@ -197,11 +197,6 @@
       "enabled": true
     }
   },
-  "chain_call": [
-    {
-      "end": true
-    }
-  ],
   "tool_call": {
     "memory_length": 20,
     "mcp_timeout": 6000,
@@ -225,5 +220,15 @@
         "type": "json_object"
       }
     }
-  }
+  },
+  "chain_call": [
+    {
+      "end": true
+    }
+  ],
+  "extra": [
+    {
+      "type": "system-prompt"
+    }
+  ]
 }
