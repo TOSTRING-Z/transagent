@@ -157,7 +157,7 @@ class MainWindow extends Window {
                                                         console.log(`文件上传成功: ${filePath} -> remote:${remotePath}`);
                                                     }
                                                     conn.end();
-                                                    this.window.webContents.send('upload-progress', { state: "end" })
+                                                    this.window.webContents.send('upload-progress', { state: "end", remotePath })
                                                 });
 
                                             });
@@ -311,6 +311,8 @@ class MainWindow extends Window {
             this.window.webContents.send('clear');
             global.chat.id = utils.getChatId();
             global.chat.name = utils.formatDate();
+            global.chat.tokens = 0;
+            global.chat.seconds = 0;
             this.setHistory();
             return global.chat
         })
@@ -318,8 +320,9 @@ class MainWindow extends Window {
         ipcMain.handle('load-chat', (_event, id) => {
             clearMessages();
             this.tool_call.clear_memory();
-            this.window.webContents.send('clear');
-            this.loadHistory(id);
+            const history = this.loadHistory(id);
+            global.chat = history;
+            return history;
         })
 
         ipcMain.on('del-chat', (_event, id) => {
@@ -345,6 +348,11 @@ class MainWindow extends Window {
             const plugins = new Plugins();
             plugins.init()
             return state;
+        });
+        
+        ipcMain.on('set-global', (_, chat) => {
+            global.chat.tokens = chat.tokens;
+            global.chat.seconds = chat.seconds;
         });
     }
 
@@ -447,11 +455,13 @@ class MainWindow extends Window {
 
     initInfo() {
         const filePath = utils.getConfig("prompt");
+        let prompt = "";
         if (fs.existsSync(filePath)) {
-            const prompt = fs.readFileSync(filePath, 'utf-8');
-            const chats = utils.getHistoryData();
-            this.window.webContents.send('init-info', { prompt, ...global, chats });
+            prompt = fs.readFileSync(filePath, 'utf-8');
         }
+        const chats = utils.getHistoryData();
+        global.chat = utils.getChatInit();
+        this.window.webContents.send('init-info', { prompt, ...global, chats });
     }
 
     updateVersionsSubmenu() {
@@ -687,11 +697,19 @@ class MainWindow extends Window {
 
     setHistory() {
         if(!!global.chat.id && !!global.chat.name) {
-            const history_data = utils.getHistoryData();
-            let history = history_data.find(history_ => history_.id == global.chat.id);
-            if (!history) {
+            let history_data = utils.getHistoryData();
+            let history_exist = history_data.map(history_ => history_.id == global.chat.id);
+            if (!history_exist) {
                 history = global.chat
                 history_data.push(history)
+                utils.setHistoryData(history_data);
+            } else {
+                history_data = history_data.map(history_ => {
+                    if(history_.id == global.chat.id) {
+                        history_ = global.chat
+                    }
+                    return history_;
+                });
                 utils.setHistoryData(history_data);
             }
             const history_path = utils.getHistoryPath(global.chat.id);
@@ -717,11 +735,11 @@ class MainWindow extends Window {
     }
 
     loadHistory(id) {
+        const history_path = utils.getHistoryPath(id);
+        this.tool_call.load_message(this.window, history_path);
         const history_data = utils.getHistoryData();
         const history = history_data.find(history_ => history_.id == id);
-        const history_path = utils.getHistoryPath(id);
-        this.tool_call.load_message(this.window, history_path)
-        global.chat = history
+        return history;
     }
 }
 

@@ -74,7 +74,7 @@ def validate_required_params(
                 if p not in all_params or all_params[p] is None
             ]
             if missing:
-                return f"缺少以下参数: {', '.join(missing)}"
+                return f"Missing the following parameters: {', '.join(missing)}"
 
             # 检查参数类型
             type_errors = []
@@ -83,10 +83,10 @@ def validate_required_params(
                     if param in all_params and not isinstance(
                         all_params[param], expected_type
                     ):
-                        type_errors.append(f"{param}必须是{type_name}类型")
+                        type_errors.append(f"The {param} must be of type {type_name}")
 
             if type_errors:
-                return "；".join(type_errors)
+                return ";".join(type_errors)
 
             # 调用原函数
             return await func(*args, **kwargs)
@@ -119,9 +119,10 @@ async def get_express_data(data_source: str, genes: list) -> str:
         return str(e)
 
 
-@validate_required_params("genes")
-async def get_gene_position(genes: list) -> str:
+async def get_gene_position(genes: Optional[list] = None) -> str:
     try:
+        if not genes:
+            return bed_config["gene_bed_path"]
         gene_bed = pd.read_csv(
             bed_config["gene_bed_path"], index_col=None, header=None, sep="\t"
         )
@@ -250,11 +251,11 @@ Returns:
     The path to the Gene-bed file.""",
             inputSchema={
                 "type": "object",
-                "required": ["genes"],
+                "required": [],
                 "properties": {
                     "genes": {
                         "type": "array",
-                        "description": "A list of gene names (e.g. ['TP53'])",
+                        "description": "A list of gene names (e.g., ['TP53']) or set to None (returns the path to the bed file including all gene regions)",
                     }
                 },
             },

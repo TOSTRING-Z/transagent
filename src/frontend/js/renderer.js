@@ -44,9 +44,8 @@ const formData = {
 global = {
   math_statu: true,
   markdown_statu: true,
-  tokens: 0,
   seconds_timer: null,
-  seconds: 0,
+  chat: { tokens: 0, seconds: 0 },
   scroll_top: {
     info: true,
     data: true,
@@ -241,10 +240,10 @@ function loadOptions() {
   messages.innerHTML = null;
   pause.style.display = "none";
   pause.innerHTML = "";
-  global.seconds = 0;
-  global.tokens = 0;
-  tokens.innerText = global.tokens;
-  seconds.innerText = global.seconds;
+  global.chat.seconds = 0;
+  global.chat.tokens = 0;
+  tokens.innerText = global.chat.tokens;
+  seconds.innerText = global.chat.seconds;
   // dom
   const parser = new DOMParser();
   const doc = parser.parseFromString(htmlContent, 'text/html');
@@ -297,11 +296,20 @@ function copy_message(raw) {
 }
 
 function getTokens(text) {
-  // 匹配中文（包括标点）
-  const chineseTokens = text.match(/[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]/g) || [];
-  // 匹配英文单词（包括数字、特殊符号，如 C++, Python3, 123, @#$, 但不算空格）
-  const englishTokens = text.match(/[^\s\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]+/g) || [];
-  return chineseTokens.length + englishTokens.length;
+  // 1. 先处理转义字符（可选，根据需求）
+  const normalizedText = text
+    .replace(/\\n/g, '\n')   // 换行符
+    .replace(/\\t/g, '\t')   // 制表符
+    .replace(/\\"/g, '"')    // 双引号
+    .replace(/\\\\/g, '\\'); // 反斜杠
+
+  // 2. 匹配纯中文（不含标点）
+  const chineseTokens = normalizedText.match(/[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]/g) || [];
+  
+  // 3. 匹配英文单词和常见编程符号
+  const wordTokens = normalizedText.match(/[a-zA-Z_][a-zA-Z0-9_]*|\+\+|--|&&|\|\||[<>!=]=?|\d+\.?\d*|[^\s\u4e00-\u9fa5]/g) || [];
+  
+  return chineseTokens.length + wordTokens.length;
 }
 
 function infoAdd(info) {
@@ -312,8 +320,10 @@ function infoAdd(info) {
     info_div.classList.remove('hidden');
   }
   if (!!info.content) {
-    global.tokens += getTokens(info.content);
-    tokens.innerText = global.tokens;
+    if (global.seconds_timer) {
+      global.chat.tokens += getTokens(info.content);
+      tokens.innerText = global.chat.tokens;
+    }
     info_content.dataset.content += info.content;
     info_content.innerHTML = marked.parse(info_content.dataset.content);
     if (global.scroll_top.info)
@@ -348,13 +358,15 @@ function userAdd(data) {
 }
 
 
-function streamMessageAdd(chunk) {
+async function streamMessageAdd(chunk) {
   const messageSystem = document.querySelectorAll(`[data-id='${chunk.id}']`)[1];
   const message_content = messageSystem.getElementsByClassName('message')[0];
   if (!!chunk.content) {
     optionDom?.remove();
-    global.tokens += getTokens(chunk.content);
-    tokens.innerText = global.tokens;
+    if (global.seconds_timer) {
+      global.chat.tokens += getTokens(chunk.content);
+      tokens.innerText = global.chat.tokens;
+    }
     message_content.dataset.content += chunk.content;
     message_content.innerHTML = marked.parse(message_content.dataset.content);
     if (global.scroll_top.data)
@@ -362,14 +374,16 @@ function streamMessageAdd(chunk) {
   }
   if (chunk.end) {
     clearInterval(global.seconds_timer);
+    global.seconds_timer = null;
     message_content.innerHTML = marked.parse(message_content.dataset.content);
     const thinking = messageSystem.getElementsByClassName("thinking")[0];
-    thinking.remove();
+    thinking?.remove();
     typesetMath();
     menuEvent(chunk.id, message_content.dataset.content);
     if (global.scroll_top.data)
       top_div.scrollTop = top_div.scrollHeight;
   }
+  await window.electronAPI.setGlobal(global.chat);
 }
 
 function menuEvent(id, raw) {
@@ -619,20 +633,19 @@ function addEventStop(messageSystem, id) {
 window.electronAPI.handleQuery(async (data) => {
   optionDom?.remove();
   if (!global.seconds_timer) {
-    global.seconds = 0;
     global.seconds_timer = setInterval(() => {
-      global.seconds += 0.1;
-      seconds.innerText = global.seconds.toFixed(1);
+      global.chat.seconds += 0.1;
+      seconds.innerText = global.chat.seconds.toFixed(1);
     }, 100)
   } else {
     clearInterval(global.seconds_timer);
+    global.seconds_timer = null;
     global.seconds_timer = setInterval(() => {
-      global.seconds += 0.1;
-      seconds.innerText = global.seconds.toFixed(1);
+      global.chat.seconds += 0.1;
+      seconds.innerText = global.chat.seconds.toFixed(1);
     }, 100)
   }
-  global.tokens = 0;
-  tokens.innerText = global.tokens;
+  tokens.innerText = global.chat.tokens;
   version.innerText = data.version;
   let user_content;
   data.prompt = system_prompt.value;
@@ -704,6 +717,13 @@ window.electronAPI.initInfo((info) => {
   system_prompt.value = info.prompt;
   version.innerText = info.version;
   info.chats.forEach(chat => addChatItem(chat));
+  if (global.seconds_timer) {
+    clearInterval(global.seconds_timer);
+  }
+  global.seconds_timer = null;
+  global.chat = info.chat;
+  tokens.innerText = global.chat.tokens;
+  seconds.innerText = global.chat.seconds;
 })
 
 window.electronAPI.handleClear(() => {
@@ -728,6 +748,7 @@ window.electronAPI.uploadProgress((info) => {
       progress_bar.style.width = `100%`
       setTimeout(() => {
         progress_container.style.display = "none";
+        input.value = `Upload: ${info.remotePath}\n${input.value}`;
       }, 500);
       break;
   }
@@ -861,7 +882,10 @@ async function newChat() {
 
 // 选择聊天
 async function selectChat(chatId) {
-  await window.electronAPI.loadChat(chatId);
+  const chat = await window.electronAPI.loadChat(chatId);
+  global.chat = chat;
+  tokens.innerText = global.chat.tokens;
+  seconds.innerText = global.chat.seconds.toFixed(1);
   const items = history_list.getElementsByClassName("history-item");
   [...items].forEach(item_ => {
     if (item_.id == chatId)

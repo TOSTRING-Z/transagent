@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 const { streamJSON, streamSse } = require("./stream.js")
 
 let messages = [];
@@ -27,13 +28,21 @@ function clearMessages() {
 }
 
 function saveMessages(filePath) {
-    fs.writeFile(filePath, JSON.stringify(messages, null, 2), err => {
-        if (err) {
-            console.log(err.message);
-            return;
+    try {
+        if (!fs.existsSync(path.dirname(filePath))) {
+            fs.mkdirSync(path.dirname(filePath), { recursive: true });
         }
-        console.log(filePath);
-    });
+    
+        fs.writeFile(filePath, JSON.stringify(messages, null, 2), err => {
+            if (err) {
+                console.log(err.message);
+                return;
+            }
+            console.log(filePath);
+        });
+    } catch (error) {
+        console.log(error.message)
+    }
 }
 
 function loadMessages(filePath) {
@@ -238,6 +247,9 @@ async function chatBase(data) {
                 data.event.sender.send('info-data', { id: data.id, content: error.message });
             }
         } else {
+            if (stop_ids.includes(data.id)) {
+                return "Stop!";
+            }
             body.stream = false;
             const resp = await fetch(new URL(data.api_url), {
                 method: "POST",

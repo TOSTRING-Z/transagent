@@ -50,7 +50,6 @@ class DisplayFile {
       return `Image loading failed: ${err.message}`;
     }
   }
-
   // 表格处理方法
   async processTable(filePath) {
     try {
@@ -59,12 +58,26 @@ class DisplayFile {
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
       const json = XLSX.utils.sheet_to_json(worksheet);
+      const maxCellLength = 100; // 每个单元格最多显示100个字符
+
+      if (json.length === 0) {
+        return "Empty table";
+      }
+
+      // 处理函数：截断过长的单元格内容
+      const processCellValue = (value) => {
+        if (value === null || value === undefined) return '';
+        const strValue = String(value);
+        return strValue.length > maxCellLength
+          ? strValue.substring(0, maxCellLength) + '...'
+          : strValue;
+      };
 
       // 将表格转换为Markdown格式
       let markdown = '|';
       // 表头
       Object.keys(json[0]).forEach(key => {
-        markdown += ` ${key} |`;
+        markdown += ` ${processCellValue(key)} |`;
       });
       markdown += '\n|';
 
@@ -83,7 +96,7 @@ class DisplayFile {
         json.forEach(row => {
           markdown += '|';
           Object.values(row).forEach(value => {
-            markdown += ` ${value} |`;
+            markdown += ` ${processCellValue(value)} |`;
           });
           markdown += '\n';
         });
@@ -92,7 +105,7 @@ class DisplayFile {
         json.slice(0, 5).forEach(row => {
           markdown += '|';
           Object.values(row).forEach(value => {
-            markdown += ` ${value} |`;
+            markdown += ` ${processCellValue(value)} |`;
           });
           markdown += '\n';
         });
@@ -108,7 +121,7 @@ class DisplayFile {
         json.slice(-5).forEach(row => {
           markdown += '|';
           Object.values(row).forEach(value => {
-            markdown += ` ${value} |`;
+            markdown += ` ${processCellValue(value)} |`;
           });
           markdown += '\n';
         });
@@ -134,20 +147,28 @@ class DisplayFile {
         // 纯文本处理
         const lines = content.split('\n');
         const maxLines = 10; // 最多显示10行（前5+后5）
+        const maxLineLength = 100; // 每行最多显示100个字符
 
-        if (lines.length <= maxLines) {
+        // 处理每行长度，超过限制的截断并添加...
+        const processedLines = lines.map(line => {
+          if (line.length > maxLineLength) {
+            return line.substring(0, maxLineLength) + '...';
+          }
+          return line;
+        });
+
+        if (processedLines.length <= maxLines) {
           // 行数不多，全部显示
-          result = content;
+          result = processedLines.join('\n');
         } else {
           // 显示前5行
-          result = lines.slice(0, 5).join('\n');
+          result = processedLines.slice(0, 5).join('\n');
 
           // 添加省略行
           result += '\n...\n...\n...\n';
 
           // 显示后5行
-          result += lines.slice(-5).join('\n');
-
+          result += processedLines.slice(-5).join('\n');
         }
         return `\`\`\`text\n${result}\n\`\`\`\n\n`;
       }

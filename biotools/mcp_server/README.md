@@ -40,6 +40,7 @@ docker run -it --name biotools --rm \
 -p 3002:22 \
 -v /mnt/ubuntu_zgr/install/bixchat/biotools/tmp:/tmp \
 -v /mnt/ubuntu_zgr/install/bixchat/biotools/data:/data \
+-v /mnt/ubuntu_zgr/install/bixchat/biotools/data/conda:/opt/conda \
 -v /mnt/ubuntu_zgr/install/bixchat/biotools/mcp_server/server_bixchat.py:/app/server.py \
 biotools
 

@@ -182,6 +182,15 @@ class Utils {
         }
         return history_path;
     }
+
+    getChatInit() {
+        return {
+            id: null,
+            name: null,
+            tokens: 0,
+            seconds: 0
+        }
+    }
 }
 
 module.exports = {

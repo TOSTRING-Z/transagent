@@ -362,6 +362,9 @@ All task messages submitted by users will also be saved in the "memory list". If
   }
 
   async step(data) {
+    if (!this.mcp_prompt) {
+      this.mcp_prompt = await this.init_mcp();
+    }
     this.system_prompt = this.task_prompt.format({
       system_type: utils.getConfig("tool_call")?.system_type || os.type(),
       system_platform: utils.getConfig("tool_call")?.system_platform || os.platform(),
@@ -370,9 +373,7 @@ All task messages submitted by users will also be saved in the "memory list". If
       mcp_prompt: this.mcp_prompt,
       extra_prompt: this.get_extra_prompt(data.extra_prompt)
     })
-    if (!this.mcp_prompt) {
-      this.mcp_prompt = await this.init_mcp();
-    }
+
     data.push_message = false
     if (this.state == State.IDLE) {
       pushMessage("user", data.query, data.id, ++this.memory_id, true, false);

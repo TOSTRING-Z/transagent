@@ -17,38 +17,33 @@
     例子: awk '{print $1"\t"$2"\t"$3}' input.bed > BETA_input.bed && BETA minus -p BETA_input.bed -g hg38 -n BETA_targets -o output_dir
 - fastqc: 用于测序数据的质量控制
     输入: read1.fastq,read2.fastq(双端测序需要)
-    输出: output_dir
-    例子: fastqc read1.fastq read2.fastq -o output_dir
+    输出: analysis/fastqc_dir
+    例子: fastqc read1.fastq read2.fastq -o analysis/fastqc_dir
 - trim_galore: 用于测序数据的适配器修剪
     输入: read1.fastq,read2.fastq(双端测序需要)
-    输出: output_dir
-    例子: trim_galore -q 20 --phred33 --stringency 3 --length 20 -e 0.1 --paired --gzip read1.fastq read2.fastq -o output_dir
+    输出: trim_galore_dir
+    例子: mkdir -p analysis/trim_galore_dir && trim_galore -q 20 --phred33 --stringency 3 --length 20 -e 0.1 --paired --gzip read1.fastq read2.fastq -o analysis/trim_galore_dir
 - bowtie2: 用于序列比对
-    输入: read1.fastq,read2.fastq(双端测序需要)
-    输出: 
-    例子: bowtie2 --threads 16 -k 1 \
--x $ref_genome \
--1 analysis/fastqc/"$fasta_name"_R1_val_1.fq.gz \
--2 analysis/fastqc/"$fasta_name"_R2_val_2.fq.gz | \
-samtools view -F 4 -bS | \
-samtools sort --threads 16 -o analysis/BAM/"$fasta_name"_sorted.bam
-- picard: 用于处理高通量测序数据的软件
-    输入:
-    输出:
-    例子: picard MarkDuplicates I=input.bam O=marked_duplicates.bam M=metrics.txt
+    输入: read1_val_1.fq.gz,read2_val_2.fq.gz(双端测序需要)
+    输出: raw.bam
+    例子: mkdir -p analysis/bam && bowtie2 --threads 16 -k 1 -x /data/rgtdata/hg38/genome_hg38 -1 analysis/trim_galore_dir/read1_val_1.fq.gz -2 analysis/trim_galore_dir/read2_val_2.fq.gz | samtools view -F 4 -bS | samtools sort --threads 16 -o analysis/bam/raw.bam
+- picard: 去除PCR重复
+    输入: raw.bam
+    输出: marked_duplicates.bam
+    例子: picard MarkDuplicates I=analysis/bam/input.bam O=analysis/bam/marked_duplicates.bam M=metrics.txt
 - macs2: 用于ChIP-seq峰值检测
-    输入:
-    输出:
-    例子: macs2 callpeak -t ChIP.bam -c Control.bam -f BAM -g hs -n output_prefix
+    输入: marked_duplicates.bam,control.bam(可选参考)
+    输出: analysis/peak_dir
+    例子: mkdir -p analysis/peak_dir && macs2 callpeak --shift -100 --extsize 200 --SPMR --nomodel -B -g hs -q 0.01 -t analysis/bam/marked_duplicates.bam -c control.bam -f BAM -g hs -n analysis/peak_dir
+- bamCoverage: 转换bam为bw
+    输入: marked_duplicates.bam
+    输出: final.bw
+    例子: mkdir -p analysis/bigwig && bamCoverage -b analysis/bam/marked_duplicates.bam --ignoreDuplicates  --skipNonCoveredRegions  --normalizeUsing RPKM --binSize 1 -p max -o analysis/bigwig/final.bw
 - deeptools: 用于高通量测序数据的可视化
-    输入:
-    输出:
+    输入: input.bed,input.bw
+    输出: matrix.gz,output.svg
     例子: computeMatrix reference-point --referencePoint TSS -b 1000 -a 1000 -R input.bed -S input.bw -out matrix.gz && plotProfile -m matrix.gz --plotTitle "final profile" --plotFileFormat svg -out output.svg
 - pandas: 用于数据分析和操作
-    输入:
-    输出:
     例子: python -c 'import pandas as pd; df = pd.read_csv("data.csv"); print(df.head())'
 - seaborn: 用于数据可视化
-    输入:
-    输出:
     例子: python -c 'import seaborn as sns; tips = sns.load_dataset("tips"); sns.boxplot(x="day", y="total_bill", data=tips)'
