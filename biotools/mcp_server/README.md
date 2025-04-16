@@ -31,7 +31,11 @@ docker load -i biotools.tar
 
 ## BixChat 可视化虚拟终端启动方式 (推荐方式)
 
-- 启动 docker 容器
+### data 基础环境数据下载
+
+[data](http://www.data.com)
+
+### 启动 docker 容器
 
 ```bash
 # linux
@@ -40,7 +44,6 @@ docker run -it --name biotools --rm \
 -p 3002:22 \
 -v /mnt/ubuntu_zgr/install/bixchat/biotools/tmp:/tmp \
 -v /mnt/ubuntu_zgr/install/bixchat/biotools/data:/data \
--v /mnt/ubuntu_zgr/install/bixchat/biotools/data/conda:/opt/conda \
 -v /mnt/ubuntu_zgr/install/bixchat/biotools/mcp_server/server_bixchat.py:/app/server.py \
 biotools
 
@@ -54,7 +57,7 @@ docker run -it --name biotools --rm `
 biotools
 ```
 
-- 可视化终端配置
+### 可视化终端配置
 
 config.json
 
@@ -81,7 +84,7 @@ config.json
 }
 ```
 
-- 系统信息配置
+### 系统信息配置
 
 ```bash
 # 查看系统信息
@@ -126,7 +129,7 @@ config.json
 
 ## 第三方客户端启动方式
 
-- 启动 docker 容器
+### 启动 docker 容器
 
 ```bash
 # linux
@@ -147,7 +150,7 @@ biotools
 docker exec -it biotools bash -i -c 'bedtools --help'
 ```
 
-- MCP 服务配置
+### MCP 服务配置
 
 config.json
 

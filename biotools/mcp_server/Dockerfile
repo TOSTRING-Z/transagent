@@ -32,11 +32,11 @@ ADD .bashrc /root/.bashrc
 ENV PATH="/app/.venv/bin:$PATH"
 
 ADD homer_config.txt /opt/conda/share/homer/config.txt
+ADD setup_env.sh /root/setup_env.sh
 
 LABEL org.opencontainers.image.title="biotools"
 
-# 暴露端口
 EXPOSE 22 3001
 
-ENTRYPOINT . /opt/conda/etc/profile.d/conda.sh && conda activate && service ssh start && /app/.venv/bin/python /app/server.py
+ENTRYPOINT ["/bin/bash","/root/setup_env.sh"]
    

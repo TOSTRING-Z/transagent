@@ -54,16 +54,21 @@ function main(params) {
             terminalWindow?.minimize()
         })
 
-        ipcMain.on('close-window', () => {
-            terminalWindow?.close()
-        })
-
         return new Promise((resolve, reject) => {
             let output = null;
             let error = null;
             const sshConfig = utils.getSshConfig();
             if (!!sshConfig) {
                 const conn = new Client();
+
+                ipcMain.on('close-window', () => {
+                    terminalWindow?.close()
+                    resolve(JSON.stringify({
+                        success: false,
+                        output: threshold(output, params.threshold),
+                        error: error
+                    }));
+                })
 
                 conn.on('ready', () => {
                     console.log('SSH Connection Ready');
@@ -83,7 +88,7 @@ function main(params) {
                             unlinkSync(tempFile);
                             setTimeout(() => {
                                 if (!!terminalWindow)
-                                    terminalWindow.close();
+                                    terminalWindow?.close();
                                 resolve(JSON.stringify({
                                     success: code === 0,
                                     output: threshold(output, params.threshold),
@@ -92,14 +97,14 @@ function main(params) {
                             }, params.delay_time * 1000);
                         })
 
-                        stream.stdout.on('data', (data) => {
+                        stream.on('data', (data) => {
                             output = data.toString();
-                            terminalWindow.webContents.send('terminal-data', output);
+                            terminalWindow?.webContents.send('terminal-data', output);
                         })
 
                         stream.stderr.on('data', (data) => {
                             error = data.toString();
-                            terminalWindow.webContents.send('terminal-data', error);
+                            terminalWindow?.webContents.send('terminal-data', error);
                         });
 
                         ipcMain.on('terminal-input', (event, input) => {
@@ -136,19 +141,19 @@ function main(params) {
                 const child = exec(`${params.bash} ${tempFile}`);
                 child.stdout.on('data', (data) => {
                     output = data.toString();
-                    terminalWindow.webContents.send('terminal-data', output);
+                    terminalWindow?.webContents.send('terminal-data', output);
                 });
 
                 child.stderr.on('data', (data) => {
                     error = data.toString();
-                    terminalWindow.webContents.send('terminal-data', error);
+                    terminalWindow?.webContents.send('terminal-data', error);
                 });
 
                 child.on('close', (code) => {
                     unlinkSync(tempFile);
                     setTimeout(() => {
                         if (!!terminalWindow)
-                            terminalWindow.close();
+                            terminalWindow?.close();
                         resolve(JSON.stringify({
                             success: code === 0,
                             output: threshold(output, params.threshold),

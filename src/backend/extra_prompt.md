@@ -5,6 +5,7 @@
 - 使用 `cli_execute` 工具调用系统软件时，需要检查是否所有输入文件都存在（例如 `deeptools` 的 `bw` 输入文件），当不满足输入条件时，应该尝试手动解决，若多次尝试都无法解决，请要求用户上传文件至 `/tmp` 文件夹中。
 - 当遇到报错或者有未安装的包时，请尝试手动解决报错。
 - 当存在多个同类本地数据（例如 `Super_Enhancer_[xxx]` ）来源时，应该询问用户是否需要分析其中一个或者是分析全部。
+- 在分析过程中，请频繁的调用 `display_file` 工具向用户展示结果。
 - 在分析完成后，应该给出结果文件的解释和本地路径，并询问用户是否需要进一步分析，你可以提供多个分析选项，例如查看文件前10行，Motif和靶基因分析等。
 
 # 注意事项
@@ -24,15 +25,14 @@
 1. 去接头前的质控报告：fastqc
 2. 去接头：trim_galore
 3. 去接头后的质控报告：fastqc
-4. 比对：bowtie2
-5. 去除PCR重复：picard
-6. 搜峰：macs2
+4. 比对：bowtie2;samtools
+5. 去除PCR重复：picard;samtools
+7. 搜峰：macs2
 
 ## bw和bed数据联合分析
 - 输入：bed文件，bam/bw文件
 1. IF bam:
-    1. 构建bam索引：samtools
-    2. 转换bam为bw：bamCoverage
+    1. 转换bam为bw：bamCoverage
 2. 区域覆盖强度可视化：deetools
 
 ## bed数据分析
@@ -50,5 +50,5 @@
     - 实验样本、对照样本
 1. 实验样本ChIP-seq数据处理
 2. 对照样本ChIP-seq数据处理
-3. 识别超级增强子：ROSE
+3. 识别超级增强子：bed2gff,ROSE
 4. bed数据分析

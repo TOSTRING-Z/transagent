@@ -26,7 +26,7 @@
 - picard: 去除PCR重复
     - 输入: raw.bam
     - 输出: marked_duplicates.bam
-    - 例子: picard MarkDuplicates I=analysis/bam/input.bam O=analysis/bam/marked_duplicates.bam M=metrics.txt
+    - 例子: picard MarkDuplicates I=analysis/bam/input.bam O=analysis/bam/marked_duplicates.bam M=metrics.txt && samtools index analysis/bam/marked_duplicates.bam analysis/bam/marked_duplicates.bam.bai
 - samtools: 构建bam索引
     - 输入: marked_duplicates.bam
     - 输出: marked_duplicates.bam.bai
@@ -39,22 +39,18 @@
     - 输入: marked_duplicates.bam
     - 输出: final.bw
     - 例子: mkdir -p analysis/bigwig && bamCoverage -b analysis/bam/marked_duplicates.bam --ignoreDuplicates  --skipNonCoveredRegions  --normalizeUsing RPKM --binSize 1 -p max -o analysis/bigwig/final.bw
+- bed2gff: bed转换gff文件
+    - 输入: peaks.narrowPeak
+    - 输出: peaks.gff
+    - 例子: bash /data/bed2gff/bed2gff.sh peaks.narrowPeak peaks.gff
+- ROSE: 识别超级增强子机器靶基因
+    - 输入: peaks.narrowPeak,marked_duplicates.bam,control.bam
+    - 输出: output_dir
+    - 例子: bash /data/bed2gff/bed2gff.sh peaks.narrowPeak peaks.gff && python2 /data/rose/ROSE_main.py -g HG38 -i peaks.gff -r marked_duplicates.bam -c control.bam -o output_dir -t 2000 && python2 ROSE_geneMapper.py -g HG38 -i output_dir/peaks_AllEnhancers.table.txt -o output_dir
 - deeptools: 用于高通量测序数据的可视化
     - 输入: input.bed,input.bw
     - 输出: matrix.gz,output.svg
     - 例子: computeMatrix reference-point --referencePoint TSS -b 1000 -a 1000 -R input.bed -S input.bw -out matrix.gz && plotProfile -m matrix.gz --plotTitle "final profile" --plotFileFormat svg -out output.svg
-- ucsc-liftover: 用于基因组坐标转换
-    - 输入: input.bed
-    - 输出: output.bed,unmapped.bed
-    - 例子: liftOver input.bed /data/bam2bw/hg19ToHg38.over.chain.gz output.bed unmapped.bed
-- bed2gff: bed转换gff文件
-    - 输入: peaks.bed
-    - 输出: peaks.gff
-    - 例子: bash /data/bed2gff/bed2gff.sh peaks.bed peaks.gff
-- ROSE: 识别超级增强子机器靶基因
-    - 输入: peaks.gff,marked_duplicates.bam,control.bam
-    - 输出: output_dir
-    - 例子: python2 ROSE_main.py -g HG38 -i peaks.gff -r marked_duplicates.bam -c control.bam -o output_dir -t 2000 && python2 ROSE_geneMapper.py -g HG38 -i output_dir/peaks_AllEnhancers.table.txt -o output_dir
 - ucsc-liftover: 用于基因组坐标转换
     - 输入: input.bed
     - 输出: output.bed,unmapped.bed
