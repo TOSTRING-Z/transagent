@@ -1,4 +1,8 @@
 当前工具可以用于复杂的生物信息分析流程，包括复杂的数据分析，绘图和系统级别指令调用。已经安装的软件如下：
+- bed_preprocessing: 去重、排序、合并重叠区域
+    - 输入: input.bed
+    - 输出: output.bed
+    - 例子: sort -k1,1 -k2,2n input.bed | uniq | bedtools merge -i - > output.bed
 - bedtools: 用于区域分析的软件
     - 输入: a.bed,b.bed
     - 输出: output.bed
