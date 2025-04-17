@@ -275,6 +275,7 @@ class MainWindow extends Window {
 
         ipcMain.handle("delete-message", async (_event, id) => {
             let message_len = await deleteMessage(id);
+            this.tool_call.deleteMemory(id);
             this.setHistory();
             if (message_len <= utils.getConfig("memory_length")) {
                 this.tool_call.environment_details.memory_len = 0;

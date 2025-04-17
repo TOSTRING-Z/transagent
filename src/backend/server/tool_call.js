@@ -25,6 +25,10 @@ class ToolCall extends ReActAgent {
     }
   }
 
+  deleteMemory(id) {
+    this.memory_list = this.memory_list.filter(memory => memory.id != id);
+  }
+
   constructor(tools = {}) {
     super();
     this.mcp_client = new MCPClient();
@@ -377,7 +381,7 @@ All task messages submitted by users will also be saved in the "memory list". If
     data.push_message = false
     if (this.state == State.IDLE) {
       pushMessage("user", data.query, data.id, ++this.memory_id, true, false);
-      this.memory_list.push({ memory_id: this.memory_id, user: data.query })
+      this.memory_list.push({ id: data.id, memory_id: this.memory_id, user: data.query })
       this.environment_update(data);
       this.state = State.RUNNING;
     }
@@ -447,8 +451,8 @@ All task messages submitted by users will also be saved in the "memory list". If
     try {
       const tool_info = JSON5.parse(content);
       if (!!tool_info?.thinking) {
-        this.memory_list.push({ memory_id: this.memory_id, assistant: tool_info.thinking });
-        this.memory_list.push({ memory_id: this.memory_id, user: `Assistant called ${tool_info.tool} tool` });
+        this.memory_list.push({ id: data.id, memory_id: this.memory_id, assistant: tool_info.thinking });
+        this.memory_list.push({ id: data.id, memory_id: this.memory_id, user: `Assistant called ${tool_info.tool} tool` });
         data.event.sender.send('stream-data', { id: data.id, content: `${tool_info.thinking}\n\n---\n\n` });
       }
       if (!!tool_info?.tool) {
@@ -504,7 +508,7 @@ All task messages submitted by users will also be saved in the "memory list". If
                 this.window.webContents.send('info-data', { id: id, content: `Step ${i}, Output: \n\n\`\`\`json\n${content_format}\n\`\`\`\n\n` });
               }
               else {
-                this.memory_list.push({ user: content, memory_id: memory_id })
+                this.memory_list.push({ id: id, memory_id: memory_id, user: content })
                 this.window.webContents.send('user-data', { id: id, content: content });
               }
             } else {
@@ -513,8 +517,8 @@ All task messages submitted by users will also be saved in the "memory list". If
                   content = utils.extractJson(content) || content;
                   const tool_info = JSON5.parse(content);
                   if (!!tool_info?.thinking) {
-                    this.memory_list.push({ assistant: tool_info.thinking, memory_id: memory_id });
-                    this.memory_list.push({ memory_id: memory_id, user: `Assistant called ${tool_info.tool} tool` });
+                    this.memory_list.push({ id: id, assistant: tool_info.thinking, memory_id: memory_id });
+                    this.memory_list.push({ id: id, memory_id: memory_id, user: `Assistant called ${tool_info.tool} tool` });
                     const thinking = `${tool_info.thinking}\n\n---\n\n`
                     let content_format = content.replaceAll("\`", "'").replaceAll("`", "'");
                     this.window.webContents.send('info-data', { id: id, content: `Step ${i}, Output:\n\n\`\`\`json\n${content_format}\n\`\`\`\n\n` });
