@@ -31,6 +31,7 @@ RUN conda install -y bioconda::bioconductor-txdb.hsapiens.ucsc.hg38.knowngene
 RUN conda install -y bioconda::bioconductor-txdb.hsapiens.ucsc.hg38.knowngene
 RUN conda create -y -n cutadapt python=3.7
 RUN conda install -y -n cutadapt bioconda::cutadapt
+RUN conda install -c bioconda ucsc-bedgraphtobigwig
 RUN conda install -y -n trapt
 
 RUN conda clean --all

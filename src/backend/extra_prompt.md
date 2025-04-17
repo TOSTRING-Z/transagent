@@ -31,12 +31,6 @@
 5. 去除PCR重复：picard;samtools
 7. 搜峰：macs2
 
-## Deeptools可视化
-- 输入：bed文件，bam/bw文件
-1. IF bam:
-    1. 转换bam为bw：bamCoverage
-2. 区域覆盖强度可视化：deetools
-
 ## 基因表达分析
 4. 基因表达分析：本地数据库
 5. 基因表达可视化
@@ -65,9 +59,9 @@
 1. 实验样本ChIP-seq数据处理
 2. 对照样本ChIP-seq数据处理
 3. 识别超级增强子：bed2gff,ROSE
-4. 区域注释分析
+4. deetools可视化: deetools
 5. 区域可视化
-6. Deeptools可视化
+6. 区域注释分析
 
 ## 转录调控子识别
 - 输入：包含一列基因的文本文件

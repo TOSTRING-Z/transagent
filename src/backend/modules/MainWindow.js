@@ -326,9 +326,11 @@ class MainWindow extends Window {
         })
 
         ipcMain.on('del-chat', (_event, id) => {
-            clearMessages();
-            this.tool_call.clear_memory();
-            this.window.webContents.send('clear');
+            if (id == global.chat.id) {
+                clearMessages();
+                this.tool_call.clear_memory();
+                this.window.webContents.send('clear');
+            }
             this.delHistory(id);
         })
 

@@ -199,7 +199,7 @@
   },
   "tool_call": {
     "memory_length": 20,
-    "mcp_timeout": 6000,
+    "mcp_timeout": 60,
     "extra_prompt": "{resourcesPath}/resources/system_prompts/prompt.md",
     "tmpdir": "/tmp",
     "language": "english",
