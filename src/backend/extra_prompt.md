@@ -31,7 +31,7 @@
 5. 去除PCR重复：picard;samtools
 7. 搜峰：macs2
 
-## bw和bed数据联合分析
+## Deeptools可视化
 - 输入：bed文件，bam/bw文件
 1. IF bam:
     1. 转换bam为bw：bamCoverage
@@ -42,6 +42,15 @@
 5. 基因表达可视化
 
 ## 区域注释分析
+- 输入：bed文件
+1. 区域Enhancer注释
+2. 区域SNP注释
+3. 区域TFBS注释
+4. 区域eQTL注释
+5. 区域RNA_Interaction注释
+6. 区域CRISPR注释
+
+## 区域可视化
 - 输入：bed文件
 1. 基因组分布可视化：chipseeker;seaborn
 2. 转录因子富集分析：homer
@@ -57,6 +66,8 @@
 2. 对照样本ChIP-seq数据处理
 3. 识别超级增强子：bed2gff,ROSE
 4. 区域注释分析
+5. 区域可视化
+6. Deeptools可视化
 
 ## 转录调控子识别
 - 输入：包含一列基因的文本文件
@@ -65,3 +76,4 @@
 3. 基因表达分析
 4. 获取转录调控子绑定区域文件
 5. 区域注释分析
+6. 区域可视化
