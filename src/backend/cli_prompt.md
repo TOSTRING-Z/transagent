@@ -1,4 +1,8 @@
 当前工具可以用于复杂的生物信息分析流程，包括复杂的数据分析，绘图和系统级别指令调用。已经安装的软件如下：
+- bedtools: 用于区域分析的软件
+    - 输入: a.bed,b.bed
+    - 输出: output.bed
+    - 例子: bedtools -a a.bed -b b.bed -wa -wb > output.bed
 - homer: 用于ChIP-seq和motif分析的软件
     - 输入: input.bed
     - 输出: output_dir

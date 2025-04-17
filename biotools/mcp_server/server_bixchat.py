@@ -21,7 +21,7 @@ bed_data_db = {
     "Super_Enhancer_SEAv3": "/data/human/human_Super_Enhancer_SEAv3.bed",
     "Super_Enhancer_dbSUPER": "/data/human/human_Super_Enhancer_dbSUPER.bed",
     "Enhancer": "/data/human/human_Enhancer.bed",
-    "Common_SNP": "data/human/human_Common_SNP.bed",
+    "Common_SNP": "/data/human/human_Common_SNP.bed",
     "Risk_SNP": "/data/human/human_Risk_SNP.bed",
     "eQTL": "/data/human/human_eQTL.bed",
     "TFBS": "/data/human/human_TFBS.bed",
@@ -162,52 +162,6 @@ async def get_gene_position(genes: Optional[list] = None) -> str:
     except Exception as e:
         return str(e)
 
-
-@validate_required_params("subcommand", "options")
-async def execute_bedtools(
-    subcommand: str = "intersect",
-    options: str = "--help",
-    timeout: Optional[float] = 600.0,
-) -> str:
-    try:
-        uuid_ = uuid.uuid1()
-        docker_out_path = f"{tmp_docker}/result_bed_{uuid_}.bed"
-
-        command = [
-            "bedtools",
-            subcommand,
-            options,
-        ]
-
-        # 打印可复制的完整命令
-        command = " ".join(command)
-
-        # 使用 create_subprocess_exec 避免 shell 解析问题
-        proc = await asyncio.create_subprocess_shell(
-            command,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-
-        try:
-            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
-        except asyncio.TimeoutError:
-            proc.kill()
-            await proc.wait()
-            return f"Timeout after {timeout}s"
-
-        if proc.returncode != 0:
-            return stderr.decode().strip()
-
-        # 写入结果文件
-        with open(docker_out_path, "w") as f:
-            f.write(stdout.decode())
-        return docker_out_path
-
-    except Exception as e:
-        return str(e)
-
-
 @app.call_tool()
 async def fetch_tool(
     name: str, arguments: dict
@@ -246,30 +200,6 @@ async def list_tools() -> list[types.Tool]:
     biological_type_list = ", ".join(list(bed_data_db.keys()))
     data_source_list = ", ".join(list(exp_data_db.keys()))
     return [
-        types.Tool(
-            name="execute_bedtools",  # 工具名称
-            description="""bedtools is a powerful toolset for genome arithmetic.
-Returns:
-    The path to the result bed file.""",  # 工具描述
-            inputSchema={  # 输入模式定义
-                "type": "object",
-                "required": ["subcommand", "options"],
-                "properties": {
-                    "subcommand": {
-                        "type": "string",
-                        "description": "The bedtools sub-commands (e.g. intersect)",
-                    },
-                    "options": {
-                        "type": "string",
-                        "description": "The parameter list of the sub-command (e.g. '-a a.bed -b b.bed -wa -wb'])",
-                    },
-                    "timeout": {
-                        "type": "number",
-                        "description": "Timeout time (seconds), None means no timeout",
-                    },
-                },
-            },
-        ),
         types.Tool(
             name="get_gene_position",
             description="""Query the positions of genes and return a Gene-bed file path (hg38).
