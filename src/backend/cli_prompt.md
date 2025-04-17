@@ -17,8 +17,8 @@
     - 例子: awk '{print $1"\t"$2"\t"$3}' input.bed > BETA_input.bed && BETA minus -p BETA_input.bed -g hg38 -n BETA_targets -o output_dir
 - TRAPT: 识别人类中调控基因集合的关键转录调控子
     - 输入: genes.txt(一列基因名)
-    - 输出: output_dir
-    - 例子: head -n 200 genes.txt > top200_genes.txt && trapt --library /data/trapt/library --input top200_genes.txt --output output_dir
+    - 输出: top10_TR_detail.txt
+    - 例子: head -n 200 genes.txt > top200_genes.txt && trapt --library /data/trapt/library --input top200_genes.txt --output output_dir && head -n 10 output_dir/TR_detail.txt > output_dir/top10_TR_detail.txt
 - fastqc: 用于测序数据的质量控制
     - 输入: read1.fastq,read2.fastq(双端测序需要)
     - 输出: analysis/fastqc_dir
