@@ -282,7 +282,7 @@ Returns:
         ),
         types.Tool(
             name="get_annotation_bed",
-            description="""Get bed data for a given biological type from the local database (hg38).
+            description="""Get annotation bed file for a given biological type from the local database (hg38).
 Returns:
     The path to the annotation bed file.""",
             inputSchema={
@@ -298,9 +298,9 @@ Returns:
         ),
         types.Tool(
             name="get_regulators_bed",
-            description="""Get bed data for a given TR list from the local database (hg38).
+            description="""Get TR binding region bed files for a given TR list from the local database (hg38).
 Returns:
-    The paths to the TR bed files.""",
+    The paths to the TR binding region bed files.""",
             inputSchema={
                 "type": "object",
                 "required": ["trs"],
