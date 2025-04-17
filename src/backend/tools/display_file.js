@@ -101,8 +101,8 @@ class DisplayFile {
           markdown += '\n';
         });
       } else {
-        // 显示前5行
-        json.slice(0, 5).forEach(row => {
+        // 显示前10行
+        json.slice(0, 10).forEach(row => {
           markdown += '|';
           Object.values(row).forEach(value => {
             markdown += ` ${processCellValue(value)} |`;
@@ -118,13 +118,13 @@ class DisplayFile {
         markdown += '\n';
 
         // 显示后5行
-        json.slice(-5).forEach(row => {
-          markdown += '|';
-          Object.values(row).forEach(value => {
-            markdown += ` ${processCellValue(value)} |`;
-          });
-          markdown += '\n';
-        });
+        // json.slice(-5).forEach(row => {
+        //   markdown += '|';
+        //   Object.values(row).forEach(value => {
+        //     markdown += ` ${processCellValue(value)} |`;
+        //   });
+        //   markdown += '\n';
+        // });
       }
 
       return markdown;
@@ -161,14 +161,14 @@ class DisplayFile {
           // 行数不多，全部显示
           result = processedLines.join('\n');
         } else {
-          // 显示前5行
-          result = processedLines.slice(0, 5).join('\n');
+          // 显示前10行
+          result = processedLines.slice(0, 10).join('\n');
 
           // 添加省略行
           result += '\n...\n...\n...\n';
 
           // 显示后5行
-          result += processedLines.slice(-5).join('\n');
+          // result += processedLines.slice(-5).join('\n');
         }
         return `\`\`\`text\n${result}\n\`\`\`\n\n`;
       }
@@ -230,6 +230,7 @@ async function main({ filePath }) {
 function getPrompt() {
   const prompt = `## display_file
 Description: Display various file types (images, tables, text) in Markdown format and download files via SSH
+By default, tables and text display a maximum of 10 rows.
 Parameters:
 - filePath: (Required) Path to the file to be displayed
 Supported file types:
