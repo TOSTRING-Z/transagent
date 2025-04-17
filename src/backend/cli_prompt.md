@@ -11,6 +11,10 @@
     - 输入: input.bed
     - 输出: output_dir
     - 例子: awk '{print $1"\t"$2"\t"$3}' input.bed > BETA_input.bed && BETA minus -p BETA_input.bed -g hg38 -n BETA_targets -o output_dir
+- TRAPT: 识别人类中调控基因集合的关键转录调控子
+    - 输入: genes.txt(一列基因名)
+    - 输出: output_dir
+    - 例子: head -n 200 genes.txt > top200_genes.txt && trapt --library /data/trapt/library --input top200_genes.txt --output output_dir
 - fastqc: 用于测序数据的质量控制
     - 输入: read1.fastq,read2.fastq(双端测序需要)
     - 输出: analysis/fastqc_dir
@@ -50,7 +54,7 @@
 - deeptools: 用于高通量测序数据的可视化
     - 输入: input.bed,input.bw
     - 输出: matrix.gz,output.svg
-    - 例子: computeMatrix reference-point --referencePoint TSS -b 1000 -a 1000 -R input.bed -S input.bw -out matrix.gz && plotProfile -m matrix.gz --plotTitle "final profile" --plotFileFormat svg -out output.svg
+    - 例子: computeMatrix reference-point --referencePoint TSS -b 1000 -a 1000 -R input.bed -S input.bw -out matrix.gz && plotHeatmap -m matrix.gz -out output.svg
 - ucsc-liftover: 用于基因组坐标转换
     - 输入: input.bed
     - 输出: output.bed,unmapped.bed

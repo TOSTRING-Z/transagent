@@ -3,7 +3,7 @@ import asyncio
 import pandas as pd
 import uuid
 from typing import Optional
-
+import os
 from mcp import types
 from mcp.server.sse import SseServerTransport
 from mcp.server.lowlevel.server import Server
@@ -28,6 +28,13 @@ bed_data_db = {
     "RNA_Interaction": "/data/human/human_RNA_Interaction.bed",
     "CRISPR": "/data/human/human_CRISPR.bed",
 }
+
+tr_data_db = dict(
+    map(
+        lambda x: (x.split(".")[0], f"/data/trapt/TR_bed/{x}"),
+        os.listdir("/data/trapt/TR_bed"),
+    )
+)
 
 bed_config = {"gene_bed_path": "/data/human/gene.bed"}
 
@@ -97,10 +104,23 @@ def validate_required_params(
 
 
 @validate_required_params("biological_type")
-async def get_bed_data(biological_type: str) -> str:
+async def get_annotation_bed(biological_type: str) -> str:
     if biological_type in bed_data_db:
         return bed_data_db[biological_type]
     return "Biological type {biological_type} not found in local database"
+
+
+@validate_required_params("trs")
+async def get_regulators_bed(trs: list) -> str:
+    try:
+        tr_beds = []
+        for tr in trs:
+            tr_bed = tr_data_db.get(tr)
+            if tr_bed:
+                tr_beds.append(tr_bed)
+        return tr_beds
+    except Exception as e:
+        return str(e)
 
 
 @validate_required_params("data_source", "genes")
@@ -191,10 +211,10 @@ async def fetch_tool(
     # 返回: 包含文本、图像或嵌入资源的列表
 
     tools = {
-        "get_bed_data": get_bed_data,
-        "get_gene_position": get_gene_position,
-        "execute_bedtools": execute_bedtools,
+        "get_annotation_bed": get_annotation_bed,
+        "get_regulators_bed": get_regulators_bed,
         "get_express_data": get_express_data,
+        "get_gene_position": get_gene_position,
     }
     try:
         if name in tools:
@@ -224,7 +244,7 @@ async def list_tools() -> list[types.Tool]:
             name="execute_bedtools",  # 工具名称
             description="""bedtools is a powerful toolset for genome arithmetic.
 Returns:
-    The path to the result-bed file.""",  # 工具描述
+    The path to the result bed file.""",  # 工具描述
             inputSchema={  # 输入模式定义
                 "type": "object",
                 "required": ["subcommand", "options"],
@@ -248,23 +268,23 @@ Returns:
             name="get_gene_position",
             description="""Query the positions of genes and return a Gene-bed file path (hg38).
 Returns:
-    The path to the Gene-bed file.""",
+    The path to the gene bed file.""",
             inputSchema={
                 "type": "object",
-                "required": [],
+                "required": ["genes"],
                 "properties": {
                     "genes": {
                         "type": "array",
-                        "description": "A list of gene names (e.g., ['TP53']) or set to None (returns the path to the bed file including all gene regions)",
+                        "description": "A list of gene names (e.g. ['TP53'])",
                     }
                 },
             },
         ),
         types.Tool(
-            name="get_bed_data",
+            name="get_annotation_bed",
             description="""Get bed data for a given biological type from the local database (hg38).
 Returns:
-    The path to the [biological_type]-bed file.""",
+    The path to the annotation bed file.""",
             inputSchema={
                 "type": "object",
                 "required": ["biological_type"],
@@ -272,6 +292,22 @@ Returns:
                     "biological_type": {
                         "type": "string",
                         "description": f"Biological types in local database (must be: {biological_type_list})",
+                    }
+                },
+            },
+        ),
+        types.Tool(
+            name="get_regulators_bed",
+            description="""Get bed data for a given TR list from the local database (hg38).
+Returns:
+    The paths to the TR bed files.""",
+            inputSchema={
+                "type": "object",
+                "required": ["trs"],
+                "properties": {
+                    "trs": {
+                        "type": "array",
+                        "description": f"A list of TR names (e.g. ['GATA4@Sample_02_4106'])",
                     }
                 },
             },
