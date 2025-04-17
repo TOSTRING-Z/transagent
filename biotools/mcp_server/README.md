@@ -40,15 +40,17 @@ docker load -i biotools.tar
 ```bash
 # linux
 docker run -it --name biotools --rm \
+--network host \
 -p 3001:3001 \
 -p 3002:22 \
--v /mnt/ubuntu_zgr/install/bixchat/biotools/tmp:/tmp \
--v /mnt/ubuntu_zgr/install/bixchat/biotools/data:/data \
--v /mnt/ubuntu_zgr/install/bixchat/biotools/mcp_server/server_bixchat.py:/app/server.py \
+-v /data/zgr/bixchat/biotools/tmp:/tmp \
+-v /data/zgr/bixchat/biotools/data:/data \
+-v /data/zgr/bixchat/biotools/mcp_server/server_bixchat.py:/app/server.py \
 biotools
 
 # window
 docker run -it --name biotools --rm `
+--network host `
 -p 3001:3001 `
 -p 3002:22 `
 -v C:/Users/Administrator/Desktop/Document/bixchat/biotools/tmp:/tmp `
@@ -134,13 +136,15 @@ config.json
 ```bash
 # linux
 docker run -it --name biotools --rm \
+--network host \
 -p 3001:3001 \
--v /mnt/ubuntu_zgr/install/bixchat/biotools/tmp:/tmp \
--v /mnt/ubuntu_zgr/install/bixchat/biotools/data:/data \
+-v /data/zgr/bixchat/biotools/tmp:/tmp \
+-v /data/zgr/bixchat/biotools/data:/data \
 biotools
 
 # window
 docker run -it --name biotools --rm `
+--network host `
 -p 3001:3001 `
 -v C:/Users/Administrator/Desktop/Document/bixchat/biotools/tmp:/tmp `
 -v C:/Users/Administrator/Desktop/Document/bixchat/biotools/data:/data `

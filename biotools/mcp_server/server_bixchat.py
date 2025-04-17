@@ -118,7 +118,7 @@ async def get_regulators_bed(trs: list) -> str:
             tr_bed = tr_data_db.get(tr)
             if tr_bed:
                 tr_beds.append(tr_bed)
-        return tr_beds
+        return "\n".join(tr_beds)
     except Exception as e:
         return str(e)
 
