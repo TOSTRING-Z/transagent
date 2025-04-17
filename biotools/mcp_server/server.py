@@ -151,11 +151,17 @@ async def get_annotation_bed(biological_type: str) -> str:
 async def get_regulators_bed(trs: list) -> str:
     try:
         tr_beds = []
+        uuid_ = uuid.uuid1()
+        output = "output bed files:\n"
+        os.system(f"mkdir /tmp/{uuid_}")
         for tr in trs:
             tr_bed = tr_data_db.get(tr)
             if tr_bed:
-                tr_beds.append(tr_bed)
-        return "\n".join(tr_beds)
+                baseanme = os.path.basename(tr_bed)
+                os.system(f"cp {tr_bed} /tmp/{uuid_}/{baseanme}")
+                tr_beds.append(f"/tmp/{uuid_}/{baseanme}")
+        output = f"{output}{"\n".join(tr_beds)}"
+        return output
     except Exception as e:
         return str(e)
 
