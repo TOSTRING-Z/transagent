@@ -72,4 +72,6 @@
 - seaborn: 用于数据可视化
     - 例子: python -c 'import seaborn as sns; tips = sns.load_dataset("tips"); sns.boxplot(x="day", y="total_bill", data=tips)'
 
-*上述软件输入必须为单个文件，不能为通配符！*
+补充说明：
+* 上述软件输入必须为单个文件，不能为通配符！
+* 上述部分软件会生成结果文件但返回信息为空，当观察到空信息时，应检查是否有结果文件生成。
