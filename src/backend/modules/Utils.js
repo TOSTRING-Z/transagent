@@ -154,7 +154,8 @@ class Utils {
 
     getChatId() {
         //返回chat-UUID
-        return `chat-${crypto.randomUUID()}`;
+        const uuid = crypto.randomUUID();
+        return `chat-${uuid}`;
     }
 
     getHistoryData() {

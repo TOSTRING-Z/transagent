@@ -600,7 +600,47 @@ class MainWindow extends Window {
                             this.window.webContents.send('clear')
                             this.setHistory();
                         }
-                    }
+                    },
+                    {
+                        label: 'Save Conversation',
+                        click: () => {
+                            const lastPath = path.join(store.get('lastSavePath') || path.join(process.resourcesPath, 'resources/', 'history/'), `messages_${utils.formatDate()}.json`);
+                            console.log(lastPath)
+                            dialog.showSaveDialog(this.window, {
+                                defaultPath: lastPath,
+                                filters: [
+                                    { name: 'JSON File', extensions: ['json'] },
+                                    { name: 'All Files', extensions: ['*'] }
+                                ]
+                            }).then(result => {
+                                if (!result.canceled) {
+                                    store.set('lastSavePath', path.dirname(result.filePath));
+                                    saveMessages(result.filePath);
+                                }
+                            }).catch(err => {
+                                console.error(err);
+                            });
+                        }
+                    },
+                    {
+                        label: 'Load Conversation',
+                        click: () => {
+                            const lastPath = store.get('lastSavePath') || path.join(process.resourcesPath, 'resources/', 'history/');
+                            dialog.showOpenDialog(this.window, {
+                                defaultPath: lastPath,
+                                filters: [
+                                    { name: 'JSON File', extensions: ['json'] },
+                                    { name: 'All Files', extensions: ['*'] }
+                                ]
+                            }).then(result => {
+                                if (!result.canceled) {
+                                    this.tool_call.load_message(this.window, result.filePaths[0])
+                                }
+                            }).catch(err => {
+                                console.error(err);
+                            });
+                        }
+                    },
                 ]
             }
 
@@ -698,9 +738,9 @@ class MainWindow extends Window {
     setHistory() {
         if(!!global.chat.id && !!global.chat.name) {
             let history_data = utils.getHistoryData();
-            let history_exist = history_data.map(history_ => history_.id == global.chat.id);
-            if (!history_exist) {
-                history = global.chat
+            let history_exist = history_data.filter(history_ => history_.id == global.chat.id);
+            if (history_exist.length == 0) {
+                const history = global.chat
                 history_data.push(history)
                 utils.setHistoryData(history_data);
             } else {
