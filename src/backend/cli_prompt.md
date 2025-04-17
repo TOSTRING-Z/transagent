@@ -71,3 +71,5 @@
     - 例子: python -c 'import pandas as pd; df = pd.read_csv("data.csv"); print(df.head())'
 - seaborn: 用于数据可视化
     - 例子: python -c 'import seaborn as sns; tips = sns.load_dataset("tips"); sns.boxplot(x="day", y="total_bill", data=tips)'
+
+*上述软件输入必须为单个文件，不能为通配符！*
