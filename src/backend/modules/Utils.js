@@ -177,7 +177,7 @@ class Utils {
     getHistoryPath(id) {
         let history_path = this.getConfig("history_path")?.format(process);
         if (!fs.existsSync(history_path)) {
-            history_path = path.join(process.resourcesPath, 'resources/', 'history/', `${id}.json`);
+            history_path = path.join(os.homedir(), '.bixchat', 'history/', `${id}.json`);
         } else {
             history_path = path.join(history_path, `${id}.json`);
         }

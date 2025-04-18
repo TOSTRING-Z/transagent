@@ -607,7 +607,7 @@ class MainWindow extends Window {
                     {
                         label: 'Save Conversation',
                         click: () => {
-                            const lastPath = path.join(store.get('lastSavePath') || path.join(process.resourcesPath, 'resources/', 'history/'), `messages_${utils.formatDate()}.json`);
+                            const lastPath = path.join(store.get('lastSavePath') || path.join(os.homedir(), '.bixchat', 'history/'), `messages_${utils.formatDate()}.json`);
                             console.log(lastPath)
                             dialog.showSaveDialog(this.window, {
                                 defaultPath: lastPath,
@@ -628,7 +628,7 @@ class MainWindow extends Window {
                     {
                         label: 'Load Conversation',
                         click: () => {
-                            const lastPath = store.get('lastSavePath') || path.join(process.resourcesPath, 'resources/', 'history/');
+                            const lastPath = store.get('lastSavePath') || path.join(os.homedir(), '.bixchat', 'history/');
                             dialog.showOpenDialog(this.window, {
                                 defaultPath: lastPath,
                                 filters: [
