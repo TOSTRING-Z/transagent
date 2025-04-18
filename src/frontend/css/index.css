@@ -238,6 +238,11 @@ body {
   margin-top: 9px;
 }
 
+.message>img {
+  max-width: 50%;
+  height: auto
+}
+
 .text {
   white-space: pre-wrap;
   background-color: #eff6ff;
@@ -866,7 +871,8 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   overflow-y: auto;
 }
-.config-content > h2 {
+
+.config-content>h2 {
   font-size: larger;
   font-weight: bolder;
 }
@@ -895,7 +901,8 @@ body {
   font-weight: 500;
 }
 
-.form-row input, .form-row select {
+.form-row input,
+.form-row select {
   flex: 1;
   padding: 8px 12px;
   border: 1px solid #ddd;

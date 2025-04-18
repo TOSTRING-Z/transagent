@@ -26,7 +26,7 @@ class ToolCall extends ReActAgent {
   }
 
   deleteMemory(id) {
-    this.memory_list = this.memory_list.filter(memory => memory.id != id);
+    this.environment_details.memory_list = this.environment_details.memory_list.filter(memory => memory.id != id);
   }
 
   constructor(tools = {}) {
@@ -204,17 +204,49 @@ Usage:
 }}
 
 ## memory_retrieval
-Description: reload past tool call information and execution output through memory ID.
+Description: The memory retrieval tool (memory_retrieval) is designed to:
+1. Reload Historical Data: Access complete details of past tool calls including parameters, execution results and contextual information.
+2. Troubleshoot Issues: Compare current operations with historical successful records to identify potential errors.
+3. Continue Analyses: Seamlessly resume interrupted workflows by restoring exact previous states.
+4. Ensure Consistency: Validate multi-step analysis processes by cross-referencing with historical outputs.
+5. Context Reconstruction: Rebuild complete conversation context at any recorded point in time.
+6. Performance Optimization: Retrieve cached results to avoid redundant computations.
+
 Parameters:
-- memory_id: (Required) The memory ID to retrieve.
+- memory_id: (Required) Unique identifier for a specific historical interaction.
+  - Type: Integer
+  - Description: Unique identifier for a specific historical interaction
+  - Valid values: 
+    * Numerical IDs from Memory List
+  - Format: Must match existing memory_id in Memory List
+
 Usage:
-{{
-  "thinking": "[Thinking process]",
+{
+  "thinking": "[Explain purpose of this retrieval and how it will be used in current analysis]",
   "tool": "memory_retrieval",
-  "params": {{
-    "memory_id": "[value]"
-  }}
-}}
+  "params": {
+    "memory_id": "[valid_memory_id]"
+  }
+}
+
+Example Usage Scenarios:
+1. Retrieving parameters from previous successful run:
+{
+  "thinking": "Need to verify the exact parameters used in xxx successful analysis for consistency",
+  "tool": "memory_retrieval",
+  "params": {
+    "memory_id": 12
+  }
+}
+
+2. Retrieving the results from previous tool execution:
+{
+  "thinking": "Since the xxx file was not found, but I noticed that the xxx tool has been successfully executed in the memory of previous conversations, and I can directly retrieve the results of its execution.",
+  "tool": "memory_retrieval",
+  "params": {
+    "memory_id": 24
+  }
+}
 
 ## terminate
 Description: Stop the task (called when the task is judged to be completed)
@@ -299,24 +331,57 @@ You complete the given task iteratively, breaking it down into clear steps and s
 ===
 
 # Memory List Explanation
-Each time a user and assistant message is exchanged, a "memory_id" is stored in the "memory list". The memory storage is continuously arranged in order of the size of "memory_id".
-"memory_id" is an index linking to the details of tool calls, and the details of tool calls are stored in the database, which can only be queried using the memory_retrieval tool.
-All task messages submitted by users will also be saved in the "memory list". If there is no specific task in the current message list, the memory_retrieval tool should be used immediately to trace back user tasks.
 
-- When should the memory_retrieval tool be called:
-1. When the content the user is asking about has appeared in the historical conversation records.
-2. When the assistant needs to understand the specific details of historical tool calls.
-3. When needing to call a repeated tool, the memory_retrieval tool should first be called to obtain the execution results of the tool.
+## Basic Concepts
+1. **What is Memory List**
+   - Each user-assistant interaction generates a unique \`memory_id\`
+   - These \`memory_id\`s are sequentially arranged to form complete interaction history
+   - Essentially our "conversation memory bank"
+
+2. **Function of memory_retrieval tool**
+   - Specialized query tool for viewing detailed historical interaction information
+   - Can be understood as a "conversation recall" function
+
+## Usage Scenarios (When to call)
+1. **Backtracking analysis**: When needing to reference previous analysis steps
+2. **Content verification**: When user questions involve historically discussed content
+3. **Detail confirmation**: When needing to understand specific parameters/results of historical tool calls
+4. **Repeat operations**: Before executing the same tool again, first check previous execution results
+
+## Important Notes
+- Memory capacity: System saves complete interaction history but with storage limits
+- Query method: Can only be accessed via memory_retrieval tool
+- Automatic recording: All user queries and tool calls are automatically saved
+
+## Usage Recommendation
+**For users**:
+When needing to reference previous content in conversation, you can say: "Please check our previous discussion about XX", and I'll use memory_retrieval tool.
+
+**For AI autonomous calls**:
+I will automatically invoke memory_retrieval when:
+1. Detecting repeated questions or similar requests
+2. Needing to maintain conversation continuity
+3. Required to verify historical tool execution parameters
+4. Asked to summarize or continue previous work
+5. Encountering ambiguous references that need context clarification
+
+Example autonomous call situations:
+- "Let me check our previous analysis steps..."
+- "I'll verify the parameters used last time..."
+- "Based on our earlier discussion about XX..."
+
+====
+
+# Memory List:
+{memory_list}
 
 ====`
 
     this.system_prompt;
     this.mcp_prompt;
     this.memory_id = 0;
-    this.memory_list = [];
 
     this.env = `Environment details:
-- Memory List: {memory_list}
 - Language: {language}
 - Temporary folder: {tmpdir}
 - Current time: {time}
@@ -338,7 +403,7 @@ All task messages submitted by users will also be saved in the "memory list". If
   }
 
   clear_memory() {
-    this.memory_list.length = 0
+    this.environment_details.memory_list.length = 0
   }
 
   get_extra_prompt(file) {
@@ -357,7 +422,23 @@ All task messages submitted by users will also be saved in the "memory list". If
   environment_update(data) {
     this.environment_details.time = utils.formatDate();
     this.environment_details.language = data?.language || utils.getLanguage();
-    this.environment_details.memory_list = JSON.stringify(this.memory_list.slice(this.memory_list.length - utils.getConfig("memory_length") * 10, this.memory_list.length), null, 4)
+    let messages = getMessages()
+    let messages_list = messages.slice(messages.length - data.long_memory_length - data.memory_length, messages.length - data.memory_length).map(message => {
+      let message_copy = utils.copy(message)
+      const content_json = utils.extractJson(message_copy.content);
+      if (!!content_json) {
+        const tool_info = JSON5.parse(content_json);
+        if (tool_info?.observation && message_copy.role == "user") {
+          message_copy.content = `Assistant called ${tool_info.tool_call} tool`;
+        }
+      }
+      delete message_copy.react;
+      delete message_copy.id;
+      delete message_copy.show;
+      return message_copy;
+
+    })
+    this.environment_details.memory_list = messages_list
     data.env_message = envMessage(this.env.format(this.environment_details));
   }
 
@@ -369,22 +450,21 @@ All task messages submitted by users will also be saved in the "memory list". If
     if (!this.mcp_prompt) {
       this.mcp_prompt = await this.init_mcp();
     }
+    data.push_message = false
+    if (this.state == State.IDLE) {
+      pushMessage("user", data.query, data.id, ++this.memory_id);
+      this.environment_update(data);
+      this.state = State.RUNNING;
+    }
     this.system_prompt = this.task_prompt.format({
       system_type: utils.getConfig("tool_call")?.system_type || os.type(),
       system_platform: utils.getConfig("tool_call")?.system_platform || os.platform(),
       system_arch: utils.getConfig("tool_call")?.system_arch || os.arch(),
       tool_prompt: this.tool_prompt.join("\n\n"),
       mcp_prompt: this.mcp_prompt,
-      extra_prompt: this.get_extra_prompt(data.extra_prompt)
+      extra_prompt: this.get_extra_prompt(data.extra_prompt),
+      memory_list: JSON.stringify(this.environment_details.memory_list, null, 2)
     })
-
-    data.push_message = false
-    if (this.state == State.IDLE) {
-      pushMessage("user", data.query, data.id, ++this.memory_id, true, false);
-      this.memory_list.push({ id: data.id, memory_id: this.memory_id, user: data.query })
-      this.environment_update(data);
-      this.state = State.RUNNING;
-    }
     const tool_info = await this.task(data);
     // Check if a tool needs to be called
     if (tool_info?.tool) {
@@ -451,8 +531,6 @@ All task messages submitted by users will also be saved in the "memory list". If
     try {
       const tool_info = JSON5.parse(content);
       if (!!tool_info?.thinking) {
-        this.memory_list.push({ id: data.id, memory_id: this.memory_id, assistant: tool_info.thinking });
-        this.memory_list.push({ id: data.id, memory_id: this.memory_id, user: `Assistant called ${tool_info.tool} tool` });
         data.event.sender.send('stream-data', { id: data.id, content: `${tool_info.thinking}\n\n---\n\n` });
       }
       if (!!tool_info?.tool) {
@@ -499,7 +577,8 @@ All task messages submitted by users will also be saved in the "memory list". If
                 const content_json = utils.extractJson(content);
                 if (!!content_json) {
                   const tool_info = JSON5.parse(content_json);
-                  if (tool_info?.tool_call == "display_file") {
+                  const tool = tool_info?.tool_call;
+                  if (tool == "display_file") {
                     const observation = tool_info.observation;
                     this.window.webContents.send('stream-data', { id: id, content: `${observation}\n\n`, end: true });
                   }
@@ -508,7 +587,6 @@ All task messages submitted by users will also be saved in the "memory list". If
                 this.window.webContents.send('info-data', { id: id, content: `Step ${i}, Output: \n\n\`\`\`json\n${content_format}\n\`\`\`\n\n` });
               }
               else {
-                this.memory_list.push({ id: id, memory_id: memory_id, user: content })
                 this.window.webContents.send('user-data', { id: id, content: content });
               }
             } else {
@@ -517,8 +595,6 @@ All task messages submitted by users will also be saved in the "memory list". If
                   content = utils.extractJson(content) || content;
                   const tool_info = JSON5.parse(content);
                   if (!!tool_info?.thinking) {
-                    this.memory_list.push({ id: id, assistant: tool_info.thinking, memory_id: memory_id });
-                    this.memory_list.push({ id: id, memory_id: memory_id, user: `Assistant called ${tool_info.tool} tool` });
                     const thinking = `${tool_info.thinking}\n\n---\n\n`
                     let content_format = content.replaceAll("\`", "'").replaceAll("`", "'");
                     this.window.webContents.send('info-data', { id: id, content: `Step ${i}, Output:\n\n\`\`\`json\n${content_format}\n\`\`\`\n\n` });

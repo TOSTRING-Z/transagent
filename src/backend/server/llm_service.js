@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { streamJSON, streamSse } = require("./stream.js")
+const { streamJSON, streamSse } = require("./stream.js");
 
 let messages = [];
 let stop_ids = [];
@@ -156,6 +156,11 @@ String.prototype.format = function (data) {
     return format_text;
 }
 
+function getMemory(data) {
+    let messages_list = messages.slice(messages.length - data.memory_length, messages.length)
+    return messages_list;
+}
+
 async function chatBase(data) {
     try {
         let content = data.input;
@@ -175,10 +180,10 @@ async function chatBase(data) {
         }
         if (!!data.system_prompt) {
             messages_list = [{ role: "system", content: data.system_prompt, id: data.id, memory_id: null, show: true, react: false }]
-            messages_list = messages_list.concat(messages.slice(messages.length - parseInt(data.memory_length * 1.5), messages.length))
+            messages_list = messages_list.concat(getMemory(data))
         }
         else {
-            messages_list = messages.slice(messages.length - parseInt(data.memory_length * 1.5), messages.length)
+            messages_list = getMemory(data)
         }
         if (data?.push_message) {
             message_input = { role: "user", content: content, id: data.id, memory_id: null, show: true, react: false };
