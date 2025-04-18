@@ -69,7 +69,7 @@ class ToolCall extends ReActAgent {
           return final_answer;
         }
       },
-      "reload_tool_output": {
+      "memory_retrieval": {
         func: ({ memory_id }) => {
           const memory = getMessages().filter(m => m.memory_id === memory_id).map(m => { return { role: m.role, content: m.content } });
           return memory || "No memory ID found";
@@ -203,14 +203,14 @@ Usage:
   }}
 }}
 
-## reload_tool_output
+## memory_retrieval
 Description: reload past tool call information and execution output through memory ID.
 Parameters:
 - memory_id: (Required) The memory ID to retrieve.
 Usage:
 {{
   "thinking": "[Thinking process]",
-  "tool": "reload_tool_output",
+  "tool": "memory_retrieval",
   "params": {{
     "memory_id": "[value]"
   }}
@@ -300,13 +300,13 @@ You complete the given task iteratively, breaking it down into clear steps and s
 
 # Memory List Explanation
 Each time a user and assistant message is exchanged, a "memory_id" is stored in the "memory list". The memory storage is continuously arranged in order of the size of "memory_id".
-"memory_id" is an index linking to the details of tool calls, and the details of tool calls are stored in the database, which can only be queried using the reload_tool_output tool.
-All task messages submitted by users will also be saved in the "memory list". If there is no specific task in the current message list, the reload_tool_output tool should be used immediately to trace back user tasks.
+"memory_id" is an index linking to the details of tool calls, and the details of tool calls are stored in the database, which can only be queried using the memory_retrieval tool.
+All task messages submitted by users will also be saved in the "memory list". If there is no specific task in the current message list, the memory_retrieval tool should be used immediately to trace back user tasks.
 
-- When should the reload_tool_output tool be called:
+- When should the memory_retrieval tool be called:
 1. When the content the user is asking about has appeared in the historical conversation records.
 2. When the assistant needs to understand the specific details of historical tool calls.
-3. When needing to call a repeated tool, the reload_tool_output tool should first be called to obtain the execution results of the tool.
+3. When needing to call a repeated tool, the memory_retrieval tool should first be called to obtain the execution results of the tool.
 
 ====`
 

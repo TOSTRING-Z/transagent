@@ -59,6 +59,10 @@
     - 输入: peaks.narrowPeak,marked_duplicates.bam,control.bam
     - 输出: output_dir
     - 例子: bash /data/bed2gff/bed2gff.sh peaks.narrowPeak peaks.gff && python2 /data/rose/ROSE_main.py -g HG38 -i peaks.gff -r marked_duplicates.bam -c control.bam -o output_dir -t 2000 && python2 ROSE_geneMapper.py -g HG38 -i output_dir/peaks_AllEnhancers.table.txt -o output_dir
+- HINT_ATAC: 转录因子印记分析
+    - 输入: peaks.narrowPeak,marked_duplicates.bam
+    - 输出: output_dir
+    - 例子: python3 /data/atac_seq/HINT_ATAC.py --peaks peaks.narrowPeak --bam marked_duplicates.bam --output-dir output_dir --organism hg38 --paired-end --threads 4
 - deeptools: 用于高通量测序数据的可视化
     - 输入: input.bed,input.bw
     - 输出: matrix.gz,output.svg

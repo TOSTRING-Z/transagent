@@ -25,6 +25,7 @@ bed_data_db = {
     "Risk_SNP": "/data/human/human_Risk_SNP.bed",
     "eQTL": "/data/human/human_eQTL.bed",
     "TFBS": "/data/human/human_TFBS.bed",
+    "eRNA": "/data/human/human_eRNA.bed",
     "RNA_Interaction": "/data/human/human_RNA_Interaction.bed",
     "CRISPR": "/data/human/human_CRISPR.bed",
 }
@@ -38,7 +39,13 @@ tr_data_db = dict(
 
 bed_config = {"gene_bed_path": "/data/human/gene.bed"}
 
-exp_data_db = {"GTEx": "/data/exp/GTEx.csv.gz"}
+exp_data_db = {
+    "cancer_TCGA": "/data/exp/cancer_TCGA.csv.gz",
+    "cell_line_CCLE": "/data/exp/cell_line_CCLE.csv.gz",
+    "cell_line_ENCODE": "/data/exp/cell_line_ENCODE.csv.gz",
+    "normal_tissue_GTEx": "/data/exp/normal_tissue_GTEx.csv.gz",
+    "primary_cell_ENCODE": "/data/exp/primary_cell_ENCODE.csv.gz",
+}
 
 from functools import wraps
 from typing import Callable, Any, Dict, Tuple, Optional
@@ -161,6 +168,7 @@ async def get_gene_position(genes: Optional[list] = None) -> str:
         return docker_gene_position_path
     except Exception as e:
         return str(e)
+
 
 @app.call_tool()
 async def fetch_tool(
