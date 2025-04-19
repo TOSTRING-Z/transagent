@@ -305,33 +305,13 @@ function getTokens(text) {
 
   // 2. 匹配纯中文（不含标点）
   const chineseTokens = normalizedText.match(/[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]/g) || [];
-  
+
   // 3. 匹配英文单词和常见编程符号
   const wordTokens = normalizedText.match(/[a-zA-Z_][a-zA-Z0-9_]*|\+\+|--|&&|\|\||[<>!=]=?|\d+\.?\d*|[^\s\u4e00-\u9fa5]/g) || [];
-  
+
   return chineseTokens.length + wordTokens.length;
 }
 
-function infoAdd(info) {
-  const messageSystem = document.querySelectorAll(`[data-id='${info.id}']`)[1];
-  const info_content = messageSystem.getElementsByClassName('info-content')[0];
-  const info_div = messageSystem.getElementsByClassName('info')[0];
-  if (info_div && info_div.classList.contains('hidden')) {
-    info_div.classList.remove('hidden');
-  }
-  if (!!info.content) {
-    if (global.seconds_timer) {
-      global.chat.tokens += getTokens(info.content);
-      tokens.innerText = global.chat.tokens;
-    }
-    info_content.dataset.content += info.content;
-    info_content.innerHTML = marked.parse(info_content.dataset.content);
-    if (global.scroll_top.info)
-      info_content.scrollTop = info_content.scrollHeight;
-    if (global.scroll_top.data)
-      top_div.scrollTop = top_div.scrollHeight;
-  }
-}
 
 function userAdd(data) {
   if (typeof (data.content) == "string") {
@@ -357,25 +337,70 @@ function userAdd(data) {
 
 }
 
+function infoAdd(info) {
+  const messageSystem = document.querySelectorAll(`[data-id='${info.id}']`)[1];
+  const info_content = messageSystem.getElementsByClassName('info-content')[0];
+  const info_div = messageSystem.getElementsByClassName('info')[0];
+  if (info_div && info_div.classList.contains('hidden')) {
+    info_div.classList.remove('hidden');
+  }
+  if (!!info.content) {
+    if (global.seconds_timer) {
+      global.chat.tokens += getTokens(info.content);
+      tokens.innerText = global.chat.tokens;
+    }
+    let info_item_content = marked.parse(info.content);
+    let info_item = createElement(`<div info_data-id="${info.memory_id}">${info_item_content}</div>`);
+    info_content.appendChild(info_item);
+    info_content.dataset.content += info.content;
+    if (global.scroll_top.info)
+      info_content.scrollTop = info_content.scrollHeight;
+    if (global.scroll_top.data)
+      top_div.scrollTop = top_div.scrollHeight;
+  }
+}
 
+
+let chunk_content = "";
 async function streamMessageAdd(chunk) {
   const messageSystem = document.querySelectorAll(`[data-id='${chunk.id}']`)[1];
   const message_content = messageSystem.getElementsByClassName('message')[0];
   if (!!chunk.content) {
+    chunk_content = `${chunk_content}${chunk.content}`
     optionDom?.remove();
     if (global.seconds_timer) {
       global.chat.tokens += getTokens(chunk.content);
       tokens.innerText = global.chat.tokens;
     }
+    let chunk_item_content = marked.parse(chunk_content);
+    let chunk_item_query = document.querySelectorAll(`[chunk_data-id='${chunk.memory_id}']`);
+    let chunk_item = null;
+    if (chunk_item_query.length > 0) {
+      chunk_item = chunk_item_query[0];
+      chunk_item.getElementsByClassName('chunk-content')[0].innerHTML = chunk_item_content;
+    } else {
+      chunk_item = createElement(`<div chunk_data-id="${chunk.memory_id}">
+  <div class="chunk-content"></div>
+  <div class="chunk-actions">
+    <button class="action-btn chunk-delete" title="删除">
+      <i class="far fa-trash-alt"></i>
+    </button>
+  </div>
+</div>`);
+      chunk_item.getElementsByClassName('chunk-content')[0].innerHTML = chunk_item_content;
+      chunk_item.getElementsByClassName('chunk-delete')[0].addEventListener("click",()=>{
+        delete_memory(chunk.memory_id)
+      })
+      message_content.appendChild(chunk_item);
+    }
     message_content.dataset.content += chunk.content;
-    message_content.innerHTML = marked.parse(message_content.dataset.content);
     if (global.scroll_top.data)
       top_div.scrollTop = top_div.scrollHeight;
   }
   if (chunk.end) {
     clearInterval(global.seconds_timer);
     global.seconds_timer = null;
-    message_content.innerHTML = marked.parse(message_content.dataset.content);
+    chunk_content = "";
     const thinking = messageSystem.getElementsByClassName("thinking")[0];
     thinking?.remove();
     typesetMath();
@@ -587,7 +612,19 @@ window.electronAPI.handleMathFormat((math_statu) => {
 
 async function delete_message(id) {
   await window.electronAPI.deleteMessage(id);
-  var elements = document.querySelectorAll(`[data-id="${id}"]`);
+  let elements = document.querySelectorAll(`[data-id="${id}"]`);
+  elements.forEach(function (element) {
+    element.remove();
+  });
+}
+
+async function delete_memory(memory_id) {
+  await window.electronAPI.deleteMemory(memory_id);
+  let elements = document.querySelectorAll(`[info_data-id="${memory_id}"]`);
+  elements.forEach(function (element) {
+    element.remove();
+  });
+  elements = document.querySelectorAll(`[chunk_data-id="${memory_id}"]`);
   elements.forEach(function (element) {
     element.remove();
   });

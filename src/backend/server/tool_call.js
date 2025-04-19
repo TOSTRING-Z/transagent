@@ -25,8 +25,12 @@ class ToolCall extends ReActAgent {
     }
   }
 
-  deleteMemory(id) {
+  deleteMessage(id) {
     this.environment_details.memory_list = this.environment_details.memory_list.filter(memory => memory.id != id);
+  }
+
+  deleteMemory(memory_id) {
+    this.environment_details.memory_list = this.environment_details.memory_list.filter(memory => memory.memory_id != memory_id);
   }
 
   constructor(tools = {}) {
@@ -473,17 +477,17 @@ Example autonomous call situations:
       pushMessage("user", data.output_format, data.id, this.memory_id);
       this.environment_update(data);
       if (tool_info.tool == "display_file") {
-        data.event.sender.send('stream-data', { id: data.id, content: `${output}\n\n` });
+        data.event.sender.send('stream-data', { id: data.id, memory_id:this.memory_id, content: `${output}\n\n` });
       }
       if (this.state == State.PAUSE) {
         const { question, options } = output;
-        data.event.sender.send('stream-data', { id: data.id, content: question, end: true });
+        data.event.sender.send('stream-data', { id: data.id, memory_id:this.memory_id, content: question, end: true });
         return options;
       }
       if (this.state == State.FINAL) {
-        data.event.sender.send('stream-data', { id: data.id, content: output, end: true });
+        data.event.sender.send('stream-data', { id: data.id, memory_id:this.memory_id, content: output, end: true });
       } else {
-        data.event.sender.send('info-data', { id: data.id, content: this.get_info(data) });
+        data.event.sender.send('info-data', { id: data.id, memory_id:this.memory_id, content: this.get_info(data) });
       }
     }
   }
@@ -493,7 +497,7 @@ Example autonomous call situations:
     const raw_json = await this.llmCall(data);
     console.log(`raw_json: ${raw_json}`);
     data.output_format = utils.extractJson(raw_json) || raw_json;
-    data.event.sender.send('info-data', { id: data.id, content: this.get_info(data) });
+    data.event.sender.send('info-data', { id: data.id, memory_id:this.memory_id, content: this.get_info(data) });
     return this.get_tool(data.output_format, data);
   }
 
@@ -539,7 +543,7 @@ Example autonomous call situations:
     try {
       const tool_info = JSON5.parse(content);
       if (!!tool_info?.thinking) {
-        data.event.sender.send('stream-data', { id: data.id, content: `${tool_info.thinking}\n\n---\n\n` });
+        data.event.sender.send('stream-data', { id: data.id, memory_id:this.memory_id, content: `${tool_info.thinking}\n\n---\n\n` });
       }
       if (!!tool_info?.tool) {
         return tool_info;
@@ -554,7 +558,7 @@ Example autonomous call situations:
       setTag(false);
       pushMessage("user", data.output_format, data.id, this.memory_id);
       this.environment_update(data);
-      data.event.sender.send('info-data', { id: data.id, content: this.get_info(data) });
+      data.event.sender.send('info-data', { id: data.id, memory_id:this.memory_id, content: this.get_info(data) });
     }
   }
 
@@ -590,14 +594,14 @@ Example autonomous call situations:
                   const tool = tool_info?.tool_call;
                   if (tool == "display_file") {
                     const observation = tool_info.observation;
-                    this.window.webContents.send('stream-data', { id: id, content: `${observation}\n\n`, end: true });
+                    this.window.webContents.send('stream-data', { id: id, memory_id:memory_id, content: `${observation}\n\n`, end: true });
                   }
                 }
                 let content_format = content.replaceAll("\`", "'").replaceAll("`", "'");
-                this.window.webContents.send('info-data', { id: id, content: `Step ${i}, Output: \n\n\`\`\`json\n${content_format}\n\`\`\`\n\n` });
+                this.window.webContents.send('info-data', { id: id, memory_id:memory_id, content: `Step ${i}, Output: \n\n\`\`\`json\n${content_format}\n\`\`\`\n\n` });
               }
               else {
-                this.window.webContents.send('user-data', { id: id, content: content });
+                this.window.webContents.send('user-data', { id: id, memory_id:memory_id, content: content });
               }
             } else {
               if (!!react) {
@@ -607,10 +611,10 @@ Example autonomous call situations:
                   if (!!tool_info?.thinking) {
                     const thinking = `${tool_info.thinking}\n\n---\n\n`
                     let content_format = content.replaceAll("\`", "'").replaceAll("`", "'");
-                    this.window.webContents.send('info-data', { id: id, content: `Step ${i}, Output:\n\n\`\`\`json\n${content_format}\n\`\`\`\n\n` });
-                    this.window.webContents.send('stream-data', { id: id, content: thinking, end: true });
+                    this.window.webContents.send('info-data', { id: id, memory_id:memory_id, content: `Step ${i}, Output:\n\n\`\`\`json\n${content_format}\n\`\`\`\n\n` });
+                    this.window.webContents.send('stream-data', { id: id, memory_id:memory_id, content: thinking, end: true });
                     if (tool_info.tool == "terminate") {
-                      this.window.webContents.send('stream-data', { id: id, content: tool_info.params.final_answer, end: true });
+                      this.window.webContents.send('stream-data', { id: id, memory_id:memory_id, content: tool_info.params.final_answer, end: true });
                     }
                   }
                 } catch (error) {

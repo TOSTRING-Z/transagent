@@ -1,7 +1,7 @@
 const { Window } = require("./Window")
 const { Plugins } = require('./Plugins');
 const { store, global, inner, utils } = require('./globals')
-const { clearMessages, saveMessages, deleteMessage, stopMessage, getStopIds } = require('../server/llm_service');
+const { clearMessages, saveMessages, deleteMessage, deleteMemory, stopMessage, getStopIds } = require('../server/llm_service');
 const { captureMouse } = require('../mouse/capture_mouse');
 const { State } = require("../server/agent.js")
 const { ToolCall } = require('../server/tool_call');
@@ -275,13 +275,18 @@ class MainWindow extends Window {
 
         ipcMain.handle("delete-message", async (_event, id) => {
             let message_len = await deleteMessage(id);
-            this.tool_call.deleteMemory(id);
+            this.tool_call.deleteMessage(id);
             this.setHistory();
-            if (message_len <= utils.getConfig("memory_length")) {
-                this.tool_call.environment_details.memory_len = 0;
-            }
             console.log(`delete id: ${id}, length: ${message_len}`)
             return message_len;
+        })
+
+        ipcMain.handle("delete-memory", async (_event, memory_id) => {
+            let memory_len = await deleteMemory(memory_id);
+            this.tool_call.deleteMemory(memory_id);
+            this.setHistory();
+            console.log(`delete memory_id: ${memory_id}, length: ${memory_len}`)
+            return memory_len;
         })
 
         ipcMain.on("stream-message-stop", (_event, id) => {

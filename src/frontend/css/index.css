@@ -458,14 +458,18 @@ body {
 .message-actions>.active {
   display: block !important;
   margin-top: -30px;
+  border: 1px solid #f1f1f1;
+  padding: 4px 8px;
+  background: #149131;
+  color: white;
 }
 
-.action-btn:hover {
-  color: var(--primary);
+.action-btn.copy:hover {
+  background-color: var(--primary);
 }
 
 .action-btn.delete:hover {
-  color: var(--secondary);
+  background-color: var(--secondary);
 }
 
 /* Call Information */
@@ -963,4 +967,25 @@ body {
 .dialog-confirm {
   background: var(--primary);
   color: white;
+}
+
+/* 记忆删除 */
+.chunk-content {
+  padding-left: 20px;
+}
+
+.chunk-actions {
+  position: relative;
+}
+
+.chunk-actions>.chunk-delete {
+  position: absolute;
+  left: 0;
+  top: -25px;
+  display: block;
+}
+
+.action-btn.chunk-delete:hover {
+  background-color: white;
+  color: var(--secondary);
 }

@@ -62,10 +62,19 @@ function loadMessages(filePath) {
 }
 
 function deleteMessage(id) {
-    // 使用 filter 方法删除 id 为 0 的对象
     try {
         messages = messages.filter(message => message.id !== id);
         messages_success = messages_success.filter(message => message.id !== id);
+        return messages.length;
+    } catch (error) {
+        return 0;
+    }
+}
+
+function deleteMemory(memory_id) {
+    try {
+        messages = messages.filter(message => message.memory_id !== memory_id);
+        messages_success = messages_success.filter(message => message.memory_id !== memory_id);
         return messages.length;
     } catch (error) {
         return 0;
@@ -335,5 +344,5 @@ async function chatBase(data) {
 }
 
 module.exports = {
-    chatBase, clearMessages, saveMessages, loadMessages, deleteMessage, stopMessage, getStopIds, pushMessage, getMessages, envMessage, setTag
+    chatBase, clearMessages, saveMessages, loadMessages, deleteMessage, deleteMemory, stopMessage, getStopIds, pushMessage, getMessages, envMessage, setTag
 };
