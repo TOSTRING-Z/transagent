@@ -6,6 +6,8 @@ const { utils } = require('../modules/globals.js')
 
 let messages = [];
 let stop_ids = [];
+let tag_success = false;
+let messages_success = [];
 
 function getStopIds() {
     return stop_ids;
@@ -26,6 +28,7 @@ function envMessage(content) {
 
 function clearMessages() {
     messages.length = 0;
+    messages_success.length = 0;
     stop_ids.length = 0;
 }
 
@@ -34,7 +37,7 @@ function saveMessages(filePath) {
         if (!fs.existsSync(path.dirname(filePath))) {
             fs.mkdirSync(path.dirname(filePath), { recursive: true });
         }
-    
+
         fs.writeFile(filePath, JSON.stringify(messages, null, 2), err => {
             if (err) {
                 console.log(err.message);
@@ -62,6 +65,7 @@ function deleteMessage(id) {
     // 使用 filter 方法删除 id 为 0 的对象
     try {
         messages = messages.filter(message => message.id !== id);
+        messages_success = messages_success.filter(message => message.id !== id);
         return messages.length;
     } catch (error) {
         return 0;
@@ -76,7 +80,7 @@ function copy(data) {
     return JSON.parse(JSON.stringify(data));
 }
 
-function format_messages(messages_list, params, env_message=null) {
+function format_messages(messages_list, params, env_message = null) {
     params = params ? params : {};
     // 遍历 messages_list 数组，并删除每个对象的 id 属性
     messages_list = messages_list.map(message => {
@@ -158,9 +162,6 @@ String.prototype.format = function (data) {
     return format_text;
 }
 
-let tag_success = false;
-let messages_success = [];
-
 function setTag(tag) {
     tag_success = tag;
 }
@@ -176,13 +177,22 @@ function getMemory(data) {
             }
             if (content_parse?.tool_call == "cli_execute" && message.role == "user") {
                 if (content_parse.tool_call == "cli_execute") {
-                    const success = content_parse.observation?.success || utils.extractJson(content_parse.observation).success;
+                    let success = true;
+                    if (content_parse.observation.hasOwnProperty("success"))
+                        success = content_parse.observation?.success
+                    else {
+                        let observation_json = utils.extractJson(content_parse.observation);
+                        if (!!observation_json)
+                            success = JSON5.parse(observation_json).success;
+                        else
+                            success = true;
+                    }
                     if (!success) {
                         message.content == `Assistant called ${content_parse.tool_call} tool: Error occurred!`;
                     }
                 }
             } else {
-                if (!!content_parse.error) {
+                if (!!content_parse?.error) {
                     message.content == `Assistant called ${content_parse.tool_call} tool: Error occurred!`;
                 }
             }

@@ -512,11 +512,11 @@ Example autonomous call situations:
       const output = await will_tool(params);
       const observation = `{
   "tool_call": "${tool}",
-  "observation": ${JSON.stringify(output, null, 4)},
+  "observation": ${JSON.stringify(output, null, 2)},
   "error": ""
 }`;
       if (tool == "cli_execute") {
-        const success = output?.success || JSON5.parse(output).success;
+        const success = output?.success;
         setTag(success);
       } else {
         setTag(true);
