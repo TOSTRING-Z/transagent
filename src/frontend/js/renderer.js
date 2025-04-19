@@ -365,26 +365,32 @@ function infoAdd(info) {
 }
 
 
-let chunk_content = "";
-let last_memory_id = -1;
 async function streamMessageAdd(chunk) {
   const messageSystem = document.querySelectorAll(`[data-id='${chunk.id}']`)[1];
   const message_content = messageSystem.getElementsByClassName('message')[0];
   if (!!chunk.content) {
-    chunk_content = `${chunk_content}${chunk.content}`
-    optionDom?.remove();
     if (global.seconds_timer) {
       global.chat.tokens += getTokens(chunk.content);
       tokens.innerText = global.chat.tokens;
     }
-    let chunk_item_content = marked.parse(chunk_content);
-    let chunk_item_query = message_content.querySelectorAll(`[chunk_data-id='${chunk.memory_id}']`);
+    optionDom?.remove();
+    let memory_id = chunk.hasOwnProperty("memory_id")?chunk.memory_id:chunk.id;
+    console.log(`memory_id: ${memory_id}`)
+    console.log(`content: ${chunk.content}`)
+    console.log(`------------------------`)
+
+    let chunk_content = null;
+    let chunk_item_content = null;
     let chunk_item = null;
+    let chunk_item_query = message_content.querySelectorAll(`[chunk_data-id='${memory_id}']`);
     if (chunk_item_query.length > 0) {
+      chunk_content = chunk_item_query[0].dataset.content + chunk.content;
+      chunk_item_content = marked.parse(chunk_content);
       chunk_item = chunk_item_query[0];
+      chunk_item.dataset.content = chunk_content;
       chunk_item.getElementsByClassName('chunk-content')[0].innerHTML = chunk_item_content;
     } else {
-      chunk_item = createElement(`<div chunk_data-id="${chunk.memory_id}">
+      chunk_item = createElement(`<div chunk_data-id="${memory_id}">
   <div class="chunk-content"></div>
   <div class="chunk-actions">
     <button class="action-btn chunk-delete" title="删除">
@@ -392,25 +398,22 @@ async function streamMessageAdd(chunk) {
     </button>
   </div>
 </div>`);
+      chunk_content = chunk.content;
+      chunk_item_content = marked.parse(chunk_content);
+      chunk_item.dataset.content = chunk.content;
       chunk_item.getElementsByClassName('chunk-content')[0].innerHTML = chunk_item_content;
       chunk_item.getElementsByClassName('chunk-delete')[0].addEventListener("click", () => {
-        delete_memory(chunk.memory_id)
+        delete_memory(memory_id)
       })
       message_content.appendChild(chunk_item);
     }
     message_content.dataset.content += chunk.content;
     if (global.scroll_top.data)
       top_div.scrollTop = top_div.scrollHeight;
-    if (chunk.memory_id != last_memory_id) {
-      chunk_content = "";
-      last_memory_id = chunk.memory_id;
-    }
   }
   if (chunk.end) {
     clearInterval(global.seconds_timer);
     global.seconds_timer = null;
-    chunk_content = "";
-    last_memory_id = -1;
     const thinking = messageSystem.getElementsByClassName("thinking")[0];
     thinking?.remove();
     typesetMath();
