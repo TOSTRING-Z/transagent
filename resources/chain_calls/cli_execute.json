@@ -6,6 +6,7 @@
             "input_data": {
                 "code": "{query}"
             },
+            "output_template":"{JSON.stringify(output.output)}",
             "end": true
         }
     ]

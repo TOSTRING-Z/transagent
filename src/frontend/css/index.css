@@ -250,6 +250,11 @@ body {
   border-radius: 10px;
 }
 
+.hljs-addition, .hljs-attribute, .hljs-meta .hljs-string, .hljs-regexp, .hljs-string {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
 [data-role="user"] .message {
   padding: 0 40px 0 0;
 }
@@ -453,15 +458,20 @@ body {
   color: #666;
   font-size: 16px;
   transition: color 0.2s;
+  transition: background-color 0.2s ease;
 }
 
 .message-actions>.active {
-  display: block !important;
   margin-top: -30px;
   border: 1px solid #f1f1f1;
   padding: 4px 8px;
   background: #149131;
   color: white;
+  border-radius: 8px;
+}
+
+[data-role="system"]:hover .active {
+  display: block;
 }
 
 .action-btn.copy:hover {
@@ -489,6 +499,7 @@ body {
 
 .info-content p {
   margin: 4px 0;
+  overflow-x: auto;
 }
 
 .info-header {

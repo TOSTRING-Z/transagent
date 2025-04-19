@@ -350,7 +350,11 @@ function infoAdd(info) {
       tokens.innerText = global.chat.tokens;
     }
     let info_item_content = marked.parse(info.content);
-    let info_item = createElement(`<div info_data-id="${info.memory_id}">${info_item_content}</div>`);
+    let info_item = createElement(`<div info_data-id="${info.memory_id}">
+  <div class="info-item">
+  </div>
+</div>`);
+    info_item.getElementsByClassName('info-item')[0].innerHTML = info_item_content;
     info_content.appendChild(info_item);
     info_content.dataset.content += info.content;
     if (global.scroll_top.info)
@@ -362,6 +366,7 @@ function infoAdd(info) {
 
 
 let chunk_content = "";
+let last_memory_id = -1;
 async function streamMessageAdd(chunk) {
   const messageSystem = document.querySelectorAll(`[data-id='${chunk.id}']`)[1];
   const message_content = messageSystem.getElementsByClassName('message')[0];
@@ -373,7 +378,7 @@ async function streamMessageAdd(chunk) {
       tokens.innerText = global.chat.tokens;
     }
     let chunk_item_content = marked.parse(chunk_content);
-    let chunk_item_query = document.querySelectorAll(`[chunk_data-id='${chunk.memory_id}']`);
+    let chunk_item_query = message_content.querySelectorAll(`[chunk_data-id='${chunk.memory_id}']`);
     let chunk_item = null;
     if (chunk_item_query.length > 0) {
       chunk_item = chunk_item_query[0];
@@ -388,7 +393,7 @@ async function streamMessageAdd(chunk) {
   </div>
 </div>`);
       chunk_item.getElementsByClassName('chunk-content')[0].innerHTML = chunk_item_content;
-      chunk_item.getElementsByClassName('chunk-delete')[0].addEventListener("click",()=>{
+      chunk_item.getElementsByClassName('chunk-delete')[0].addEventListener("click", () => {
         delete_memory(chunk.memory_id)
       })
       message_content.appendChild(chunk_item);
@@ -396,11 +401,16 @@ async function streamMessageAdd(chunk) {
     message_content.dataset.content += chunk.content;
     if (global.scroll_top.data)
       top_div.scrollTop = top_div.scrollHeight;
+    if (chunk.memory_id != last_memory_id) {
+      chunk_content = "";
+      last_memory_id = chunk.memory_id;
+    }
   }
   if (chunk.end) {
     clearInterval(global.seconds_timer);
     global.seconds_timer = null;
     chunk_content = "";
+    last_memory_id = -1;
     const thinking = messageSystem.getElementsByClassName("thinking")[0];
     thinking?.remove();
     typesetMath();
@@ -409,6 +419,27 @@ async function streamMessageAdd(chunk) {
       top_div.scrollTop = top_div.scrollHeight;
   }
   await window.electronAPI.setGlobal(global.chat);
+}
+
+
+async function delete_message(id) {
+  await window.electronAPI.deleteMessage(id);
+  let elements = document.querySelectorAll(`[data-id="${id}"]`);
+  elements.forEach(function (element) {
+    element.remove();
+  });
+}
+
+async function delete_memory(memory_id) {
+  await window.electronAPI.deleteMemory(memory_id);
+  let elements = document.querySelectorAll(`[info_data-id="${memory_id}"]`);
+  elements.forEach(function (element) {
+    element.remove();
+  });
+  elements = document.querySelectorAll(`[chunk_data-id="${memory_id}"]`);
+  elements.forEach(function (element) {
+    element.remove();
+  });
 }
 
 function menuEvent(id, raw) {
@@ -609,26 +640,6 @@ window.electronAPI.handleMathFormat((math_statu) => {
     typesetMath = function () { }
   }
 })
-
-async function delete_message(id) {
-  await window.electronAPI.deleteMessage(id);
-  let elements = document.querySelectorAll(`[data-id="${id}"]`);
-  elements.forEach(function (element) {
-    element.remove();
-  });
-}
-
-async function delete_memory(memory_id) {
-  await window.electronAPI.deleteMemory(memory_id);
-  let elements = document.querySelectorAll(`[info_data-id="${memory_id}"]`);
-  elements.forEach(function (element) {
-    element.remove();
-  });
-  elements = document.querySelectorAll(`[chunk_data-id="${memory_id}"]`);
-  elements.forEach(function (element) {
-    element.remove();
-  });
-}
 
 function response_success(id) {
   var elements = document.querySelectorAll(`[data-id="${id}"]`);

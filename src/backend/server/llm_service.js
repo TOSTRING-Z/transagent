@@ -208,7 +208,7 @@ function getMemory(data) {
             return message;
         })
     }
-    let messages_list = messages_success.slice(messages_success.length - data.memory_length, messages_success.length);
+    let messages_list = messages_success.slice(Math.max(messages_success.length - data.memory_length,0), messages_success.length);
     return messages_list;
 }
 

@@ -38,7 +38,13 @@ tr_data_db = dict(
 
 bed_config = {"gene_bed_path": "/data/human/gene.bed"}
 
-exp_data_db = {"GTEx": "/data/exp/GTEx.csv.gz"}
+exp_data_db = {
+    "cancer_TCGA": "/data/exp/cancer_TCGA.csv.gz",
+    "cell_line_CCLE": "/data/exp/cell_line_CCLE.csv.gz",
+    "cell_line_ENCODE": "/data/exp/cell_line_ENCODE.csv.gz",
+    "normal_tissue_GTEx": "/data/exp/normal_tissue_GTEx.csv.gz",
+    "primary_cell_ENCODE": "/data/exp/primary_cell_ENCODE.csv.gz",
+}
 
 from functools import wraps
 from typing import Callable, Any, Dict, Tuple, Optional
