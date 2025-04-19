@@ -13,47 +13,52 @@ class Utils {
     }
 
     extractJson(text) {
-        let startIndex = text.search(/[{[]/);
-        if (startIndex === -1) return null;
+        try {
+            let startIndex = text.search(/[{[]/);
+            if (startIndex === -1) return null;
 
-        const stack = [];
-        let isInsideString = false;
+            const stack = [];
+            let isInsideString = false;
 
-        for (let i = startIndex; i < text.length; i++) {
-            const currentChar = text[i]; // 合并 currentChar 声明
+            for (let i = startIndex; i < text.length; i++) {
+                const currentChar = text[i]; // 合并 currentChar 声明
 
-            // 处理字符串内的转义字符（如 \"）
-            if (currentChar === '"' && text[i - 1] !== '\\') {
-                isInsideString = !isInsideString;
-            }
+                // 处理字符串内的转义字符（如 \"）
+                if (currentChar === '"' && text[i - 1] !== '\\') {
+                    isInsideString = !isInsideString;
+                }
 
-            if (isInsideString) continue;
+                if (isInsideString) continue;
 
-            // 跟踪括号层级
-            if (currentChar === '{' || currentChar === '[') {
-                stack.push(currentChar);
-            } else if (
-                (currentChar === '}' && stack[stack.length - 1] === '{') ||
-                (currentChar === ']' && stack[stack.length - 1] === '[')
-            ) {
-                stack.pop();
-            }
+                // 跟踪括号层级
+                if (currentChar === '{' || currentChar === '[') {
+                    stack.push(currentChar);
+                } else if (
+                    (currentChar === '}' && stack[stack.length - 1] === '{') ||
+                    (currentChar === ']' && stack[stack.length - 1] === '[')
+                ) {
+                    stack.pop();
+                }
 
-            // 当所有括号闭合时尝试解析
-            if (stack.length === 0) {
-                const candidate = text.substring(startIndex, i + 1);
-                try {
-                    return candidate;
-                } catch (e) {
-                    // 继续扫描后续内容
-                    startIndex = text.indexOf('{', i + 1);
-                    if (startIndex === -1) return null;
-                    i = startIndex - 1;
-                    stack.length = 0;
+                // 当所有括号闭合时尝试解析
+                if (stack.length === 0) {
+                    const candidate = text.substring(startIndex, i + 1);
+                    try {
+                        return candidate;
+                    } catch (e) {
+                        // 继续扫描后续内容
+                        startIndex = text.indexOf('{', i + 1);
+                        if (startIndex === -1) return null;
+                        i = startIndex - 1;
+                        stack.length = 0;
+                    }
                 }
             }
+            return null;
+        } catch (error) {
+            return null;
         }
-        return null;
+
     }
 
     delay(seconds) {

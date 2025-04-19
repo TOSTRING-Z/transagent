@@ -1,6 +1,8 @@
 const fs = require("fs");
 const path = require("path");
 const { streamJSON, streamSse } = require("./stream.js");
+const JSON5 = require("json5");
+const { utils } = require('../modules/globals.js')
 
 let messages = [];
 let stop_ids = [];
@@ -156,8 +158,38 @@ String.prototype.format = function (data) {
     return format_text;
 }
 
+let tag_success = false;
+let messages_success = [];
+
+function setTag(tag) {
+    tag_success = tag;
+}
+
 function getMemory(data) {
-    let messages_list = messages.slice(messages.length - data.memory_length, messages.length)
+    messages_success = messages_success.concat(utils.copy(messages.slice(messages_success.length, messages.length)));
+    if (tag_success) {
+        messages_success = messages_success.map(message => {
+            let content_json = utils.extractJson(message.content);
+            let content_parse = null;
+            if (!!content_json) {
+                content_parse = JSON5.parse(content_json);
+            }
+            if (content_parse?.tool_call == "cli_execute" && message.role == "user") {
+                if (content_parse.tool_call == "cli_execute") {
+                    const success = content_parse.observation?.success || utils.extractJson(content_parse.observation).success;
+                    if (!success) {
+                        message.content == `Assistant called ${content_parse.tool_call} tool: Error occurred!`;
+                    }
+                }
+            } else {
+                if (!!content_parse.error) {
+                    message.content == `Assistant called ${content_parse.tool_call} tool: Error occurred!`;
+                }
+            }
+            return message;
+        })
+    }
+    let messages_list = messages_success.slice(messages_success.length - data.memory_length, messages_success.length);
     return messages_list;
 }
 
@@ -286,11 +318,12 @@ async function chatBase(data) {
             return data.output;
         }
     } catch (error) {
-        data.event.sender.send('info-data', { id: data.id, content: `响应错误: ${error.message}\n\n` });
+        console.log(error)
+        data.event.sender.send('info-data', { id: data.id, content: `Response error: ${error.message}\n\n` });
         return null;
     }
 }
 
 module.exports = {
-    chatBase, clearMessages, saveMessages, loadMessages, deleteMessage, stopMessage, getStopIds, pushMessage, getMessages, envMessage
+    chatBase, clearMessages, saveMessages, loadMessages, deleteMessage, stopMessage, getStopIds, pushMessage, getMessages, envMessage, setTag
 };

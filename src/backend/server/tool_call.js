@@ -1,6 +1,6 @@
 const { ReActAgent, State } = require("./agent.js")
-const { utils, global } = require('../modules/globals')
-const { pushMessage, getMessages, envMessage, clearMessages, loadMessages } = require('../server/llm_service');
+const { utils, global } = require('../modules/globals.js')
+const { pushMessage, getMessages, envMessage, clearMessages, loadMessages, setTag } = require('../server/llm_service.js');
 const { MCPClient } = require('./mcp_client.js')
 const JSON5 = require("json5")
 const fs = require('fs');
@@ -452,7 +452,7 @@ Example autonomous call situations:
     }
     data.push_message = false
     if (this.state == State.IDLE) {
-      pushMessage("user", data.query, data.id, ++this.memory_id);
+      pushMessage("user", data.query, data.id, ++this.memory_id, true, false);
       this.environment_update(data);
       this.state = State.RUNNING;
     }
@@ -505,6 +505,7 @@ Example autonomous call situations:
   "observation": "Tool does not exist",
   "error": "Please check if the tool name is incorrect or if the MCP service call format is wrong"
 }`;
+        setTag(false);
         return { observation, output: null };
       }
       const will_tool = this.tools[tool].func;
@@ -514,6 +515,12 @@ Example autonomous call situations:
   "observation": ${JSON.stringify(output, null, 4)},
   "error": ""
 }`;
+      if (tool == "cli_execute") {
+        const success = output?.success || JSON5.parse(output).success;
+        setTag(success);
+      } else {
+        setTag(true);
+      }
       return { observation, output };
     } catch (error) {
       console.log(error);
@@ -522,6 +529,7 @@ Example autonomous call situations:
   "observation": "Tool has been executed",
   "error": "${error.message}"
 }`;
+      setTag(false);
       return { observation, output: error.message };
     }
   }
@@ -543,6 +551,7 @@ Example autonomous call situations:
   "observation": "Tool was not executed",
   "error": "Your response is not a pure JSON text, or there is a problem with the JSON format: ${error.message}"
 }`;
+      setTag(false);
       pushMessage("user", data.output_format, data.id, this.memory_id);
       this.environment_update(data);
       data.event.sender.send('info-data', { id: data.id, content: this.get_info(data) });
@@ -562,7 +571,8 @@ Example autonomous call situations:
       }, messages[0]);
       if (!!maxId.id) {
         global.id = parseInt(maxId.id);
-        if (!!messages[0].react) {
+        const react = messages.find(message => message.react);
+        if (!!react) {
           const maxMemoryId = messages.reduce((max, current) => {
             return parseInt(current.memory_id) > parseInt(max.memory_id) ? current : max;
           }, messages[0]);

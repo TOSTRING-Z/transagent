@@ -63,11 +63,11 @@ function main(params) {
 
                 ipcMain.on('close-window', () => {
                     terminalWindow?.close()
-                    resolve(JSON.stringify({
+                    resolve({
                         success: false,
                         output: threshold(output, params.threshold),
                         error: error
-                    }));
+                    });
                 })
 
                 conn.on('ready', () => {
@@ -75,11 +75,11 @@ function main(params) {
                     conn.exec(code, (err, stream) => {
                         if (err) {
                             error = err.message;
-                            resolve(JSON.stringify({
+                            resolve({
                                 success: false,
                                 output: threshold(output, params.threshold),
                                 error: error
-                            }));
+                            });
                         }
 
                         stream.on('close', (code, signal) => {
@@ -89,11 +89,11 @@ function main(params) {
                             setTimeout(() => {
                                 if (!!terminalWindow)
                                     terminalWindow?.close();
-                                resolve(JSON.stringify({
+                                resolve({
                                     success: code === 0,
                                     output: threshold(output, params.threshold),
                                     error: error
-                                }));
+                                });
                             }, params.delay_time * 1000);
                         })
 
@@ -154,11 +154,11 @@ function main(params) {
                     setTimeout(() => {
                         if (!!terminalWindow)
                             terminalWindow?.close();
-                        resolve(JSON.stringify({
+                        resolve({
                             success: code === 0,
                             output: threshold(output, params.threshold),
                             error: error
-                        }));
+                        });
                     }, params.delay_time * 1000);
                 });
 
