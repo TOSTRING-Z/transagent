@@ -14,7 +14,7 @@ function getStopIds() {
 }
 
 function getMessages() {
-    return messages;
+    return messages.filter(message => !!message?.del);
 }
 
 function pushMessage(role, content, id, memory_id, show = true, react = true) {
@@ -61,20 +61,40 @@ function loadMessages(filePath) {
     }
 }
 
-function deleteMessage(id) {
+function toggleMessage({id,del}) {
     try {
-        messages = messages.filter(message => message.id !== id);
-        messages_success = messages_success.filter(message => message.id !== id);
+        messages = messages.map(message => {
+            if (message.id == id) {
+                message.del = del;
+            }
+            return message;
+        });
+        messages_success = messages_success.map(message => {
+            if (message.id == id) {
+                message.del = del;
+            }
+            return message;
+        });
         return messages.length;
     } catch (error) {
         return 0;
     }
 }
 
-function deleteMemory(memory_id) {
+function toggleMemory(memory_id) {
     try {
-        messages = messages.filter(message => message.memory_id !== memory_id);
-        messages_success = messages_success.filter(message => message.memory_id !== memory_id);
+        messages = messages.map(message => {
+            if (message.memory_id == memory_id) {
+                message.del = message.hasOwnProperty("del") ? !message.del : true;
+            }
+            return message;
+        });
+        messages_success = messages_success.map(message => {
+            if (message.memory_id == memory_id) {
+                message.del = message.hasOwnProperty("del") ? !message.del : true;
+            }
+            return message;
+        });
         return messages.length;
     } catch (error) {
         return 0;
@@ -92,12 +112,13 @@ function copy(data) {
 function format_messages(messages_list, params, env_message = null) {
     params = params ? params : {};
     // 遍历 messages_list 数组，并删除每个对象的 id 属性
-    messages_list = messages_list.map(message => {
+    messages_list = messages_list.filter(message => !message?.del).map(message => {
         let message_copy = copy(message);
         delete message_copy.id;
         delete message_copy.memory_id;
         delete message_copy.show;
         delete message_copy.react;
+        delete message_copy.del;
         return message_copy;
     });
 
@@ -178,7 +199,7 @@ function setTag(tag) {
 function getMemory(data) {
     messages_success = messages_success.concat(utils.copy(messages.slice(messages_success.length, messages.length)));
     if (tag_success) {
-        messages_success = messages_success.map(message => {
+        messages_success = messages_success.filter(message => !message?.del).map(message => {
             let content_json = utils.extractJson(message.content);
             let content_parse = null;
             if (!!content_json) {
@@ -208,7 +229,7 @@ function getMemory(data) {
             return message;
         })
     }
-    let messages_list = messages_success.slice(Math.max(messages_success.length - data.memory_length,0), messages_success.length);
+    let messages_list = messages_success.slice(Math.max(messages_success.length - data.memory_length, 0), messages_success.length);
     return messages_list;
 }
 
@@ -344,5 +365,5 @@ async function chatBase(data) {
 }
 
 module.exports = {
-    chatBase, clearMessages, saveMessages, loadMessages, deleteMessage, deleteMemory, stopMessage, getStopIds, pushMessage, getMessages, envMessage, setTag
+    chatBase, clearMessages, saveMessages, loadMessages, toggleMessage, toggleMemory, stopMessage, getStopIds, pushMessage, getMessages, envMessage, setTag
 };

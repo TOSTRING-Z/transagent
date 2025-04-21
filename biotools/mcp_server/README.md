@@ -42,7 +42,7 @@ docker load -i biotools.tar
 docker run -it --name biotools --rm \
 -p 3001:3001 \
 -p 3002:22 \
--v /data/zgr/bixchat/biotools/tmp:/tmp \
+-v /data/zgr/bixchat/biotools/analysis/case2/tmp:/tmp \
 -v /data/zgr/bixchat/biotools/data:/data \
 -v /data/zgr/bixchat/biotools/mcp_server/server_bixchat.py:/app/server.py \
 biotools

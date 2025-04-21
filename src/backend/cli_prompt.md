@@ -15,7 +15,7 @@ The current tool can be used for complex bioinformatics analysis workflows, incl
   - Output: `output_dir`  
   - Example: `findMotifsGenome.pl input.bed hg38 output_dir -size 200 -mask`  
 
-- **chipseeker**: Annotation for ChIP-seq data  
+- **chipseeker**: Software for genome proportion analysis
   - Input: `input.bed`  
   - Output: `output_dir`  
   - Example: `mkdir -p output_dir && Rscript -e 'library(ChIPseeker);library(TxDb.Hsapiens.UCSC.hg38.knownGene); peakAnno <- annotatePeak("input.bed", tssRegion=c(-1000, 1000), TxDb=TxDb.Hsapiens.UCSC.hg38.knownGene); write.csv(peakAnno@annoStat,"output_dir/ChIPseeker_annoStat.csv")'`  

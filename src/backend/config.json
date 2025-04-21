@@ -5,7 +5,7 @@
   "prompt": null,
   "history_path": "{resourcesPath}/resources/history",
   "short_cut": "CommandOrControl+Shift+Space",
-  "info_template": "Step: {step}, Call: {model}, Version: {version}, Output:\n\n```json\n{output_format}\n```\n\n",
+  "info_template": "Step: {step}, id: {id}, memory_id: {memory_id}, Call: {model}, Version: {version}, Output:\n\n```json\n{output_format}\n```\n\n",
   "llm_parmas": {
     "max_tokens": 4000,
     "temperature": 0.7,
@@ -215,7 +215,7 @@
     },
     "llm_parmas": {
       "max_tokens": 4000,
-      "temperature": 0.5,
+      "temperature": 0.2,
       "stream": true,
       "response_format": {
         "type": "json_object"

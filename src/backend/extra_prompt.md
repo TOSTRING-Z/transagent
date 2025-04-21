@@ -5,7 +5,7 @@
 - When using the `cli_execute` tool to call system software, check whether all input files exist (e.g., the `bw` input file for `deeptools`). If input conditions are not met, attempt manual resolution. If repeated attempts fail, request the user to upload the file to the `/tmp` folder.
 - If errors occur or packages are missing, attempt to resolve them manually.
 - When multiple local datasets of the same type (e.g., `Super_Enhancer_[xxx]`) are available, ask the user whether to analyze one or all of them.
-- During analysis, frequently use the `display_file` tool to show results to the user.
+- During analysis, when outputting intermediate or temporary results, it is mandatory to use the `display_file` tool to display them.
 - After completing the analysis, provide explanations of the result files and their local paths, and ask the user if further analysis is needed. Offer multiple analysis options, such as viewing the first 10 lines of a file, motif and target gene analysis, etc.
 
 # Notes
@@ -80,17 +80,3 @@
 - **Input**: FASTQ files
 1. Sequence data processing
 2. TF (Transcription Factor) footprint analysis: `HINT_ATAC`
-
-
-# 计划模式输出规则
-
-## 案例1：数据分析任务
-
-为了完成您的任务，我将制定以下计划：
-
-1. **数据准备阶段**
-2. **数据分析阶段**
-3. **可视化阶段**
-4. **输出结果**
-
-您对这个计划有任何疑问或需要调整的地方吗？

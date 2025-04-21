@@ -195,11 +195,14 @@ system_message = `<div class="relative space-y-2 space-x-2" data-role="system" d
   </div>
   <div class="message" data-content=""></div>
   <div class="message-actions">
-    <button class="action-btn copy" title="复制">
+    <button class="action-btn copy" title="copy">
       <i class="far fa-copy"></i>
     </button>
-    <button class="action-btn delete" title="删除">
+    <button class="action-btn delete" title="delete">
       <i class="far fa-trash-alt"></i>
+    </button>
+    <button class="action-btn toggle" title="toggle">
+      <i class="fas fa-toggle-off"></i>
     </button>
   </div>
 </div>`
@@ -314,27 +317,31 @@ function getTokens(text) {
 
 
 function userAdd(data) {
+  let user_message_cursor;
   if (typeof (data.content) == "string") {
-    messages.appendChild(user_message.formatMessage({
+    user_message_cursor = user_message.formatMessage({
       "id": data.id,
       "message": data.content,
       "image_url": data?.img_url,
-    }, "user"));
+    }, "user")
   } else {
-    messages.appendChild(user_message.formatMessage({
+    user_message_cursor = user_message.formatMessage({
       "id": data.id,
       "message": data.content[0].text.content,
       "image_url": data.content[1].image_url.url,
-    }, "user"));
+    }, "user");
   }
+  messages.appendChild(user_message_cursor);
   let system_message_cursor = system_message.formatMessage({
     "icon": getIcon(false),
     "id": data.id,
     "message": ""
   }, "system")
-  addEventStop(system_message_cursor, data.id);
   messages.appendChild(system_message_cursor);
-
+  if (!!data?.del) {
+    user_message_cursor.classList.add("message_del")
+    system_message_cursor.classList.add("message_del")
+  }
 }
 
 function infoAdd(info) {
@@ -354,6 +361,8 @@ function infoAdd(info) {
   <div class="info-item">
   </div>
 </div>`);
+    if (info?.del)
+      info_item.classList.add("del");
     info_item.getElementsByClassName('info-item')[0].innerHTML = info_item_content;
     info_content.appendChild(info_item);
     info_content.dataset.content += info.content;
@@ -374,7 +383,7 @@ async function streamMessageAdd(chunk) {
       tokens.innerText = global.chat.tokens;
     }
     optionDom?.remove();
-    let memory_id = chunk.hasOwnProperty("memory_id")?chunk.memory_id:chunk.id;
+    let memory_id = chunk.hasOwnProperty("memory_id") ? chunk.memory_id : chunk.id;
     console.log(`memory_id: ${memory_id}`)
     console.log(`content: ${chunk.content}`)
     console.log(`------------------------`)
@@ -398,6 +407,8 @@ async function streamMessageAdd(chunk) {
     </button>
   </div>
 </div>`);
+      if (chunk?.del)
+        chunk_item.classList.add("del");
       chunk_content = chunk.content;
       chunk_item_content = marked.parse(chunk_content);
       chunk_item.dataset.content = chunk.content;
@@ -414,10 +425,14 @@ async function streamMessageAdd(chunk) {
   if (chunk.end) {
     clearInterval(global.seconds_timer);
     global.seconds_timer = null;
-    const thinking = messageSystem.getElementsByClassName("thinking")[0];
-    thinking?.remove();
-    typesetMath();
-    menuEvent(chunk.id, message_content.dataset.content);
+    if (!messageSystem.dataset?.event_stop) {
+      messageSystem.dataset.event_stop = true;
+      const message_content = messageSystem.getElementsByClassName('message')[0];
+      const thinking = messageSystem.getElementsByClassName("thinking")[0];
+      thinking.remove();
+      typesetMath();
+      menuEvent(messageSystem, message_content.dataset.content);
+    }
     if (global.scroll_top.data)
       top_div.scrollTop = top_div.scrollHeight;
   }
@@ -426,36 +441,64 @@ async function streamMessageAdd(chunk) {
 
 
 async function delete_message(id) {
-  await window.electronAPI.deleteMessage(id);
   let elements = document.querySelectorAll(`[data-id="${id}"]`);
-  elements.forEach(function (element) {
-    element.remove();
+  elements.forEach(async function (message_element) {
+    if (message_element.classList.contains('message_del')) {
+      await window.electronAPI.toggleMessage({id, del: false});
+      message_element.classList.remove('message_del')
+      message_element.querySelectorAll("[info_data-id]").forEach(function (element) {
+        if (element.classList.contains('del'))
+          element.classList.remove('del');
+      });
+
+      message_element.querySelectorAll("[chunk_data-id]").forEach(function (element) {
+        if (element.classList.contains('del'))
+          element.classList.remove('del');
+      });
+    } else {
+      await window.electronAPI.toggleMessage({id, del: true});
+      message_element.classList.add('message_del')
+      message_element.querySelectorAll("[info_data-id]").forEach(function (element) {
+        if (!element.classList.contains('del'))
+          element.classList.add('del');
+      });
+
+      message_element.querySelectorAll("[chunk_data-id]").forEach(function (element) {
+        if (!element.classList.contains('del'))
+          element.classList.add('del');
+      });
+    }
+
   });
 }
 
 async function delete_memory(memory_id) {
-  await window.electronAPI.deleteMemory(memory_id);
+  await window.electronAPI.toggleMemory(memory_id);
   let elements = document.querySelectorAll(`[info_data-id="${memory_id}"]`);
   elements.forEach(function (element) {
-    element.remove();
+    element.classList.toggle('del');
   });
   elements = document.querySelectorAll(`[chunk_data-id="${memory_id}"]`);
   elements.forEach(function (element) {
-    element.remove();
+    element.classList.toggle('del');
   });
 }
 
-function menuEvent(id, raw) {
-  const messageSystem = document.querySelectorAll(`[data-id='${id}']`)[1];
+function menuEvent(messageSystem, raw) {
   const copy = messageSystem.getElementsByClassName("copy")[0];
   const del = messageSystem.getElementsByClassName("delete")[0];
+  const toggle = messageSystem.getElementsByClassName("toggle")[0];
   copy.classList.add("active");
   del.classList.add("active");
+  toggle.classList.add("active");
   copy.addEventListener("click", () => {
     copy_message(raw);
   })
   del.addEventListener("click", () => {
-    delete_message(id);
+    delete_message(messageSystem.dataset.id);
+  })
+  toggle.addEventListener("click", () => {
+    messageSystem.classList.toggle("message_toggle");
   })
 }
 
@@ -670,15 +713,16 @@ window.electronAPI.userData((data) => {
 })
 
 function addEventStop(messageSystem, id) {
-  const message_content = messageSystem.getElementsByClassName('message')[0];
-  const thinking = messageSystem.getElementsByClassName("thinking")[0];
-  const btn = messageSystem.getElementsByClassName("btn")[0];
-  btn.addEventListener("click", () => {
-    window.electronAPI.streamMessageStop(id);
-    thinking.remove();
-    typesetMath();
-    menuEvent(id, message_content.dataset.content);
-  })
+    const message_content = messageSystem.getElementsByClassName('message')[0];
+    const thinking = messageSystem.getElementsByClassName("thinking")[0];
+    const btn = messageSystem.getElementsByClassName("btn")[0];
+    btn.addEventListener("click", () => {
+      window.electronAPI.streamMessageStop(id);
+      thinking.remove();
+      typesetMath();
+      menuEvent(messageSystem, message_content.dataset.content);
+    })
+  
 }
 
 window.electronAPI.handleQuery(async (data) => {

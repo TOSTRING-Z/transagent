@@ -25,14 +25,6 @@ class ToolCall extends ReActAgent {
     }
   }
 
-  deleteMessage(id) {
-    this.environment_details.memory_list = this.environment_details.memory_list.filter(memory => memory.id != id);
-  }
-
-  deleteMemory(memory_id) {
-    this.environment_details.memory_list = this.environment_details.memory_list.filter(memory => memory.memory_id != memory_id);
-  }
-
   constructor(tools = {}) {
     super();
     this.mcp_client = new MCPClient();
@@ -215,7 +207,6 @@ Description: The memory retrieval tool (memory_retrieval) is designed to:
 4. Ensure Consistency: Validate multi-step analysis processes by cross-referencing with historical outputs.
 5. Context Reconstruction: Rebuild complete conversation context at any recorded point in time.
 6. Performance Optimization: Retrieve cached results to avoid redundant computations.
-
 Parameters:
 - memory_id: (Required) Unique identifier for a specific historical interaction.
   - Type: Integer
@@ -223,32 +214,12 @@ Parameters:
   - Valid values: 
     * Numerical IDs from Memory List
   - Format: Must match existing memory_id in Memory List
-
 Usage:
 {
   "thinking": "[Explain purpose of this retrieval and how it will be used in current analysis]",
   "tool": "memory_retrieval",
   "params": {
     "memory_id": "[valid_memory_id]"
-  }
-}
-
-Example Usage Scenarios:
-1. Retrieving parameters from previous successful run:
-{
-  "thinking": "Need to verify the exact parameters used in xxx successful analysis for consistency",
-  "tool": "memory_retrieval",
-  "params": {
-    "memory_id": 12
-  }
-}
-
-2. Retrieving the results from previous tool execution:
-{
-  "thinking": "Since the xxx file was not found, but I noticed that the xxx tool has been successfully executed in the memory of previous conversations, and I can directly retrieve the results of its execution.",
-  "tool": "memory_retrieval",
-  "params": {
-    "memory_id": 24
   }
 }
 
@@ -374,6 +345,25 @@ Example autonomous call situations:
 - "I'll verify the parameters used last time..."
 - "Based on our earlier discussion about XX..."
 
+Example Usage Scenarios:
+1. Retrieving parameters from previous successful run:
+{
+  "thinking": "Need to verify the exact parameters used in xxx successful analysis for consistency",
+  "tool": "memory_retrieval",
+  "params": {
+    "memory_id": 12
+  }
+}
+
+2. Retrieving the results from previous tool execution:
+{
+  "thinking": "Since the xxx file was not found, but I noticed that the xxx tool has been successfully executed in the memory of previous conversations, and I can directly retrieve the results of its execution.",
+  "tool": "memory_retrieval",
+  "params": {
+    "memory_id": 24
+  }
+}
+
 ====
 
 # Memory List:
@@ -384,6 +374,7 @@ Example autonomous call situations:
     this.system_prompt;
     this.mcp_prompt;
     this.memory_id = 0;
+    this.memory_list = [];
 
     this.env = `Environment details:
 - Language: {language}
@@ -398,16 +389,11 @@ Example autonomous call situations:
     }
 
     this.environment_details = {
-      memory_list: [],
       language: utils.getLanguage(),
       tmpdir: utils.getConfig("tool_call")?.tmpdir || os.tmpdir(),
       time: utils.formatDate(),
       mode: this.modes.ACT,
     }
-  }
-
-  clear_memory() {
-    this.environment_details.memory_list.length = 0
   }
 
   get_extra_prompt(file) {
@@ -423,9 +409,7 @@ Example autonomous call situations:
     }
   }
 
-  environment_update(data) {
-    this.environment_details.time = utils.formatDate();
-    this.environment_details.language = data?.language || utils.getLanguage();
+  memory_update(data) {
     let messages = getMessages()
     let messages_list = messages.slice(Math.max(messages.length - data.long_memory_length - data.memory_length,0), messages.length - data.memory_length).map(message => {
       let message_copy = utils.copy(message)
@@ -440,9 +424,22 @@ Example autonomous call situations:
       delete message_copy.id;
       delete message_copy.show;
       return message_copy;
-
     })
-    this.environment_details.memory_list = messages_list
+    this.memory_list = messages_list
+    this.system_prompt = this.task_prompt.format({
+      system_type: utils.getConfig("tool_call")?.system_type || os.type(),
+      system_platform: utils.getConfig("tool_call")?.system_platform || os.platform(),
+      system_arch: utils.getConfig("tool_call")?.system_arch || os.arch(),
+      tool_prompt: this.tool_prompt.join("\n\n"),
+      mcp_prompt: this.mcp_prompt,
+      extra_prompt: this.get_extra_prompt(data.extra_prompt),
+      memory_list: JSON.stringify(this.memory_list, null, 2)
+    })
+  }
+
+  environment_update(data) {
+    this.environment_details.time = utils.formatDate();
+    this.environment_details.language = data?.language || utils.getLanguage();
     data.env_message = envMessage(this.env.format(this.environment_details));
   }
 
@@ -460,15 +457,7 @@ Example autonomous call situations:
       this.environment_update(data);
       this.state = State.RUNNING;
     }
-    this.system_prompt = this.task_prompt.format({
-      system_type: utils.getConfig("tool_call")?.system_type || os.type(),
-      system_platform: utils.getConfig("tool_call")?.system_platform || os.platform(),
-      system_arch: utils.getConfig("tool_call")?.system_arch || os.arch(),
-      tool_prompt: this.tool_prompt.join("\n\n"),
-      mcp_prompt: this.mcp_prompt,
-      extra_prompt: this.get_extra_prompt(data.extra_prompt),
-      memory_list: JSON.stringify(this.environment_details.memory_list, null, 2)
-    })
+    this.memory_update(data);
     const tool_info = await this.task(data);
     // Check if a tool needs to be called
     if (tool_info?.tool) {
@@ -566,7 +555,6 @@ Example autonomous call situations:
     this.window = window;
 
     clearMessages();
-    this.clear_memory();
     this.window.webContents.send('clear')
     let messages = loadMessages(filePath)
     if (messages.length > 0) {
@@ -585,7 +573,7 @@ Example autonomous call situations:
         for (let i in messages) {
           i = parseInt(i);
           if (Object.hasOwnProperty.call(messages, i)) {
-            let { role, content, id, memory_id, react } = messages[i];
+            let { role, content, id, memory_id, react, del } = messages[i];
             if (role == "user") {
               if (!!react) {
                 const content_json = utils.extractJson(content);
@@ -594,18 +582,18 @@ Example autonomous call situations:
                   const tool = tool_info?.tool_call;
                   if (tool == "display_file") {
                     const observation = tool_info.observation;
-                    this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: `${observation}\n\n`, end: true });
+                    this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: `${observation}\n\n`, end: true, del: del });
                   }
                   if (["ask_followup_question","waiting_feedback","plan_mode_response"].includes(tool)) {
                     const observation = tool_info.observation;
-                    this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: `${observation.question}\n\n`, end: true });
+                    this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: `${observation.question}\n\n`, end: true, del: del });
                   }
                 }
                 let content_format = content.replaceAll("\`", "'").replaceAll("`", "'");
-                this.window.webContents.send('info-data', { id: id, memory_id: memory_id, content: `Step ${i}, Output:\n\n\`\`\`json\n${content_format}\n\`\`\`\n\n` });
+                this.window.webContents.send('info-data', { id: id, memory_id: memory_id, content: `Step ${i}, id: ${id}, memory_id: ${memory_id}, Output:\n\n\`\`\`json\n${content_format}\n\`\`\`\n\n`, del: del });
               }
               else {
-                this.window.webContents.send('user-data', { id: id, memory_id: memory_id, content: content });
+                this.window.webContents.send('user-data', { id: id, memory_id: memory_id, content: content, del: del });
               }
             } else {
               if (!!react) {
@@ -615,17 +603,17 @@ Example autonomous call situations:
                   if (!!tool_info?.thinking) {
                     const thinking = `${tool_info.thinking}\n\n---\n\n`
                     let content_format = content.replaceAll("\`", "'").replaceAll("`", "'");
-                    this.window.webContents.send('info-data', { id: id, memory_id: memory_id, content: `Step ${i}, Output:\n\n\`\`\`json\n${content_format}\n\`\`\`\n\n` });
-                    this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: thinking, end: true });
+                    this.window.webContents.send('info-data', { id: id, memory_id: memory_id, content: `Step ${i}, id: ${id}, memory_id: ${memory_id}, Output:\n\n\`\`\`json\n${content_format}\n\`\`\`\n\n`, del: del });
+                    this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: thinking, end: true, del: del });
                     if (tool_info.tool == "terminate") {
-                      this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: tool_info.params.final_answer, end: true });
+                      this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: tool_info.params.final_answer, end: true, del: del });
                     }
                   }
                 } catch (error) {
                   continue;
                 }
               } else {
-                this.window.webContents.send('stream-data', { id: id, content: content, end: true });
+                this.window.webContents.send('stream-data', { id: id, content: content, end: true, del: del });
               }
             }
           }

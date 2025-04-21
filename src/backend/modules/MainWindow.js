@@ -1,7 +1,7 @@
 const { Window } = require("./Window")
 const { Plugins } = require('./Plugins');
 const { store, global, inner, utils } = require('./globals')
-const { clearMessages, saveMessages, deleteMessage, deleteMemory, stopMessage, getStopIds } = require('../server/llm_service');
+const { clearMessages, saveMessages, toggleMessage, toggleMemory, stopMessage, getStopIds } = require('../server/llm_service');
 const { captureMouse } = require('../mouse/capture_mouse');
 const { State } = require("../server/agent.js")
 const { ToolCall } = require('../server/tool_call');
@@ -273,17 +273,15 @@ class MainWindow extends Window {
             }
         })
 
-        ipcMain.handle("delete-message", async (_event, id) => {
-            let message_len = await deleteMessage(id);
-            this.tool_call.deleteMessage(id);
+        ipcMain.handle("toggle-message", async (_event, data) => {
+            let message_len = await toggleMessage(data);
             this.setHistory();
-            console.log(`delete id: ${id}, length: ${message_len}`)
+            console.log(`delete id: ${data.id}, length: ${message_len}`)
             return message_len;
         })
 
-        ipcMain.handle("delete-memory", async (_event, memory_id) => {
-            let memory_len = await deleteMemory(memory_id);
-            this.tool_call.deleteMemory(memory_id);
+        ipcMain.handle("toggle-memory", async (_event, memory_id) => {
+            let memory_len = await toggleMemory(memory_id);
             this.setHistory();
             console.log(`delete memory_id: ${memory_id}, length: ${memory_len}`)
             return memory_len;
@@ -313,7 +311,6 @@ class MainWindow extends Window {
 
         ipcMain.handle('new-chat', (_event) => {
             clearMessages();
-            this.tool_call.clear_memory();
             this.window.webContents.send('clear');
             global.chat.id = utils.getChatId();
             global.chat.name = utils.formatDate();
@@ -325,7 +322,6 @@ class MainWindow extends Window {
 
         ipcMain.handle('load-chat', (_event, id) => {
             clearMessages();
-            this.tool_call.clear_memory();
             const history = this.loadHistory(id);
             global.chat = history;
             return history;
@@ -334,7 +330,6 @@ class MainWindow extends Window {
         ipcMain.on('del-chat', (_event, id) => {
             if (id == global.chat.id) {
                 clearMessages();
-                this.tool_call.clear_memory();
                 this.window.webContents.send('clear');
             }
             this.delHistory(id);
@@ -604,7 +599,6 @@ class MainWindow extends Window {
                         label: 'Reset Conversation',
                         click: () => {
                             clearMessages();
-                            this.tool_call.clear_memory();
                             this.window.webContents.send('clear')
                             this.setHistory();
                         }

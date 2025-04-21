@@ -5,6 +5,5 @@ glm_token.py
 *.log
 biotools/data/
 biotools/tmp/
-biotools/tmp_TR分析/
 biotools/script/
 analysis

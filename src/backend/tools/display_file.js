@@ -51,14 +51,13 @@ class DisplayFile {
     }
   }
   // 表格处理方法
-  async processTable(filePath) {
+  async processTable(filePath,maxLines=20,maxLineLength=100) {
     try {
       const XLSX = require('xlsx');
       const workbook = XLSX.readFile(filePath);
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
       const json = XLSX.utils.sheet_to_json(worksheet);
-      const maxCellLength = 100; // 每个单元格最多显示100个字符
 
       if (json.length === 0) {
         return "Empty table";
@@ -68,8 +67,8 @@ class DisplayFile {
       const processCellValue = (value) => {
         if (value === null || value === undefined) return '';
         const strValue = String(value);
-        return strValue.length > maxCellLength
-          ? strValue.substring(0, maxCellLength) + '...'
+        return strValue.length > maxLineLength
+          ? strValue.substring(0, maxLineLength) + '...'
           : strValue;
       };
 
@@ -89,9 +88,8 @@ class DisplayFile {
 
       // 表格内容
       const totalRows = json.length;
-      const maxRows = 10; // 最多显示10行（前5+后5）
 
-      if (totalRows <= maxRows) {
+      if (totalRows <= maxLines) {
         // 行数不多，全部显示
         json.forEach(row => {
           markdown += '|';
@@ -135,7 +133,7 @@ class DisplayFile {
   }
 
   // 文本处理方法
-  async processText(filePath) {
+  async processText(filePath,maxLines=20,maxLineLength=100) {
     try {
       const content = fs.readFileSync(filePath, 'utf8');
       let result = null;
@@ -146,8 +144,6 @@ class DisplayFile {
       } else {
         // 纯文本处理
         const lines = content.split('\n');
-        const maxLines = 10; // 最多显示10行（前5+后5）
-        const maxLineLength = 100; // 每行最多显示100个字符
 
         // 处理每行长度，超过限制的截断并添加...
         const processedLines = lines.map(line => {
@@ -179,7 +175,7 @@ class DisplayFile {
   }
 
   // 主处理方法
-  async display(filePath) {
+  async display(filePath,maxLines=20,maxLineLength=100) {
     const sshConfig = utils.getSshConfig();
 
     // 如果SSH配置为空，使用本地文件处理
@@ -190,9 +186,9 @@ class DisplayFile {
       if (['.png', '.jpg', '.jpeg', '.gif', '.svg', '.pdf'].includes(ext)) {
         return this.processImage(filePath);
       } else if (['.csv', '.tsv', '.xls', '.xlsx'].includes(ext)) {
-        return this.processTable(filePath);
+        return this.processTable(filePath,maxLines=10,maxLineLength=100);
       } else {
-        return this.processText(filePath);
+        return this.processText(filePath,maxLines=10,maxLineLength=100);
       }
     } else {
       // 否则使用远程文件处理
@@ -204,16 +200,17 @@ class DisplayFile {
       if (['.png', '.jpg', '.jpeg', '.gif', '.svg', '.pdf'].includes(ext)) {
         result = await this.processImage(tempPath);
       } else if (['.csv', '.tsv', '.xls', '.xlsx'].includes(ext)) {
-        result = await this.processTable(tempPath);
+        result = await this.processTable(tempPath,maxLines=10,maxLineLength=100);
       } else {
-        result = await this.processText(tempPath);
+        result = await this.processText(tempPath,maxLines=10,maxLineLength=100);
       }
 
       // 添加下载链接
       if (!sshConfig || !sshConfig.host) {
         result += '\n\n[Local file](' + filePath + ')';
       } else {
-        result += '\n\n[File has been downloaded locally](' + tempPath + ')';
+        result += '\n\n- Remote file: ' + filePath;
+        result += '\n\n- [File has been downloaded locally](' + tempPath + ')';
       }
       return result;
     }
@@ -229,10 +226,11 @@ async function main({ filePath }) {
 
 function getPrompt() {
   const prompt = `## display_file
-Description: Display various file types (images, tables, text) in Markdown format and download files via SSH
-By default, tables and text display a maximum of 10 rows.
+Description: Display or read various file types (images, tables, text) in Markdown format and download files via SSH.
 Parameters:
-- filePath: (Required) Path to the file to be displayed
+- filePath: (Required) Path to the file to be displayed or read
+- maxLines: Maximum number of rows to read for text or tables (default: 20).
+- maxLineLength: Maximum character length per line or cell for text/tables (default: 100).
 Supported file types:
 - Images: .png, .jpg, .jpeg, .gif, .svg, .pdf
 - Tables: .csv, .tsv, .xls, .xlsx
@@ -242,7 +240,9 @@ SSH Usage:
   "thinking": "[Thinking process]",
   "tool": "display_file",
   "params": {
-    "filePath": "[file-path]"
+    "filePath": "[file-path]",
+    "maxLines": [maxLines],
+    "maxLineLength": [maxLineLength],
   }
 }`;
   return prompt;

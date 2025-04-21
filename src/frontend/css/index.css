@@ -424,7 +424,7 @@ body {
   padding: 2px;
 }
 
-/* delete-message */
+/* toggle-message */
 
 .menu-container {
   position: absolute;
@@ -468,6 +468,7 @@ body {
   background: #149131;
   color: white;
   border-radius: 8px;
+  z-index: 1;
 }
 
 [data-role="system"]:hover .active {
@@ -999,4 +1000,22 @@ body {
 .action-btn.chunk-delete:hover {
   background-color: white;
   color: var(--secondary);
+}
+
+/* del */
+.del {
+  background-color: rgba(254, 0, 0, 0.227);
+}
+
+.message_del {
+  border: 1px solid rgba(254, 0, 0, 0.227);
+}
+
+.message_toggle .info {
+  display: none;
+}
+
+.message_toggle .message {
+  max-height: 10rem;
+  overflow-y: auto;
 }

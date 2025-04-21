@@ -118,8 +118,12 @@ async def get_annotation_bed(biological_type: str) -> str:
 
 
 @validate_required_params("trs")
-async def get_regulators_bed(trs: list) -> str:
+async def get_regulators_bed(trs: Optional[list | str]) -> str:
     try:
+        if type(trs) == str:
+            trs = pd.read_csv(trs, header=None).iloc[:, 0].to_list()
+        if len(trs) == 0:
+            return "TR list cannot be empty."
         tr_beds = []
         uuid_ = uuid.uuid1()
         output = "output bed files:\n"
@@ -137,8 +141,10 @@ async def get_regulators_bed(trs: list) -> str:
 
 
 @validate_required_params("data_source", "genes")
-async def get_express_data(data_source: str, genes: list) -> str:
+async def get_express_data(data_source: str, genes: Optional[list | str]) -> str:
     try:
+        if type(genes) == str:
+            genes = pd.read_csv(genes, header=None).iloc[:, 0].to_list()
         if data_source in exp_data_db:
             exp_file = exp_data_db[data_source]
             exp = pd.read_csv(exp_file, index_col=0)
@@ -152,8 +158,12 @@ async def get_express_data(data_source: str, genes: list) -> str:
         return str(e)
 
 
-async def get_gene_position(genes: Optional[list] = None) -> str:
+async def get_gene_position(genes: Optional[list | str] = None) -> str:
     try:
+        if type(genes) == str:
+            genes = pd.read_csv(genes, header=None).iloc[:, 0].to_list()
+        if len(genes) == 0:
+            return "Gene list cannot be empty."
         if not genes:
             return bed_config["gene_bed_path"]
         gene_bed = pd.read_csv(
@@ -218,8 +228,8 @@ Returns:
                 "required": ["genes"],
                 "properties": {
                     "genes": {
-                        "type": "array",
-                        "description": "A list of gene names (e.g. ['TP53'])",
+                        "type": "array|string",
+                        "description": "A list of gene names (e.g. ['TP53']) or csv file containing gene name list.",
                     }
                 },
             },
@@ -250,8 +260,8 @@ Returns:
                 "required": ["trs"],
                 "properties": {
                     "trs": {
-                        "type": "array",
-                        "description": f"A list of TR names (e.g. ['GATA4@Sample_02_4106'])",
+                        "type": "array|string",
+                        "description": f"A list of TR names (e.g. ['GATA4@Sample_02_4106']) or csv file containing TR name list.",
                     }
                 },
             },
@@ -270,8 +280,8 @@ Returns:
                         "description": f"Data sources in local database (must be: {data_source_list})",
                     },
                     "genes": {
-                        "type": "array",
-                        "description": "A list of gene names (e.g. ['TP53'])",
+                        "type": "array|string",
+                        "description": "A list of gene names (e.g. ['TP53']) or csv file containing gene name list.",
                     },
                 },
             },
