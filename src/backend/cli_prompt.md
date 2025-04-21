@@ -75,6 +75,11 @@ The current tool can be used for complex bioinformatics analysis workflows, incl
   - Output: `output_dir`  
   - Example: `bash /data/bed2gff/bed2gff.sh peaks.narrowPeak peaks.gff && python2 /data/rose/ROSE_main.py -g HG38 -i peaks.gff -r marked_duplicates.bam -c control.bam -o output_dir -t 2000 && python2 ROSE_geneMapper.py -g HG38 -i output_dir/peaks_AllEnhancers.table.txt -o output_dir`  
 
+- **CRCmapper**: Identify super-enhancers and their target genes  
+  - Input: `peaks_AllEnhancers.table.txt`, `output_dir`  
+  - Output: `output_dir`  
+  - Example: `python CRCmapper.py -e [peaks_AllEnhancers.table.txt] -b [BAM_FILE] -g hg38 -f [FASTA] -s [SUBPEAKS] -x [EXP_CUTOFF] -l [EXTENSION-LENGTH] -n [NAME] -o [output_dir]`  
+
 - **HINT_ATAC**: Transcription factor footprint analysis  
   - Input: `peaks.narrowPeak`, `marked_duplicates.bam`  
   - Output: `output_dir`  

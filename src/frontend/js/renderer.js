@@ -341,6 +341,8 @@ function userAdd(data) {
   if (!!data?.del) {
     user_message_cursor.classList.add("message_del")
     system_message_cursor.classList.add("message_del")
+    user_message_cursor.classList.add("message_toggle")
+    system_message_cursor.classList.add("message_toggle")
   }
 }
 
@@ -458,6 +460,7 @@ async function delete_message(id) {
     } else {
       await window.electronAPI.toggleMessage({id, del: true});
       message_element.classList.add('message_del')
+      message_element.classList.add('message_toggle')
       message_element.querySelectorAll("[info_data-id]").forEach(function (element) {
         if (!element.classList.contains('del'))
           element.classList.add('del');

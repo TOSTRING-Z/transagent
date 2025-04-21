@@ -7,7 +7,6 @@ const { utils } = require('../modules/globals.js')
 let messages = [];
 let stop_ids = [];
 let tag_success = false;
-let messages_success = [];
 
 function getStopIds() {
     return stop_ids;
@@ -28,7 +27,6 @@ function envMessage(content) {
 
 function clearMessages() {
     messages.length = 0;
-    messages_success.length = 0;
     stop_ids.length = 0;
 }
 
@@ -69,12 +67,6 @@ function toggleMessage({id,del}) {
             }
             return message;
         });
-        messages_success = messages_success.map(message => {
-            if (message.id == id) {
-                message.del = del;
-            }
-            return message;
-        });
         return messages.length;
     } catch (error) {
         return 0;
@@ -84,12 +76,6 @@ function toggleMessage({id,del}) {
 function toggleMemory(memory_id) {
     try {
         messages = messages.map(message => {
-            if (message.memory_id == memory_id) {
-                message.del = message.hasOwnProperty("del") ? !message.del : true;
-            }
-            return message;
-        });
-        messages_success = messages_success.map(message => {
             if (message.memory_id == memory_id) {
                 message.del = message.hasOwnProperty("del") ? !message.del : true;
             }
@@ -197,9 +183,9 @@ function setTag(tag) {
 }
 
 function getMemory(data) {
-    messages_success = messages_success.concat(utils.copy(messages.slice(messages_success.length, messages.length)));
+    let messages_success = utils.copy(messages.filter(message => !message?.del));
     if (tag_success) {
-        messages_success = messages_success.filter(message => !message?.del).map(message => {
+        messages_success = messages_success.map(message => {
             let content_json = utils.extractJson(message.content);
             let content_parse = null;
             if (!!content_json) {
