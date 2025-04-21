@@ -70,63 +70,78 @@ function main(params) {
                     });
                 })
 
-                conn.on('ready', () => {
+                conn.on('ready', async () => {
                     console.log('SSH Connection Ready');
-                    conn.exec(code, (err, stream) => {
-                        if (err) {
-                            error = err.message;
-                            resolve({
-                                success: false,
-                                output: threshold(output, params.threshold),
-                                error: error
-                            });
-                        }
+                    // 将代码写入临时文件
+                    const remoteScriptPath = `/tmp/bash_script_${Date.now()}.sh`;
+                    conn.sftp((err, sftp) => {
+                        if (err) return reject(err);
 
-                        stream.on('close', (code, signal) => {
-                            console.log(`命令执行完毕: 退出码 ${code}, 信号 ${signal}`);
-                            conn.end(); // 关闭连接
-                            unlinkSync(tempFile);
-                            setTimeout(() => {
-                                if (!!terminalWindow)
-                                    terminalWindow?.close();
-                                resolve({
-                                    success: code === 0,
-                                    output: threshold(output, params.threshold),
-                                    error: error
+                        // 1. 上传 Bash 脚本
+                        const writeStream = sftp.createWriteStream(remoteScriptPath);
+                        writeStream.write(`#!/bin/bash\n${code}`);
+                        writeStream.end();
+
+                        writeStream.on('close', () => {
+                            // 2. 赋予执行权限并运行
+                            conn.exec(`chmod +x ${remoteScriptPath} && ${remoteScriptPath} && rm ${remoteScriptPath}`, (err, stream) => {
+                                if (err) {
+                                    error = err.message;
+                                    resolve({
+                                        success: false,
+                                        output: threshold(output, params.threshold),
+                                        error: error
+                                    });
+                                }
+
+                                stream.on('close', (code, signal) => {
+                                    console.log(`命令执行完毕: 退出码 ${code}, 信号 ${signal}`);
+                                    conn.end(); // 关闭连接
+                                    unlinkSync(tempFile);
+                                    setTimeout(() => {
+                                        if (!!terminalWindow)
+                                            terminalWindow?.close();
+                                        resolve({
+                                            success: code === 0,
+                                            output: threshold(output, params.threshold),
+                                            error: error
+                                        });
+                                    }, params.delay_time * 1000);
+                                })
+
+                                stream.on('data', (data) => {
+                                    output = data.toString();
+                                    terminalWindow?.webContents.send('terminal-data', output);
+                                })
+
+                                stream.stderr.on('data', (data) => {
+                                    error = data.toString();
+                                    terminalWindow?.webContents.send('terminal-data', error);
                                 });
-                            }, params.delay_time * 1000);
-                        })
 
-                        stream.on('data', (data) => {
-                            output = data.toString();
-                            terminalWindow?.webContents.send('terminal-data', output);
-                        })
+                                ipcMain.on('terminal-input', (event, input) => {
+                                    if (!input) {
+                                        stream.end()
+                                    } else {
+                                        stream.write(input)
+                                    }
+                                });
 
-                        stream.stderr.on('data', (data) => {
-                            error = data.toString();
-                            terminalWindow?.webContents.send('terminal-data', error);
+                                ipcMain.on('terminal-signal', (event, input) => {
+                                    switch (input) {
+                                        case "ctrl_c":
+                                            conn.end();
+                                            stream.close();
+                                            break;
+
+                                        default:
+                                            break;
+                                    }
+                                });
+                            });
                         });
 
-                        ipcMain.on('terminal-input', (event, input) => {
-                            if (!input) {
-                                stream.end()
-                            } else {
-                                stream.write(input)
-                            }
-                        });
-
-                        ipcMain.on('terminal-signal', (event, input) => {
-                            switch (input) {
-                                case "ctrl_c":
-                                    conn.end();
-                                    stream.close();
-                                    break;
-
-                                default:
-                                    break;
-                            }
-                        });
-                    })
+                    });
                 })
                     .on('error', (err) => {
                         console.error('Connection Error:', err);

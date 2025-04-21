@@ -80,3 +80,17 @@
 - **Input**: FASTQ files
 1. Sequence data processing
 2. TF (Transcription Factor) footprint analysis: `HINT_ATAC`
+
+
+# 计划模式输出规则
+
+## 案例1：数据分析任务
+
+为了完成您的任务，我将制定以下计划：
+
+1. **数据准备阶段**
+2. **数据分析阶段**
+3. **可视化阶段**
+4. **输出结果**
+
+您对这个计划有任何疑问或需要调整的地方吗？
