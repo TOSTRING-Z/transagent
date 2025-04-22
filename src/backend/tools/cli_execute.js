@@ -8,11 +8,37 @@ const { Client } = require('ssh2');
 const { utils } = require('../modules/globals');
 
 function threshold(data, threshold) {
-    if (!!data && data?.length > threshold) {
-        return "Returned content is too large, please try another solution!";
-    } else {
-        return data;
+    if (!data) return data;
+
+    // Handle strings (non-array case)
+    if (typeof data === 'string') {
+        return data.length > 1000 ? data.substring(0, 1000) + '...' : data;
     }
+
+    // Handle arrays
+    if (Array.isArray(data)) {
+        let result = '';
+
+        // If data exceeds threshold, truncate to last 10 items
+        if (data.length > threshold) {
+            result += "Data too large, showing only last 10 rows (max 1000 chars per row)\n";
+            data = data.slice(-10);
+        }
+
+        // Process each item (limit to 1000 chars)
+        data.forEach(item => {
+            let itemStr = String(item); // Ensure it's a string
+            if (itemStr.length > 1000) {
+                itemStr = itemStr.substring(0, 1000) + '...';
+            }
+            result += itemStr + '\n'; // Add newline after each item
+        });
+
+        return result.trim(); // Remove trailing newline
+    }
+
+    // Fallback for other data types (convert to string)
+    return String(data);
 }
 
 let cli_prompt = null;
