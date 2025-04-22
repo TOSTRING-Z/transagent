@@ -35,6 +35,7 @@ RUN conda install -c bioconda ucsc-bedgraphtobigwig
 RUN conda install -y -n cutadapt trapt
 RUN conda install -y -n cutadapt bioconda::meme
 RUN conda install -y -n cutadapt -c conda-forge -c bioconda rgt
+RUN conda install -y -n cutadapt conda-forge::scipy
 
 RUN conda clean --all
 ```

@@ -64,8 +64,9 @@
 2. Control sample ChIP-seq data processing
 3. Super-enhancer identification: `bed2gff`, `ROSE`
 4. Visualization with `deeptools`
-5. Region visualization
-6. Region annotation analysis
+5. CRCmapper analysis
+6. Region visualization
+7. Region annotation analysis
 
 ## Transcriptional Regulator Identification
 - **Input**: Text file containing a single column of gene names

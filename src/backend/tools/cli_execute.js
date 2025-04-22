@@ -55,8 +55,8 @@ function main(params) {
         })
 
         return new Promise((resolve, reject) => {
-            let output = null;
-            let error = null;
+            let output = "";
+            let error = "";
             const sshConfig = utils.getSshConfig();
             if (!!sshConfig) {
                 const conn = new Client();
@@ -110,13 +110,13 @@ function main(params) {
                                 })
 
                                 stream.on('data', (data) => {
-                                    output = data.toString();
-                                    terminalWindow?.webContents.send('terminal-data', output);
+                                    output += data.toString();
+                                    terminalWindow?.webContents.send('terminal-data', data.toString());
                                 })
 
                                 stream.stderr.on('data', (data) => {
-                                    error = data.toString();
-                                    terminalWindow?.webContents.send('terminal-data', error);
+                                    error += data.toString();
+                                    terminalWindow?.webContents.send('terminal-data', data.toString());
                                 });
 
                                 ipcMain.on('terminal-input', (event, input) => {
@@ -155,13 +155,13 @@ function main(params) {
             } else {
                 const child = exec(`${params.bash} ${tempFile}`);
                 child.stdout.on('data', (data) => {
-                    output = data.toString();
-                    terminalWindow?.webContents.send('terminal-data', output);
+                    output += data.toString();
+                    terminalWindow?.webContents.send('terminal-data', data.toString());
                 });
 
                 child.stderr.on('data', (data) => {
-                    error = data.toString();
-                    terminalWindow?.webContents.send('terminal-data', error);
+                    error += data.toString();
+                    terminalWindow?.webContents.send('terminal-data', data.toString());
                 });
 
                 child.on('close', (code) => {

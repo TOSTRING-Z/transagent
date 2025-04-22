@@ -70,17 +70,17 @@ The current tool can be used for complex bioinformatics analysis workflows, incl
   - Output: `peaks.gff`  
   - Example: `bash /data/bed2gff/bed2gff.sh peaks.narrowPeak peaks.gff`  
 
-- **ROSE**: Identify super-enhancers and their target genes  
+- **ROSE**: A Python script that identifies super-enhancers and their target genes  
   - Input: `peaks.narrowPeak`, `marked_duplicates.bam`, `control.bam`  
   - Output: `output_dir`  
   - Example: `bash /data/bed2gff/bed2gff.sh peaks.narrowPeak peaks.gff && python2 /data/rose/ROSE_main.py -g HG38 -i peaks.gff -r marked_duplicates.bam -c control.bam -o output_dir -t 2000 && python2 ROSE_geneMapper.py -g HG38 -i output_dir/peaks_AllEnhancers.table.txt -o output_dir`  
 
-- **CRCmapper**: Identify super-enhancers and their target genes  
-  - Input: `peaks_AllEnhancers.table.txt`, `output_dir`  
+- **CRCmapper**: A Python script that identifies Human Core Transcriptional Regulatory Circuitries
+  - Input: `peaks_AllEnhancers.table.txt`, `marked_duplicates.bam`, `peaks.narrowPeak`, `output_dir`  
   - Output: `output_dir`  
-  - Example: `python CRCmapper.py -e [peaks_AllEnhancers.table.txt] -b [BAM_FILE] -g hg38 -f [FASTA] -s [SUBPEAKS] -x [EXP_CUTOFF] -l [EXTENSION-LENGTH] -n [NAME] -o [output_dir]`  
+  - Example: `python2 /data/crcmapper/CRCmapper.py -e peaks_AllEnhancers.table.txt -b marked_duplicates.bam -g hg38 -f /data/homer/genomes/hg38 -s peaks.narrowPeak -n sample_name -o output_dir`  
 
-- **HINT_ATAC**: Transcription factor footprint analysis  
+- **HINT_ATAC**: A Python script for Transcription factor footprint analysis  
   - Input: `peaks.narrowPeak`, `marked_duplicates.bam`  
   - Output: `output_dir`  
   - Example: `python3 /data/atac_seq/HINT_ATAC.py --peaks peaks.narrowPeak --bam marked_duplicates.bam --output-dir output_dir --organism hg38 --paired-end --threads 4`  
@@ -95,6 +95,11 @@ The current tool can be used for complex bioinformatics analysis workflows, incl
   - Output: `output.bed`, `unmapped.bed`  
   - Example: `liftOver input.bed /data/bam2bw/hg19ToHg38.over.chain.gz output.bed unmapped.bed`  
 
+- **pathway_enrichment.R**: An R script for Pathway Enrichment Analysis
+  - Input: genes.txt (tab-delimited with gene symbols in row names)
+  - Output: `output_dir`
+  - Example: `Rscript /data/enrichment/pathway_enrichment.R genes.txt output_dir 0.05`
+
 - **pandas**: Data analysis and manipulation  
   - Example: `python -c 'import pandas as pd; df = pd.read_csv("data.csv"); print(df.head())'`  
 
@@ -104,3 +109,15 @@ The current tool can be used for complex bioinformatics analysis workflows, incl
 Additional Notes:  
 * Input for the above tools must be a single file—wildcards are not allowed.  
 * Some tools may generate output files but return empty messages. If an empty response is observed, check whether output files have been generated.
+
+Genome Fasta Files:
+- hg38: 
+  - bowtie2: `/data/rgtdata/hg38/genome_hg38`
+  - CRCmapper: `/data/homer/genomes/hg38`
+- hg19:
+  - bowtie2: `/data/rgtdata/hg38/genome_hg19`
+  - CRCmapper: `/data/homer/genomes/hg19`
+- mm10: 
+  - bowtie2: `/data/rgtdata/mm10/genome_mm10.fa`
+- mm9: 
+  - bowtie2: `/data/rgtdata/mm9/genome_mm9.fa`

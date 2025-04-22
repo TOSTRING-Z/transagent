@@ -766,6 +766,9 @@ class MainWindow extends Window {
     }
 
     renameHistory(data) {
+        if (global.chat.id == data.id) {
+            global.chat.name = data.name;
+        }
         let history_data = utils.getHistoryData();
         history_data = history_data.map(history => {
             if (history.id == data.id){
