@@ -78,7 +78,7 @@ The current tool can be used for complex bioinformatics analysis workflows, incl
 - **CRCmapper**: A Python script that identifies Human Core Transcriptional Regulatory Circuitries
   - Input: `peaks_AllEnhancers.table.txt`, `marked_duplicates.bam`, `peaks.narrowPeak`, `output_dir`  
   - Output: `output_dir`  
-  - Example: `python2 /data/crcmapper/CRCmapper.py -e peaks_AllEnhancers.table.txt -b marked_duplicates.bam -g hg38 -f /data/homer/genomes/hg38 -s peaks.narrowPeak -n sample_name -o output_dir`  
+  - Example: `python2 /data/crcmapper/CRCmapper.py -e peaks_AllEnhancers.table.txt -b marked_duplicates.bam -g hg38 -f /data/homer/genomes/hg38/ -s peaks.narrowPeak -n sample_name -o output_dir`  
 
 - **HINT_ATAC**: A Python script for Transcription factor footprint analysis  
   - Input: `peaks.narrowPeak`, `marked_duplicates.bam`  
@@ -113,10 +113,10 @@ Additional Notes:
 Genome Fasta Files:
 - hg38: 
   - bowtie2: `/data/rgtdata/hg38/genome_hg38`
-  - CRCmapper: `/data/homer/genomes/hg38`
+  - CRCmapper: `/data/homer/genomes/hg38/`
 - hg19:
   - bowtie2: `/data/rgtdata/hg38/genome_hg19`
-  - CRCmapper: `/data/homer/genomes/hg19`
+  - CRCmapper: `/data/homer/genomes/hg19/`
 - mm10: 
   - bowtie2: `/data/rgtdata/mm10/genome_mm10.fa`
 - mm9: 
