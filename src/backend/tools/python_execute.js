@@ -38,7 +38,7 @@ function main(params) {
 
         // 或者你也可以在窗口显示后立即打开开发者工具
         terminalWindow.on('ready-to-show', () => {
-            terminalWindow.webContents.openDevTools();
+            // terminalWindow.webContents.openDevTools();
         });
 
         ipcMain.on('minimize-window', () => {

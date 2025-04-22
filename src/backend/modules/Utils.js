@@ -2,6 +2,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { app } = require('electron');
+const JSON5 = require("json5");
 
 class Utils {
     constructor(inner) {
@@ -44,7 +45,7 @@ class Utils {
                 if (stack.length === 0) {
                     const candidate = text.substring(startIndex, i + 1);
                     try {
-                        return candidate;
+                        return JSON.stringify(JSON5.parse(candidate),null,2);
                     } catch (e) {
                         // 继续扫描后续内容
                         startIndex = text.indexOf('{', i + 1);

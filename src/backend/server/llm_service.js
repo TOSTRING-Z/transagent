@@ -36,7 +36,12 @@ function saveMessages(filePath) {
             fs.mkdirSync(path.dirname(filePath), { recursive: true });
         }
 
-        fs.writeFile(filePath, JSON.stringify(messages, null, 2), err => {
+        fs.writeFile(filePath, JSON.stringify(messages.map(message=>{
+            if(!message?.memory_id && message.role == "assistant") {
+                message.memory_id = message.id;
+            }
+            return message;
+        }), null, 2), err => {
             if (err) {
                 console.log(err.message);
                 return;
