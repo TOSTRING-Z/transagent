@@ -7,12 +7,12 @@ const { BrowserWindow, ipcMain } = require('electron');
 const { Client } = require('ssh2');
 const { utils } = require('../modules/globals');
 
-function threshold(data, threshold) {
+function threshold(data, data_lenght, col_max=1000) {
     if (!data) return data;
 
     // Handle strings (non-array case)
     if (typeof data === 'string') {
-        return data.length > 1000 ? data.substring(0, 1000) + '...' : data;
+        return data.length > col_max ? data.substring(0, col_max) + '...' : data;
     }
 
     // Handle arrays
@@ -20,7 +20,7 @@ function threshold(data, threshold) {
         let result = '';
 
         // If data exceeds threshold, truncate to last 10 items
-        if (data.length > threshold) {
+        if (data.length > data_lenght) {
             result += "Data too large, showing only last 10 rows (max 1000 chars per row)\n";
             data = data.slice(-10);
         }
@@ -28,8 +28,8 @@ function threshold(data, threshold) {
         // Process each item (limit to 1000 chars)
         data.forEach(item => {
             let itemStr = String(item); // Ensure it's a string
-            if (itemStr.length > 1000) {
-                itemStr = itemStr.substring(0, 1000) + '...';
+            if (itemStr.length > col_max) {
+                itemStr = itemStr.substring(0, col_max) + '...';
             }
             result += itemStr + '\n'; // Add newline after each item
         });
