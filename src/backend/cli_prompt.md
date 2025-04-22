@@ -77,8 +77,8 @@ The current tool can be used for complex bioinformatics analysis workflows, incl
 
 - **CRCmapper**: A Python script that identifies Human Core Transcriptional Regulatory Circuitries
   - Input: `peaks_AllEnhancers.table.txt`, `marked_duplicates.bam`, `peaks.narrowPeak`, `output_dir`  
-  - Output: `output_dir`  
-  - Example: `python2 /data/crcmapper/CRCmapper.py -e peaks_AllEnhancers.table.txt -b marked_duplicates.bam -g hg38 -f /data/homer/genomes/hg38/ -s peaks.narrowPeak -n sample_name -o output_dir`  
+  - Output: `/path/to/output_dir/`  
+  - Example: `python2 /data/crcmapper/CRCmapper.py -e peaks_AllEnhancers.table.txt -b marked_duplicates.bam -g hg38 -f /data/homer/genomes/hg38/ -s peaks.narrowPeak -n sample_name -o /path/to/output_dir/`  
 
 - **HINT_ATAC**: A Python script for Transcription factor footprint analysis  
   - Input: `peaks.narrowPeak`, `marked_duplicates.bam`  
