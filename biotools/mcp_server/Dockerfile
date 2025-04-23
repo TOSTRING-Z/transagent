@@ -16,6 +16,8 @@ ADD uv.lock /app/uv.lock
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-editable
 
+RUN /app/.venv/bin/pip install pyarrow
+
 FROM python:3.12-slim-bookworm
 
 # 安装SSH服务
