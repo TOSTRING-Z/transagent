@@ -446,7 +446,7 @@ async function delete_message(id) {
   let elements = document.querySelectorAll(`[data-id="${id}"]`);
   elements.forEach(async function (message_element) {
     if (message_element.classList.contains('message_del')) {
-      await window.electronAPI.toggleMessage({id, del: false});
+      await window.electronAPI.toggleMessage({ id, del: false });
       message_element.classList.remove('message_del')
       message_element.querySelectorAll("[info_data-id]").forEach(function (element) {
         if (element.classList.contains('del'))
@@ -458,7 +458,7 @@ async function delete_message(id) {
           element.classList.remove('del');
       });
     } else {
-      await window.electronAPI.toggleMessage({id, del: true});
+      await window.electronAPI.toggleMessage({ id, del: true });
       message_element.classList.add('message_del')
       message_element.classList.add('message_toggle')
       message_element.querySelectorAll("[info_data-id]").forEach(function (element) {
@@ -716,16 +716,16 @@ window.electronAPI.userData((data) => {
 })
 
 function addEventStop(messageSystem, id) {
-    const message_content = messageSystem.getElementsByClassName('message')[0];
-    const thinking = messageSystem.getElementsByClassName("thinking")[0];
-    const btn = messageSystem.getElementsByClassName("btn")[0];
-    btn.addEventListener("click", () => {
-      window.electronAPI.streamMessageStop(id);
-      thinking.remove();
-      typesetMath();
-      menuEvent(messageSystem, message_content.dataset.content);
-    })
-  
+  const message_content = messageSystem.getElementsByClassName('message')[0];
+  const thinking = messageSystem.getElementsByClassName("thinking")[0];
+  const btn = messageSystem.getElementsByClassName("btn")[0];
+  btn.addEventListener("click", () => {
+    window.electronAPI.streamMessageStop(id);
+    thinking.remove();
+    typesetMath();
+    menuEvent(messageSystem, message_content.dataset.content);
+  })
+
 }
 
 window.electronAPI.handleQuery(async (data) => {
@@ -881,6 +881,8 @@ async function showConfig() {
   document.getElementById('ssh-username').value = config.tool_call.ssh_config?.username || null;
   document.getElementById('ssh-password').value = config.tool_call.ssh_config?.password || null;
   document.getElementById('cli-prompt').value = config.plugins.cli_execute.params.cli_prompt || null;
+  document.getElementById('mcp_server-biotools-url').value = config.mcp_server.biotools.url || null;
+  document.getElementById('mcp_server-biotools-enabled').value = config.mcp_server.biotools.enabled || null;
 }
 
 function hideConfig(event) {
@@ -892,24 +894,40 @@ function hideConfig(event) {
 async function saveConfig() {
   const config = await window.electronAPI.getConfig();
   const postConfig = {
-    ssh_config: {
-      host: document.getElementById('ssh-host').value,
-      port: parseInt(document.getElementById('ssh-port').value),
-      username: document.getElementById('ssh-username').value,
-      password: document.getElementById('ssh-password').value
+    tool_call: {
+      ssh_config: {
+        host: document.getElementById('ssh-host').value,
+        port: parseInt(document.getElementById('ssh-port').value),
+        username: document.getElementById('ssh-username').value,
+        password: document.getElementById('ssh-password').value
+      }
     },
-    cli_prompt: document.getElementById('cli-prompt').value,
-    ai_config: {
-      model: document.getElementById('ai-model').value,
-      api_url: document.getElementById('api-url').value,
-      api_key: document.getElementById('api-key').value,
-    }
+    plugins: {
+      cli_execute: {
+        params: {
+          cli_prompt: document.getElementById('cli-prompt').value
+        }
+      }
+    },
+    mcp_server: {
+      biotools: {
+        url: document.getElementById('mcp_server-biotools-url').value,
+        enabled: !!document.getElementById('mcp_server-biotools-enabled').value
+      }
+    },
   };
+  let ai_config = {
+    model: document.getElementById('ai-model').value,
+    api_url: document.getElementById('api-url').value,
+    api_key: document.getElementById('api-key').value,
+  }
 
-  config.tool_call.ssh_config = postConfig.ssh_config;
-  config.plugins.cli_execute.params.cli_prompt = postConfig.cli_prompt;
-  config.models[postConfig.ai_config.model].api_url = postConfig.ai_config.api_url;
-  config.models[postConfig.ai_config.model].api_key = postConfig.ai_config.api_key;
+  config.tool_call.ssh_config = postConfig.tool_call.ssh_config;
+  config.plugins.cli_execute.params.cli_prompt = postConfig.plugins.cli_execute.params.cli_prompt;
+  config.mcp_server.biotools.url = postConfig.mcp_server.biotools.url;
+  config.mcp_server.biotools.enabled = postConfig.mcp_server.biotools.enabled;
+  config.models[ai_config.model].api_url = ai_config.api_url;
+  config.models[ai_config.model].api_key = ai_config.api_key;
 
   const state = await window.electronAPI.setConfig(config);
 
