@@ -183,7 +183,7 @@
         "cli_prompt": "/path/to/cli_prompt.md",
         "bashrc": "/root/.bashrc",
         "delay_time": 5,
-        "threshold": 1000
+        "threshold": 40
       },
       "enabled": true
     },

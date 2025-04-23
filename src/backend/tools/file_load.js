@@ -16,11 +16,11 @@ function getFileExtension(filename) {
 }
 
 function readLines(data, startLine, endLine, params) {
-    const lines = data.split('\r\n');
+    const lines = data.split('\n');
     if (!startLine || !endLine) {
         data = data;
     } else {
-        data = lines.slice(startLine - 1, endLine).join('\r\n');
+        data = lines.slice(startLine - 1, endLine).join('\n');
     } 
     if (data.length > params.threshold) {
         return "Returned content is too large, please try another solution!";

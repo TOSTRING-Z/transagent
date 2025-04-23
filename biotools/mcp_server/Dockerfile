@@ -16,7 +16,7 @@ ADD uv.lock /app/uv.lock
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-editable
 
-RUN /app/.venv/bin/pip install pyarrow
+RUN . /app/.venv/bin/activate && python -m ensurepip --upgrade && pip3 install pyarrow
 
 FROM python:3.12-slim-bookworm
 

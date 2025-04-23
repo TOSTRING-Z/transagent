@@ -7,38 +7,33 @@ const { BrowserWindow, ipcMain } = require('electron');
 const { Client } = require('ssh2');
 const { utils } = require('../modules/globals');
 
-function threshold(data, data_lenght, col_max=1000) {
+function threshold(data, max_lines = 10, max_chars_per_line = 200) {
     if (!data) return data;
-
-    // Handle strings (non-array case)
-    if (typeof data === 'string') {
-        return data.length > col_max ? data.substring(0, col_max) + '...' : data;
+    
+    // 确保输入是字符串
+    const strData = String(data);
+    
+    // 分割成行（使用 let 而不是 const）
+    let lines = strData.split('\n');
+    
+    let result = '';
+    
+    // 如果行数超过限制，只保留最后 max_lines 行
+    if (lines.length > max_lines) {
+        result += `Data too large, showing only last ${max_lines} lines (max ${max_chars_per_line} chars per line)\n`;
+        lines = lines.slice(-max_lines);
     }
-
-    // Handle arrays
-    if (Array.isArray(data)) {
-        let result = '';
-
-        // If data exceeds threshold, truncate to last 10 items
-        if (data.length > data_lenght) {
-            result += "Data too large, showing only last 10 rows (max 1000 chars per row)\n";
-            data = data.slice(-10);
+    
+    // 处理每行，限制字符数
+    lines.forEach(line => {
+        if (line.length > max_chars_per_line) {
+            result += line.substring(0, max_chars_per_line) + '...\n';
+        } else {
+            result += line + '\n';
         }
-
-        // Process each item (limit to 1000 chars)
-        data.forEach(item => {
-            let itemStr = String(item); // Ensure it's a string
-            if (itemStr.length > col_max) {
-                itemStr = itemStr.substring(0, col_max) + '...';
-            }
-            result += itemStr + '\n'; // Add newline after each item
-        });
-
-        return result.trim(); // Remove trailing newline
-    }
-
-    // Fallback for other data types (convert to string)
-    return String(data);
+    });
+    
+    return result.trim(); // 移除末尾多余的换行符
 }
 
 let cli_prompt = null;
