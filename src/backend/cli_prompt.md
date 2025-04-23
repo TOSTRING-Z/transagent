@@ -73,12 +73,12 @@ The current tool can be used for complex bioinformatics analysis workflows, incl
 - **ROSE**: A Python script that identifies super-enhancers and their target genes  
   - Input: `peaks.narrowPeak`, `marked_duplicates.bam`, `control.bam`  
   - Output: `output_dir`  
-  - Example: `bash /data/bed2gff/bed2gff.sh peaks.narrowPeak peaks.gff && python2 /data/rose/ROSE_main.py -g HG38 -i peaks.gff -r marked_duplicates.bam -c control.bam -o output_dir -t 2000 && python2 ROSE_geneMapper.py -g HG38 -i output_dir/peaks_AllEnhancers.table.txt -o output_dir`  
+  - Example: `bash /data/bed2gff/bed2gff.sh peaks.narrowPeak peaks.gff && python2 /data/rose/ROSE_main.py -g HG38 -i peaks.gff -r marked_duplicates.bam -c control.bam -o output_dir -t 2000 && python2 ROSE_geneMapper.py -g HG38 -i output_dir/peaks_SuperEnhancers.table.txt -o output_dir`  
 
 - **CRCmapper**: A Python script that identifies Human Core Transcriptional Regulatory Circuitries
-  - Input: `peaks_AllEnhancers.table.txt`, `marked_duplicates.bam`, `peaks.narrowPeak`, `output_dir`  
+  - Input: `peaks_SuperEnhancers.table.txt`, `marked_duplicates.bam`, `peaks.narrowPeak`, `output_dir`  
   - Output: `/path/to/output_dir/`  
-  - Example: `python2 /data/crcmapper/CRCmapper.py -e peaks_AllEnhancers.table.txt -b marked_duplicates.bam -g hg38 -f /data/homer/genomes/hg38/ -s peaks.narrowPeak -n sample_name -o /path/to/output_dir/`  
+  - Example: `python2 /data/crcmapper/CRCmapper.py -e peaks_SuperEnhancers.table.txt -b marked_duplicates.bam -g hg38 -f /data/homer/genomes/hg38/ -s peaks.narrowPeak -n sample_name -o /path/to/output_dir/`  
 
 - **HINT_ATAC**: A Python script for Transcription factor footprint analysis  
   - Input: `peaks.narrowPeak`, `marked_duplicates.bam`  

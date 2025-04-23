@@ -9,6 +9,7 @@ from mcp.server.sse import SseServerTransport
 from mcp.server.lowlevel.server import Server
 from starlette.applications import Starlette
 from starlette.routing import Mount, Route
+import hashlib
 
 ## 创建SSE Server
 sse = SseServerTransport("/messages/")  # 创建SSE服务器传输实例，路径为"/messages/"
@@ -40,6 +41,7 @@ tr_data_db = dict(
 bed_config = {"gene_bed_path": "/data/human/gene.bed"}
 
 exp_data_db = {
+    "gene_expression_TCGA": "/data/exp/gene_expression_TCGA.feather",
     "cancer_TCGA": "/data/exp/cancer_TCGA.csv.gz",
     "cell_line_CCLE": "/data/exp/cell_line_CCLE.csv.gz",
     "cell_line_ENCODE": "/data/exp/cell_line_ENCODE.csv.gz",
@@ -125,17 +127,36 @@ async def get_regulators_bed(trs: Optional[list | str]) -> str:
         if len(trs) == 0:
             return "TR list cannot be empty."
         tr_beds = []
-        uuid_ = uuid.uuid1()
+        md5_value = hashlib.md5(
+            "get_regulators_bed".join(trs).encode("utf-8")
+        ).hexdigest()
         output = "output bed files:\n"
-        os.system(f"mkdir /tmp/{uuid_}")
+        os.system(f"mkdir /tmp/md5_{md5_value}")
         for tr in trs:
             tr_bed = tr_data_db.get(tr)
             if tr_bed:
                 baseanme = os.path.basename(tr_bed)
-                os.system(f"cp {tr_bed} /tmp/{uuid_}/{baseanme}")
-                tr_beds.append(f"/tmp/{uuid_}/{baseanme}")
+                os.system(f"cp {tr_bed} /tmp/md5_{md5_value}/{baseanme}")
+                tr_beds.append(f"/tmp/md5_{md5_value}/{baseanme}")
         output = f"{output}{"\n".join(tr_beds)}"
         return output
+    except Exception as e:
+        return str(e)
+
+
+@validate_required_params("cancer", "genes")
+async def get_tcga_cancer_express(cancer: str, genes: Optional[list | str]) -> str:
+    try:
+        if type(genes) == str:
+            genes = pd.read_csv(genes, header=None).iloc[:, 0].to_list()
+        exp_file = exp_data_db["gene_expression_TCGA"]
+        exp = pd.read_feather(exp_file)
+        exp_genes = exp[exp.index.map(lambda gene: gene in genes)]
+        exp_genes = exp_genes.filter(regex=f"^{cancer}")
+        md5_value = hashlib.md5(cancer.join(genes).encode("utf-8")).hexdigest()
+        exp_genes_path = f"{tmp_docker}/TCGA_{cancer}_exp_md5_{md5_value}.csv"
+        exp_genes.to_csv(exp_genes_path)
+        return exp_genes_path
     except Exception as e:
         return str(e)
 
@@ -149,8 +170,8 @@ async def get_express_data(data_source: str, genes: Optional[list | str]) -> str
             exp_file = exp_data_db[data_source]
             exp = pd.read_csv(exp_file, index_col=0)
             exp_genes = exp[exp.index.map(lambda gene: gene in genes)]
-            uuid_ = uuid.uuid1()
-            exp_genes_path = f"{tmp_docker}/exp_genes_{uuid_}.csv"
+            md5_value = hashlib.md5(data_source.join(genes).encode("utf-8")).hexdigest()
+            exp_genes_path = f"{tmp_docker}/exp_genes_md5_{md5_value}.csv"
             exp_genes.to_csv(exp_genes_path)
             return exp_genes_path
         return "Data source {data_source} not found in local database"
@@ -170,8 +191,10 @@ async def get_gene_position(genes: Optional[list | str] = None) -> str:
             bed_config["gene_bed_path"], index_col=None, header=None, sep="\t"
         )
         gene_position = gene_bed[gene_bed[4].map(lambda gene: gene in genes)]
-        uuid_ = uuid.uuid1()
-        docker_gene_position_path = f"{tmp_docker}/gene_position_{uuid_}.bed"
+        md5_value = hashlib.md5(
+            "get_gene_position".join(genes).encode("utf-8")
+        ).hexdigest()
+        docker_gene_position_path = f"{tmp_docker}/gene_position_md5_{md5_value}.bed"
         gene_position.to_csv(
             docker_gene_position_path, header=False, index=False, sep="\t"
         )
@@ -189,9 +212,10 @@ async def fetch_tool(
     # 返回: 包含文本、图像或嵌入资源的列表
 
     tools = {
+        "get_tcga_cancer_express": get_tcga_cancer_express,
+        "get_express_data": get_express_data,
         "get_annotation_bed": get_annotation_bed,
         "get_regulators_bed": get_regulators_bed,
-        "get_express_data": get_express_data,
         "get_gene_position": get_gene_position,
     }
     try:
@@ -217,6 +241,9 @@ async def list_tools() -> list[types.Tool]:
     # 返回: Tool对象列表，描述可用工具
     biological_type_list = ", ".join(list(bed_data_db.keys()))
     data_source_list = ", ".join(list(exp_data_db.keys()))
+    cancer_list = ", ".join(
+        pd.read_csv(exp_data_db.get("cancer_TCGA"), index_col=0).columns
+    )
     return [
         types.Tool(
             name="get_gene_position",
@@ -268,7 +295,7 @@ Returns:
         ),
         types.Tool(
             name="get_express_data",
-            description="""Get express data for a given data source from the local database (hg38).
+            description="""Get express data for a given data source from the local database.
 Returns:
     The genes expression file.""",
             inputSchema={
@@ -278,6 +305,26 @@ Returns:
                     "data_source": {
                         "type": "string",
                         "description": f"Data sources in local database (must be: {data_source_list})",
+                    },
+                    "genes": {
+                        "type": "array|string",
+                        "description": "A list of gene names (e.g. ['TP53']) or csv file containing gene name list.",
+                    },
+                },
+            },
+        ),
+        types.Tool(
+            name="get_tcga_cancer_express",
+            description="""Get express data for a given TCGA cancer type from the local TCGA database.
+Returns:
+    The TCGA cancer genes expression file.""",
+            inputSchema={
+                "type": "object",
+                "required": ["cancer", "genes"],
+                "properties": {
+                    "cancer": {
+                        "type": "string",
+                        "description": f"Cancer types in local database (must be: {cancer_list})",
                     },
                     "genes": {
                         "type": "array|string",
