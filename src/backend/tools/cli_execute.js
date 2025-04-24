@@ -9,12 +9,8 @@ const { utils } = require('../modules/globals');
 
 function threshold(data, max_lines = 10, max_chars_per_line = 200) {
     if (!data) return data;
-    
-    // 确保输入是字符串
-    const strData = String(data);
-    
     // 分割成行（使用 let 而不是 const）
-    let lines = strData.split('\n');
+    let lines = data.split('\n');
     
     let result = '';
     
@@ -87,7 +83,7 @@ function main(params) {
                     resolve({
                         success: false,
                         output: threshold(output, params.threshold),
-                        error: error
+                        error: threshold(error, params.threshold)
                     });
                 })
 
@@ -112,7 +108,7 @@ function main(params) {
                                     resolve({
                                         success: false,
                                         output: threshold(output, params.threshold),
-                                        error: error
+                                        error: threshold(error, params.threshold)
                                     });
                                 }
 
@@ -126,7 +122,7 @@ function main(params) {
                                         resolve({
                                             success: code === 0,
                                             output: threshold(output, params.threshold),
-                                            error: error
+                                            error: threshold(error, params.threshold)
                                         });
                                     }, params.delay_time * 1000);
                                 })
@@ -194,7 +190,7 @@ function main(params) {
                         resolve({
                             success: code === 0,
                             output: threshold(output, params.threshold),
-                            error: error
+                            error: threshold(error, params.threshold)
                         });
                     }, params.delay_time * 1000);
                 });
