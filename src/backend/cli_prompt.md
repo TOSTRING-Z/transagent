@@ -90,9 +90,15 @@ The current tool can be used for complex bioinformatics analysis workflows, incl
   - Use: `python3 /data/atac_seq/HINT_ATAC.py --peaks peaks.narrowPeak --bam marked_duplicates.bam --output-dir output_dir --organism hg38 --paired-end --threads 4`  
 
 - **deeptools**: Visualization for high-throughput sequencing data  
-  - Input: `input.bw`  
-  - Output: `matrix.gz`, `output.svg`  
-  - Use: `computeMatrix reference-point --referencePoint TSS -b 1000 -a 1000 -R /data/rgtdata/hg38/genes_RefSeq_hg38.bed -S input.bw -out matrix.gz && plotHeatmap -m matrix.gz -out output.svg`  
+  - Input: `region.bed`, `score.bw`
+  - Output: `heatmap.pdf`, `profile.pdf`  
+  - Use: `computeMatrix reference-point --referencePoint TSS -b 1000 -a 1000 -R region.bed -S input.bw -out matrix.gz && plotHeatmap -m matrix.gz --regionsLabel region --whatToShow 'heatmap and colorbar' --refPointLabel 0 --plotTitle title --plotFileFormat pdf -out heatmap.pdf && plotProfile -m matrix.gz --refPointLabel 0 --plotTitle title --plotFileFormat pdf -out profile.pdf`
+  - Note:
+    - `-S` can specify multiple `bw` files, and use `--samplesLabel` in `plotHeatmap` and `plotProfile` to set subtitles (e.g., `--samplesLabel label-1 label-2`).  
+    - `-R` can specify multiple `bed` files, and use `--regionsLabel` in `plotHeatmap` and `plotProfile` to set subtitles (e.g., `--regionsLabel label-1 label-2`).  
+    - `--perGroup`: The default is to plot all groups of regions by sample. Using this option instead plots all samples by group of regions. Note that this is only useful if you have multiple groups of regions. by sample rather than group.
+    - `--colorMap`: Color map to use for the heatmap (e.g. –colorMap BrBG).
+    - If a control group exists, please include it in the plotting as well.
 
 - **ucsc-liftover**: Genome coordinate conversion  
   - Input: `input.bed`  
