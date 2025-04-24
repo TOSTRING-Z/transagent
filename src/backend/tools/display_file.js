@@ -210,7 +210,7 @@ class DisplayFile {
         result += '\n\n[Local file](' + filePath + ')';
       } else {
         result += '\n\n- Remote file: ' + filePath;
-        result += '\n\n- [File has been downloaded locally](' + tempPath + ')';
+        result += '\n\n- Local file: [' + tempPath + '](' + tempPath + ')';
       }
       return result;
     }

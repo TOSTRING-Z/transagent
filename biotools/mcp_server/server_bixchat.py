@@ -40,8 +40,9 @@ tr_data_db = dict(
 
 bed_config = {"gene_bed_path": "/data/human/gene.bed"}
 
+gene_expression_TCGA = "/data/exp/gene_expression_TCGA.feather"
+
 exp_data_db = {
-    "gene_expression_TCGA": "/data/exp/gene_expression_TCGA.feather",
     "cancer_TCGA": "/data/exp/cancer_TCGA.csv.gz",
     "cell_line_CCLE": "/data/exp/cell_line_CCLE.csv.gz",
     "cell_line_ENCODE": "/data/exp/cell_line_ENCODE.csv.gz",
@@ -66,7 +67,7 @@ def validate_required_params(
     Example:
         @validate_required_params('data_source', 'genes',
                                 param_types={'genes': (list, '列表')})
-        async def get_express_data(data_source: str, genes: list) -> str:
+        async def get_mean_express_data(data_source: str, genes: list) -> str:
             ...
     """
 
@@ -116,7 +117,7 @@ def validate_required_params(
 async def get_annotation_bed(biological_type: str) -> str:
     if biological_type in bed_data_db:
         return bed_data_db[biological_type]
-    return "Biological type {biological_type} not found in local database"
+    return f"Biological type {biological_type} not found in local database"
 
 
 @validate_required_params("trs")
@@ -145,13 +146,18 @@ async def get_regulators_bed(trs: Optional[list | str]) -> str:
 
 
 @validate_required_params("cancer", "genes")
-async def get_tcga_cancer_express(cancer: str, genes: Optional[list | str]) -> str:
+async def get_tcga_cancer_express(
+    cancer: str, genes: Optional[list | str] = "all"
+) -> str:
     try:
-        if type(genes) == str:
+        if type(genes) == str and genes != "all":
             genes = pd.read_csv(genes, header=None).iloc[:, 0].to_list()
-        exp_file = exp_data_db["gene_expression_TCGA"]
-        exp = pd.read_feather(exp_file)
-        exp_genes = exp[exp.index.map(lambda gene: gene in genes)]
+        exp = pd.read_feather(gene_expression_TCGA)
+        if genes == "all":
+            exp_genes = exp
+            genes = ["all"]
+        else:
+            exp_genes = exp[exp.index.map(lambda gene: gene in genes)]
         exp_genes = exp_genes.filter(regex=f"^{cancer}")
         md5_value = hashlib.md5(cancer.join(genes).encode("utf-8")).hexdigest()
         exp_genes_path = f"{tmp_docker}/TCGA_{cancer}_exp_md5_{md5_value}.csv"
@@ -162,35 +168,42 @@ async def get_tcga_cancer_express(cancer: str, genes: Optional[list | str]) -> s
 
 
 @validate_required_params("data_source", "genes")
-async def get_express_data(data_source: str, genes: Optional[list | str]) -> str:
+async def get_mean_express_data(
+    data_source: str, genes: Optional[list | str] = "all"
+) -> str:
     try:
-        if type(genes) == str:
+        if type(genes) == str and genes != "all":
             genes = pd.read_csv(genes, header=None).iloc[:, 0].to_list()
         if data_source in exp_data_db:
             exp_file = exp_data_db[data_source]
             exp = pd.read_csv(exp_file, index_col=0)
-            exp_genes = exp[exp.index.map(lambda gene: gene in genes)]
+            if genes == "all":
+                exp_genes = exp
+                genes = ["all"]
+            else:
+                exp_genes = exp[exp.index.map(lambda gene: gene in genes)]
             md5_value = hashlib.md5(data_source.join(genes).encode("utf-8")).hexdigest()
             exp_genes_path = f"{tmp_docker}/exp_genes_md5_{md5_value}.csv"
             exp_genes.to_csv(exp_genes_path)
             return exp_genes_path
-        return "Data source {data_source} not found in local database"
+        return f"Data source {data_source} not found in local database"
     except Exception as e:
         return str(e)
 
 
+@validate_required_params("genes")
 async def get_gene_position(genes: Optional[list | str] = None) -> str:
     try:
-        if type(genes) == str:
+        if type(genes) == str and genes != "all":
             genes = pd.read_csv(genes, header=None).iloc[:, 0].to_list()
-        if len(genes) == 0:
-            return "Gene list cannot be empty."
-        if not genes:
-            return bed_config["gene_bed_path"]
         gene_bed = pd.read_csv(
             bed_config["gene_bed_path"], index_col=None, header=None, sep="\t"
         )
-        gene_position = gene_bed[gene_bed[4].map(lambda gene: gene in genes)]
+        if genes == "all":
+            gene_position = gene_bed
+            genes = ["all"]
+        else:
+            gene_position = gene_bed[gene_bed[4].map(lambda gene: gene in genes)]
         md5_value = hashlib.md5(
             "get_gene_position".join(genes).encode("utf-8")
         ).hexdigest()
@@ -212,11 +225,11 @@ async def fetch_tool(
     # 返回: 包含文本、图像或嵌入资源的列表
 
     tools = {
+        "get_gene_position": get_gene_position,
         "get_tcga_cancer_express": get_tcga_cancer_express,
-        "get_express_data": get_express_data,
+        "get_mean_express_data": get_mean_express_data,
         "get_annotation_bed": get_annotation_bed,
         "get_regulators_bed": get_regulators_bed,
-        "get_gene_position": get_gene_position,
     }
     try:
         if name in tools:
@@ -256,7 +269,10 @@ Returns:
                 "properties": {
                     "genes": {
                         "type": "array|string",
-                        "description": "A list of gene names (e.g. ['TP53']) or csv file containing gene name list.",
+                        "description": """Options: 
+1. Gene name list (e.g., ['TP53'])
+2. CSV file containing a list of gene names
+3. The string "all" to return all genes""",
                     }
                 },
             },
@@ -288,16 +304,19 @@ Returns:
                 "properties": {
                     "trs": {
                         "type": "array|string",
-                        "description": f"A list of TR names (e.g. ['GATA4@Sample_02_4106']) or csv file containing TR name list.",
+                        "description": """Options: 
+1. TR name list (e.g., ['TP53'])
+2. CSV file containing a list of TR names
+*Note*: There is no option to return all TRs.""",
                     }
                 },
             },
         ),
         types.Tool(
-            name="get_express_data",
-            description="""Get express data for a given data source from the local database.
+            name="get_mean_express_data",
+            description="""Get average gene expression data for a given data source from the local database.
 Returns:
-    The genes expression file.""",
+    The average gene expression file.""",
             inputSchema={
                 "type": "object",
                 "required": ["data_source", "genes"],
@@ -308,14 +327,14 @@ Returns:
                     },
                     "genes": {
                         "type": "array|string",
-                        "description": "A list of gene names (e.g. ['TP53']) or csv file containing gene name list.",
+                        "description": "Same as the description of `get_gene_position`",
                     },
                 },
             },
         ),
         types.Tool(
             name="get_tcga_cancer_express",
-            description="""Get express data for a given TCGA cancer type from the local TCGA database.
+            description="""Get multi-sample expression data for a given TCGA cancer type from the local TCGA database.
 Returns:
     The TCGA cancer genes expression file.""",
             inputSchema={
@@ -328,7 +347,7 @@ Returns:
                     },
                     "genes": {
                         "type": "array|string",
-                        "description": "A list of gene names (e.g. ['TP53']) or csv file containing gene name list.",
+                        "description": "Same as the description of `get_gene_position`",
                     },
                 },
             },

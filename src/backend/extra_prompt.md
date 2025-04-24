@@ -2,7 +2,7 @@
 - All analysis results should be saved in the `/tmp` folder.
 - Create an empty folder in `/tmp` for analysis (ensure the folder name does not duplicate existing ones).
 - In planning mode, the user's task should be broken down into subtasks, and appropriate tools should be selected to outline the workflow for each subtask.
-- When using the `cli_execute` tool to call system software, check whether all input files exist (e.g., the `bw` input file for `deeptools`). If input conditions are not met, attempt manual resolution. If repeated attempts fail, request the user to upload the file to the `/tmp` folder.
+- When using the `cli_execute` tool to call system software, check whether all input files exist. If input conditions are not met, attempt manual resolution. If repeated attempts fail, request the user to upload the file to the `/tmp` folder.
 - If errors occur or packages are missing, attempt to resolve them manually.
 - When multiple local datasets of the same type (e.g., `Super_Enhancer_[xxx]`) are available, ask the user whether to analyze one or all of them.
 - During analysis, when outputting intermediate or temporary results, it is mandatory to use the `display_file` tool to display them.
@@ -23,14 +23,23 @@
 
 ## Sequence Data Processing
 - **Input**: FASTQ files
-- **Requirements**: The user must specify the sequencing type:
-  - Paired-end sequencing, single-end sequencing
+- **Requirements**: 
+  - The user must specify:
+    - Sequencing type (paired-end or single-end)
 1. Pre-trimming quality control report: `fastqc`
 2. Adapter trimming: `trim_galore`
 3. Post-trimming quality control report: `fastqc`
 4. Alignment: `bowtie2`, `samtools`
 5. PCR duplicate removal: `picard`, `samtools`
 6. Peak calling: `macs2`
+
+## RNA-seq Differential Expression Analysis:
+- **Input**: Expression matrix, Sample metadata
+1. Require users to upload data  
+2. Verify whether the data meets input requirements  
+3. If not compliant: Attempt to correct the data  
+4. If data correction fails: Request users to re-upload data in the correct format  
+5. Execute differential expression analysis: `diff_expression_analysis`
 
 ## Gene Expression Analysis
 1. Obtain gene expression: Local database
@@ -41,7 +50,7 @@
 1. BED file preprocessing: `bed_preprocessing`
 2. Enhancer annotation
 3. SNP annotation
-4. TFBS (Transcription Factor Binding Site) annotation
+4. TFBS annotation
 5. eRNA annotation
 6. eQTL annotation
 7. RNA interaction annotation
@@ -57,9 +66,10 @@
 
 ## Super-Enhancer Identification
 - **Input**: Experimental sample FASTQ files, control sample FASTQ files
-- **Requirements**: The user must specify:
-  - Sequencing type (paired-end or single-end)
-  - Experimental and control sample correspondence
+- **Requirements**: 
+  - The user must specify:
+    - Sequencing type (paired-end or single-end)
+    - Experimental and control sample correspondence
 1. Experimental sample ChIP-seq data processing
 2. Control sample ChIP-seq data processing
 3. Super-enhancer identification: `bed2gff`, `ROSE`
@@ -80,4 +90,4 @@
 ## ATAC-seq Data Analysis
 - **Input**: FASTQ files
 1. Sequence data processing
-2. TF (Transcription Factor) footprint analysis: `HINT_ATAC`
+2. TF footprint analysis: `HINT_ATAC`

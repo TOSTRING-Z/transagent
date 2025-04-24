@@ -106,6 +106,7 @@ function main(params) {
                         writeStream.on('close', () => {
                             // 2. 赋予执行权限并运行
                             conn.exec(`chmod +x ${remoteScriptPath} && ${remoteScriptPath};\nrm ${remoteScriptPath}`, (err, stream) => {
+                                terminalWindow?.webContents.send('terminal-data', `${code}\n`);
                                 if (err) {
                                     error = err.message;
                                     resolve({

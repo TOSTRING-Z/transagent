@@ -317,32 +317,33 @@ function getTokens(text) {
 
 
 function userAdd(data) {
-  let user_message_cursor;
+  let messageUser;
   if (typeof (data.content) == "string") {
-    user_message_cursor = user_message.formatMessage({
+    messageUser = user_message.formatMessage({
       "id": data.id,
       "message": data.content,
       "image_url": data?.img_url,
     }, "user")
   } else {
-    user_message_cursor = user_message.formatMessage({
+    messageUser = user_message.formatMessage({
       "id": data.id,
       "message": data.content[0].text.content,
       "image_url": data.content[1].image_url.url,
     }, "user");
   }
-  messages.appendChild(user_message_cursor);
-  let system_message_cursor = system_message.formatMessage({
+  messages.appendChild(messageUser);
+  let messageSystem = system_message.formatMessage({
     "icon": getIcon(false),
     "id": data.id,
     "message": ""
   }, "system")
-  messages.appendChild(system_message_cursor);
+  messages.appendChild(messageSystem);
+  addEventStop(messageSystem, data.id);
   if (!!data?.del) {
-    user_message_cursor.classList.add("message_del")
-    system_message_cursor.classList.add("message_del")
-    user_message_cursor.classList.add("message_toggle")
-    system_message_cursor.classList.add("message_toggle")
+    messageUser.classList.add("message_del")
+    messageSystem.classList.add("message_del")
+    messageUser.classList.add("message_toggle")
+    messageSystem.classList.add("message_toggle")
   }
 }
 
@@ -757,13 +758,13 @@ window.electronAPI.handleQuery(async (data) => {
     "message": user_content,
     "image_url": data.img_url,
   }, "user"));
-  let system_message_cursor = system_message.formatMessage({
+  let messageSystem = system_message.formatMessage({
     "icon": getIcon(data.is_plugin),
     "id": data.id,
     "message": ""
   }, "system")
-  addEventStop(system_message_cursor, data.id);
-  messages.appendChild(system_message_cursor);
+  addEventStop(messageSystem, data.id);
+  messages.appendChild(messageSystem);
   top_div.scrollTop = top_div.scrollHeight;
   window.electronAPI.queryText(data);
 })
