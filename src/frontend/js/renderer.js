@@ -883,7 +883,7 @@ async function showConfig() {
   document.getElementById('ssh-password').value = config.tool_call.ssh_config?.password || null;
   document.getElementById('cli-prompt').value = config.plugins.cli_execute.params.cli_prompt || null;
   document.getElementById('mcp_server-biotools-url').value = config.mcp_server.biotools.url || null;
-  document.getElementById('mcp_server-biotools-enabled').value = config.mcp_server.biotools.enabled || null;
+  document.getElementById('mcp_server-biotools-enabled').checked = !!config.mcp_server.biotools.enabled || null;
 }
 
 function hideConfig(event) {
@@ -913,7 +913,7 @@ async function saveConfig() {
     mcp_server: {
       biotools: {
         url: document.getElementById('mcp_server-biotools-url').value,
-        enabled: !!document.getElementById('mcp_server-biotools-enabled').value
+        enabled: document.getElementById('mcp_server-biotools-enabled').checked
       }
     },
   };
