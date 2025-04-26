@@ -22,14 +22,14 @@ class MainWindow extends Window {
         this.chain_call = new ChainCall();
         this.funcItems = {
             clip: {
-                statu: utils.getConfig("func_status").clip,
+                statu: utils.getConfig("func_status")?.clip,
                 event: () => { },
                 click: () => {
                     this.funcItems.clip.statu = !this.funcItems.clip.statu;
                 }
             },
             markdown: {
-                statu: utils.getConfig("func_status").markdown,
+                statu: utils.getConfig("func_status")?.markdown,
                 event: () => { },
                 click: () => {
                     this.funcItems.markdown.statu = !this.funcItems.markdown.statu;
@@ -37,7 +37,7 @@ class MainWindow extends Window {
                 }
             },
             math: {
-                statu: utils.getConfig("func_status").math,
+                statu: utils.getConfig("func_status")?.math,
                 event: () => { },
                 click: () => {
                     this.funcItems.math.statu = !this.funcItems.math.statu;
@@ -45,10 +45,17 @@ class MainWindow extends Window {
                 }
             },
             text: {
-                statu: utils.getConfig("func_status").text,
+                statu: utils.getConfig("func_status")?.text,
                 event: () => { },
                 click: () => {
                     this.funcItems.text.statu = !this.funcItems.text.statu;
+                }
+            },
+            del: {
+                statu: utils.getConfig("func_status")?.del,
+                event: () => { },
+                click: () => {
+                    this.funcItems.del.statu = !this.funcItems.del.statu;
                 }
             },
             react: {
@@ -274,17 +281,17 @@ class MainWindow extends Window {
         })
 
         ipcMain.handle("toggle-message", async (_event, data) => {
-            let message_len = await toggleMessage(data);
+            let message_len = await toggleMessage({ ...data, del_mode: !!this.funcItems.del.statu });
             this.setHistory();
             console.log(`delete id: ${data.id}, length: ${message_len}`)
-            return message_len;
+            return { del_mode: !!this.funcItems.del.statu };
         })
 
         ipcMain.handle("toggle-memory", async (_event, memory_id) => {
-            let memory_len = await toggleMemory(memory_id);
+            let memory_len = await toggleMemory({ memory_id: memory_id, del_mode: !!this.funcItems.del.statu });
             this.setHistory();
             console.log(`delete memory_id: ${memory_id}, length: ${memory_len}`)
-            return memory_len;
+            return { del_mode: !!this.funcItems.del.statu };
         })
 
         ipcMain.on("stream-message-stop", (_event, id) => {
@@ -352,7 +359,7 @@ class MainWindow extends Window {
             plugins.init()
             return state;
         });
-        
+
         ipcMain.on('set-global', (_, chat) => {
             global.chat.tokens = chat.tokens;
             global.chat.seconds = chat.seconds;
@@ -554,6 +561,12 @@ class MainWindow extends Window {
                         type: 'checkbox',
                         checked: this.funcItems.clip.statu,
                     },
+                    {
+                        click: this.funcItems.del.click,
+                        label: 'Delete Mode',
+                        type: 'checkbox',
+                        checked: this.funcItems.del.statu,
+                    },
                 ]
             },
             {
@@ -738,7 +751,7 @@ class MainWindow extends Window {
     }
 
     setHistory() {
-        if(!!global.chat.id && !!global.chat.name) {
+        if (!!global.chat.id && !!global.chat.name) {
             let history_data = utils.getHistoryData();
             let history_exist = history_data.filter(history_ => history_.id == global.chat.id);
             if (history_exist.length == 0) {
@@ -747,7 +760,7 @@ class MainWindow extends Window {
                 utils.setHistoryData(history_data);
             } else {
                 history_data = history_data.map(history_ => {
-                    if(history_.id == global.chat.id) {
+                    if (history_.id == global.chat.id) {
                         history_ = global.chat
                     }
                     return history_;
@@ -771,7 +784,7 @@ class MainWindow extends Window {
         }
         let history_data = utils.getHistoryData();
         history_data = history_data.map(history => {
-            if (history.id == data.id){
+            if (history.id == data.id) {
                 history.name = data.name;
             }
             return history;

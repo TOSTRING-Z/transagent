@@ -20,7 +20,7 @@ function readLines(data, startLine, endLine, params) {
     if (!startLine || !endLine) {
         data = data;
     } else {
-        data = lines.slice(startLine - 1, endLine).join('\n');
+        data = lines.slice(Math.max(startLine - 1,0), Math.min(endLine,lines.length)).join('\n');
     } 
     if (data.length > params.threshold) {
         return "Returned content is too large, please try another solution!";

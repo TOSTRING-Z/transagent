@@ -447,44 +447,59 @@ async function delete_message(id) {
   let elements = document.querySelectorAll(`[data-id="${id}"]`);
   elements.forEach(async function (message_element) {
     if (message_element.classList.contains('message_del')) {
-      await window.electronAPI.toggleMessage({ id, del: false });
-      message_element.classList.remove('message_del')
-      message_element.querySelectorAll("[info_data-id]").forEach(function (element) {
-        if (element.classList.contains('del'))
-          element.classList.remove('del');
-      });
+      let { del_mode } = await window.electronAPI.toggleMessage({ id, del: false });
+      if (!!del_mode) {
+        message_element.remove();
+      }
+      else {
+        message_element.classList.remove('message_del')
+        message_element.querySelectorAll("[info_data-id]").forEach(function (element) {
+          if (element.classList.contains('del'))
+            element.classList.remove('del');
+        });
 
-      message_element.querySelectorAll("[chunk_data-id]").forEach(function (element) {
-        if (element.classList.contains('del'))
-          element.classList.remove('del');
-      });
+        message_element.querySelectorAll("[chunk_data-id]").forEach(function (element) {
+          if (element.classList.contains('del'))
+            element.classList.remove('del');
+        });
+      }
     } else {
-      await window.electronAPI.toggleMessage({ id, del: true });
-      message_element.classList.add('message_del')
-      message_element.classList.add('message_toggle')
-      message_element.querySelectorAll("[info_data-id]").forEach(function (element) {
-        if (!element.classList.contains('del'))
-          element.classList.add('del');
-      });
+      let { del_mode } = await window.electronAPI.toggleMessage({ id, del: true });
+      if (!!del_mode) {
+        message_element.remove();
+      } else {
+        message_element.classList.add('message_del')
+        message_element.classList.add('message_toggle')
+        message_element.querySelectorAll("[info_data-id]").forEach(function (element) {
+          if (!element.classList.contains('del'))
+            element.classList.add('del');
+        });
 
-      message_element.querySelectorAll("[chunk_data-id]").forEach(function (element) {
-        if (!element.classList.contains('del'))
-          element.classList.add('del');
-      });
+        message_element.querySelectorAll("[chunk_data-id]").forEach(function (element) {
+          if (!element.classList.contains('del'))
+            element.classList.add('del');
+        });
+      }
     }
 
   });
 }
 
 async function delete_memory(memory_id) {
-  await window.electronAPI.toggleMemory(memory_id);
+  let { del_mode } = await window.electronAPI.toggleMemory(memory_id);
   let elements = document.querySelectorAll(`[info_data-id="${memory_id}"]`);
   elements.forEach(function (element) {
-    element.classList.toggle('del');
+    if (!!del_mode)
+      element.remove();
+    else
+      element.classList.toggle('del');
   });
   elements = document.querySelectorAll(`[chunk_data-id="${memory_id}"]`);
   elements.forEach(function (element) {
-    element.classList.toggle('del');
+    if (!!del_mode)
+      element.remove();
+    else
+      element.classList.toggle('del');
   });
 }
 

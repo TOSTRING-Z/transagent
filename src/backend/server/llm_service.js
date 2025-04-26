@@ -13,7 +13,7 @@ function getStopIds() {
 }
 
 function getMessages() {
-    return messages.filter(message => !!message?.del);
+    return messages.filter(message => !message?.del);
 }
 
 function pushMessage(role, content, id, memory_id, show = true, react = true) {
@@ -36,8 +36,8 @@ function saveMessages(filePath) {
             fs.mkdirSync(path.dirname(filePath), { recursive: true });
         }
 
-        fs.writeFile(filePath, JSON.stringify(messages.map(message=>{
-            if(!message?.memory_id && message.role == "assistant") {
+        fs.writeFile(filePath, JSON.stringify(messages.map(message => {
+            if (!message?.memory_id && message.role == "assistant") {
                 message.memory_id = message.id;
             }
             return message;
@@ -64,28 +64,38 @@ function loadMessages(filePath) {
     }
 }
 
-function toggleMessage({id,del}) {
+function toggleMessage({ id, del, del_mode }) {
     try {
-        messages = messages.map(message => {
-            if (message.id == id) {
-                message.del = del;
-            }
-            return message;
-        });
+        if (!!del_mode) {
+            messages = messages.filter(message => message.id != id);
+        }
+        else {
+            messages = messages.map(message => {
+                if (message.id == id) {
+                    message.del = del;
+                }
+                return message;
+            });
+        }
         return messages.length;
     } catch (error) {
         return 0;
     }
 }
 
-function toggleMemory(memory_id) {
+function toggleMemory({ memory_id, del_mode }) {
     try {
-        messages = messages.map(message => {
-            if (message.memory_id == memory_id) {
-                message.del = message.hasOwnProperty("del") ? !message.del : true;
-            }
-            return message;
-        });
+        if (!!del_mode) {
+            messages = messages.filter(message => message.memory_id != memory_id);
+        }
+        else {
+            messages = messages.map(message => {
+                if (message.memory_id == memory_id) {
+                    message.del = message.hasOwnProperty("del") ? !message.del : true;
+                }
+                return message;
+            });
+        }
         return messages.length;
     } catch (error) {
         return 0;

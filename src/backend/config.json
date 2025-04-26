@@ -16,7 +16,8 @@
     "markdown": true,
     "math": true,
     "clip": false,
-    "text": false
+    "text": false,
+    "del": false
   },
   "default": {
     "model": "deepseek",
