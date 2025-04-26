@@ -415,9 +415,13 @@ Example Usage Scenarios:
       let message_copy = utils.copy(message)
       const content_json = utils.extractJson(message_copy.content);
       if (!!content_json) {
-        const tool_info = JSON5.parse(content_json);
-        if (tool_info?.observation && message_copy.role == "user") {
-          message_copy.content = `Assistant called ${tool_info.tool_call} tool`;
+        const content_parse = JSON5.parse(content_json);
+        if (content_parse?.observation && message_copy.role == "user") {
+          message_copy.content = `Assistant called ${content_parse.tool_call} tool`;
+        }
+        if (message_copy.role == "assistant") {
+          delete content_parse.params;
+          message_copy.content = JSON.stringify(content_parse);
         }
       }
       delete message_copy.react;
