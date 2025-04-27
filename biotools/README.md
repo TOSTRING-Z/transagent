@@ -1,4 +1,4 @@
-# Biotools
+# BioTools
 
 ## MCP server
 
