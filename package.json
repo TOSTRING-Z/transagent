@@ -24,8 +24,9 @@
       "!**/{__pycache__,.venv,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
       "!**/{appveyor.yml,.travis.yml,circle.yml}",
       "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}",
-      "!biotools/{data,tmp}",
-      "!public"
+      "!biotools",
+      "!public",
+      "!dist"
     ],
     "extraResources": [
       {
@@ -85,9 +86,6 @@
     "ssh2": "^1.16.0",
     "string": "^3.3.3",
     "xlsx": "^0.18.5",
-    "axios": "^1.9.0",
-    "axios-cookiejar-support": "^6.0.1",
-    "cheerio": "^1.0.0",
     "he": "^1.2.0"
   },
   "devDependencies": {

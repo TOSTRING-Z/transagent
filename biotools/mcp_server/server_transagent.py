@@ -1,7 +1,5 @@
 # server.py
-import asyncio
 import pandas as pd
-import uuid
 from typing import Optional
 import os
 from mcp import types

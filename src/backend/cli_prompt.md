@@ -142,7 +142,7 @@ Genome Fasta Files:
 - mm9: 
   - bowtie2: `/data/rgtdata/mm9/genome_mm9.fa`
 
-Gene location files：
+Gene location files:
 - hg38: 
   - deeptools: `/data/rgtdata/hg38/genes_RefSeq_hg38.bed`
 - hg19: 

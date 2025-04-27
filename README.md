@@ -2,82 +2,82 @@
 
 ![TransAgent](public/video/BixChat.gif)
 
-TransAgent是一款功能强大的跨平台智能体应用程序，支持Windows，Mac和Linux系统。通过ReAct架构，即思考、行动和观察，能够帮助使用研究人员完成复杂的转录调控分析任务。于此同时，我们提供了多种方式便于用户快速集成新的工具，其中包括了MCP服务和自定义工具工具，因此，TransAgent是一个通用的架构，能够在根据研究人员的需求进行定制化的配置。
+TransAgent is a powerful cross-platform agent application that supports Windows, Mac, and Linux systems. Through the ReAct architecture, which stands for thinking, acting, and observing, it can assist researchers in completing complex transcriptional regulation analysis tasks. At the same time, we provide various ways for users to quickly integrate new tools, including MCP services and custom tools, making TransAgent a universal architecture that can be customized according to researchers' needs.
 
-## 软件核心
+## Software Core
 
 ### BioTools
 
-- 我们提供了一个通用的转录调控MCP服务[BioTools](./biotools)，用户可以使用本软件快速接入。
+- We provide a universal transcriptional regulation MCP service [BioTools](./biotools), which users can quickly integrate with this software.
 
-### 虚拟化环境
+### Virtualization Environment
 
-- 为了防止智能体执行系统级别命令对本地环境造成破坏，我们使用的Docker虚拟化技术，所有执行的结果都将保存在用户指定的目录。与此同时，我们的工具可以执行远程SSH指令，因此用户能在高性能远程服务器上执行分析。
+- To prevent the agent from executing system-level commands that could damage the local environment, we use Docker virtualization technology. All execution results will be saved in the user-specified directory. Additionally, our tools can execute remote SSH commands, allowing users to perform analyses on high-performance remote servers.
 
-### 动态多模式切换
+### Dynamic Multi-Mode Switching
 
-- 我们使用ReAct作为智能体核心架构，并在此基础上提供了多种行为模式，其中包括`自动模式`，`执行模式`和`规划模式`。这使得我们的软件能在各种数据分析任务中动态切换行为模式，以此精确掌控智能体行为。
+- We use ReAct as the core architecture of the agent and provide various behavior modes on this basis, including `Automatic Mode`, `Execution Mode`, and `Planning Mode`. This allows our software to dynamically switch behavior modes in various data analysis tasks, thereby precisely controlling the agent's behavior.
 
-### MCP服务
+### MCP Service
 
-- 模型上下文协议（MPC）是一个便于用户快速接入开源工具的方式，本软件支持通过简单通用配置文件的方式快速接入MCP服务。
+- The Model Context Protocol (MCP) is a way to quickly integrate open-source tools. This software supports quick integration of MCP services through simple and universal configuration files.
 
-### 自定义工具
+### Custom Tools
 
-- 为了便于为本软件设计更多系统级别功能，我们允许用户自定义工具，其中包括工具调用和工具提示。
+- To facilitate the design of more system-level functions for this software, we allow users to customize tools, including tool invocation and tool prompts.
 
-### 系统/CLI工具提示词
-- 我们预留了系统和CLI工具提示词的注入接口，通过简单的修改配置文件，可以方便研究人员个性化的微调智能体行为和快速自定义工具。
+### System/CLI Tool Prompts
+- We have reserved injection interfaces for system and CLI tool prompts. By simply modifying the configuration file, researchers can easily fine-tune the agent's behavior and quickly customize tools.
 
-### 增强记忆模块
-- 我们进一步优化了记忆模块，在面对超长上下文任务中，我们采用了长期记忆加短期记忆结合的方式。短期记忆即智能体保留几个对话周期的消息，而长期记忆即智能体保留更长于短期记忆的用户消息和智能体思考内容。而对于智能体需要回忆的内容，我们提供了`记忆回溯`工具，能够让智能体进一步具有回忆的能力。更关键的是，我们提供了精准记忆管理功能，允许用户对智能体记忆进行原子级的开启与关闭。
+### Enhanced Memory Module
+- We have further optimized the memory module. For tasks with extremely long contexts, we use a combination of long-term and short-term memory. Short-term memory refers to the agent retaining messages from a few conversation cycles, while long-term memory refers to the agent retaining user messages and agent thoughts for longer than short-term memory. For content that the agent needs to recall, we provide a `Memory Retrieval` tool, which enables the agent to further possess recall capabilities. More importantly, we provide precise memory management functions, allowing users to enable and disable the agent's memory at an atomic level.
 
-### Ollama支持
+### Ollama Support
 
-- 为了进一步提供数据分析的隐私保护需求，我们集成Ollama功能，支持接入用户本地部署的私有大模型。
+- To further meet the privacy protection needs of data analysis, we have integrated Ollama functionality, supporting the integration of privately deployed large models by users.
 
-### 其它功能
-- 为了满足研究人员一站式需求，我们在软件中也集成了基础对话，链式调用，对话保存与加载等功能。
+### Other Features
+- To meet the one-stop needs of researchers, we have also integrated basic conversation, chain calls, conversation saving and loading, and other functions into the software.
 
-## 示例
+## Examples
 
 ![TP53 analysis](public/video/TP53_analysis.gif)
 
-## 系统要求
+## System Requirements
 
-- **Windows**：Windows 10 或更高版本。
-- **Ubuntu**：Ubuntu 18.04 或更高版本。
+- **Windows**: Windows 10 or higher.
+- **Ubuntu**: Ubuntu 18.04 or higher.
 
-## 启动 / 编译
+## Startup / Compilation
 
 ```shell
 nvm use 23
-# 安装环境
+# Install environment
 npm install
-# 启动
+# Start
 npm run start
-# 打包
+# Package
 npm run dist
 ```
 
-_- 由于版本快速迭代，建议自己编译以体验最新功能. -_
+_- Due to rapid version iterations, it is recommended to compile it yourself to experience the latest features. -_
 
-## 若安装失败请手动复制配置文件(resources/config.json)到如下地址:
+## If the installation fails, please manually copy the configuration file (resources/config.json) to the following addresses:
 
-- linux: /home/[用户]/.transagent/config.json
-- windown: C:\Users\\[用户]\\.transagent\config.json
+- linux: /home/[user]/.transagent/config.json
+- windows: C:\Users\\[user]\\.transagent\config.json
 
-## 安装完成后需进行以下操作
+## After installation, the following operations need to be performed:
 
-> Agent参数配置
+> Agent Parameter Configuration
 
 [mcp_server](biotools/mcp_server)
 
-> 安装工具依赖
+> Install Tool Dependencies
 
 [plugins](resources/plugins)
 
-> 大模型及软件细节配置示例 (`ollama支持`)
+> Large Model and Software Detail Configuration Example (`Ollama Support`)
 
 config.json
 
@@ -98,7 +98,7 @@ config.json
   },
   "deepseek": {
     "api_url": "https://api.deepseek.com/chat/completions",
-    "api_key": "你的key",
+    "api_key": "your_key",
     "versions": [
       "deepseek-coder",
       "deepseek-chat",
@@ -107,7 +107,7 @@ config.json
   },
   "chatglm": {
     "api_url": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-    "api_key": "你的key",
+    "api_key": "your_key",
     "versions": [
       "glm-4-flash",
       "glm-4-long",
@@ -122,7 +122,7 @@ config.json
 }
 ```
 
-> 配置大模型请求参数示例
+> Example of configuring large model request parameters
 
 config.json
 
@@ -134,35 +134,35 @@ config.json
 }
 ```
 
-> 配置信息框模版示例
+> Example of configuring info box template
 
 config.json
 
 ````json
-"info_template": "阶段: {step}, 调用: {model}, 版本: {version}, 输出: \n\n```\n{output_format}\n```\n\n",
+"info_template": "Stage: {step}, Called: {model}, Version: {version}, Output: \n\n```\n{output_format}\n```\n\n",
 ````
 
-_- 可用配置字段如下: -_
+_- The available configuration fields are as follows: -_
 
-- step: 当前阶段号
-- model: 当前使用模型(model/plugins)
-- version: 当前使用模型版本
-- query: 初始输入
-- input: 当前阶段格式化输入
-- img_url: 初始图片 base64 输入
-- output: 当前阶段原始输出
-- outputs: 历史原始输出
-- output_format: 当前阶段格式化输出
-- output_formats: 历史格式化输出
-- prompt: 初始系统提示词
-- prompt_format: 当前阶段格式化系统提示词
-- llm_parmas: 大模型请求参数
-- api_url: 大模型请求 URL
-- api_key: 大模型请求 KEY
+- step: Current stage number
+- model: Currently used model (model/plugins)
+- version: Currently used model version
+- query: Initial input
+- input: Current stage formatted input
+- img_url: Initial image base64 input
+- output: Current stage raw output
+- outputs: Historical raw outputs
+- output_format: Current stage formatted output
+- output_formats: Historical formatted outputs
+- prompt: Initial system prompt
+- prompt_format: Current stage formatted system prompt
+- llm_parmas: Large model request parameters
+- api_url: Large model request URL
+- api_key: Large model request KEY
 
-_- 格式化：细节见链式调用 -_
+_- Formatting: See Chain Calls for details -_
 
-> 配置记忆长度示例
+> Example of configuring memory length
 
 config.json
 
@@ -170,7 +170,7 @@ config.json
 "memory_length": 10
 ```
 
-> 配置失败重试次数示例
+> Example of configuring retry attempts
 
 config.json
 
@@ -178,7 +178,7 @@ config.json
 "retry_time": 10
 ```
 
-> 配置悬浮框快捷键显示时长示例
+> Example of configuring shortcut display duration
 
 config.json
 
@@ -186,7 +186,7 @@ config.json
 "icon_time": 5
 ```
 
-> 配置悬浮框快捷键示例
+> Example of configuring shortcuts
 
 config.json
 
@@ -194,7 +194,7 @@ config.json
 "short_cut": "CommandOrControl+Shift+Space"
 ```
 
-> 配置功能默认状态示例
+> Example of configuring default function states
 
 config.json
 
@@ -208,7 +208,7 @@ config.json
 }
 ```
 
-> 配置默认项示例
+> Example of default configurations
 
 config.json
 
@@ -220,16 +220,16 @@ config.json
 }
 ```
 
-> 配置链式调用示例
+> Example of chain call configurations
 
-参数周期:
+Parameter cycle:
 
-* input_*: 使用调用模型前`可配置字段值`进行格式化
-* ouput_*: 使用调用模型后`可配置字段值`进行格式化
+* input_*: Format using `configurable field values` before calling the model
+* output_*: Format using `configurable field values` after calling the model
 
 config.json
 
-- 基础对话
+- Basic conversation
 
 ```json
 "chain_call": [
@@ -239,18 +239,18 @@ config.json
 ]
 ```
 
-- 基础对话+图片识别
+- Basic conversation + image recognition
 
 ```json
 "chain_call": [
   {
-    "input_template": "{img_url?'请识别图像内容后回答。':''}{input}",
+    "input_template": "{img_url?'Please identify the image content before answering.':''}{input}",
     "end": true
   }
 ]
 ```
 
-- 强制思维链
+- Forced thought chain
 
 ```json
 "chain_call": [
@@ -262,18 +262,18 @@ config.json
 ]
 ```
 
-- 思维链拼接
+- Thought chain concatenation
 
 ```json
 "chain_call": [
   {
     "model": "together",
     "version": "deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free",
-    "prompt": "请思考后回答"
+    "prompt": "Please think before answering"
   },
   {
     "model": "plugins",
-    "version": "提取思维链",
+    "version": "Extract thought chain",
     "input_data": {
       "input": "{input}"
     },
@@ -285,47 +285,47 @@ config.json
 ]
 ```
 
-- 文件对话
+- File conversation
 
 ```json
 "chain_call": [
   {
     "model": "plugins",
-    "version": "文件读取",
+    "version": "File reading",
     "input_data": {
       "file_path": "{file_path}"
     }
   },
   {
-    "input_template": "如下是pdf中的文字内容:\n\n<pdf>{output_formats[0]}</pdf>\n\n如下是user输入内容:\n\n<user>{query}</user>\n\n请根据pdf中内容回答user输入。回复要求如下：\n- 过滤多余的文字，例如行号、页码和水印等。 \n- 尽可能多的思考细节、潜在相关和可能相关的内容。 \n- 对于原文中没有的内容，不需要猜测，提出观点和输出和原文可能产生不一致的内容。\n- 按照规范的格式输出。",
+    "input_template": "The following is the text content from the PDF:\n\n<pdf>{output_formats[0]}</pdf>\n\nThe following is the user input:\n\n<user>{query}</user>\n\nPlease respond to the user input based on the PDF content. Response requirements:\n- Filter out redundant text such as line numbers, page numbers and watermarks\n- Think about as many details, potentially relevant and possibly relevant content as possible\n- For content not in the original text, no guessing is needed, and opinions and outputs that may be inconsistent with the original content should be proposed\n- Output in standard format.",
     "end": true
   }
 ]
 ```
 
-_- 可配置字段 -_
+_- Configurable Fields -_
 
-该配置参数默认为原始字段属性值(见配置信息框模版)
+This configuration parameter defaults to the original field attribute value (see the configuration information box template).
 
-特有字段：
+Unique fields:
 
-- input_template: 当前阶段输入格式化模版
-- output_template: 当前阶段输出格式化模版
-- prompt_template: 系统提示格式化模版
-- end: 链式调用结束标志
+- input_template: Current stage input formatting template
+- output_template: Current stage output formatting template
+- prompt_template: System prompt formatting template
+- end: Chain call end flag
 
-_- 可配置显示组件 -_
+_- Configurable Display Components -_
 
-- system-prompt: 系统提示输入框
-  - 对应可用字段为:
-    - prompt: 初始系统提示词
-- file-upload: 文件读取按钮
-  - 对应可用字段为:
-    - file-upload: 读取文件的路径
+- system-prompt: System prompt input box
+  - Corresponding available fields are:
+    - prompt: Initial system prompt
+- file-upload: File upload button
+  - Corresponding available fields are:
+    - file-upload: Path to read the file
 
-_- 更多案例见： -_
+_- For more examples, see: -_
 
 [chain_calls](resources/chain_calls)
 
-## 若有问题请联系：
-邮箱: mp798378522@gamil.com
+## If you have any questions, please contact:
+Email: mp798378522@gamil.com

@@ -1,10 +1,10 @@
-# docker 环境
+# docker Environment
 
 [docker](https://www.anaconda.com/docs/tools/working-with-conda/applications/docker#docker)
 [mcp-fetch](https://github.com/modelcontextprotocol/servers/blob/main/src/fetch/Dockerfile)
 
 ```bash
-# 构建 (使用代理Clash)
+# Build (using Clash proxy)
 * linux
 docker build \
   --add-host=host.docker.internal:host-gateway \
@@ -19,31 +19,30 @@ docker build `
   --build-arg HTTPS_PROXY=http://host.docker.internal:7890 `
   -t biotools:latest .
 
-# 构建 (无代理)
+# Build (without proxy)
 docker build -t biotools:latest .
 
-# 打包
+# Save image
 docker save -o biotools.tar biotools:latest
 
-# 加载
+# Load image
 docker load -i biotools.tar
 ```
 
-## TransAgent 可视化虚拟终端启动方式 (推荐方式)
+## TransAgent Visual Terminal Startup (Recommended method)
 
-### data 基础环境数据下载
+### Download basic environment data
 
 [data](http://www.data.com)
 
-### 启动 docker 容器
+### Start docker container
 
 ```bash
 # linux
 docker run -it --name biotools --rm \
 -p 3001:3001 \
 -p 3002:22 \
--v /data/zgr/
-/biotools/analysis/case1/tmp:/tmp \
+-v /data/zgr/transagent/biotools/analysis/case1/tmp:/tmp \
 -v /data/zgr/transagent/biotools/data:/data \
 -v /data/zgr/transagent/biotools/mcp_server/server_transagent.py:/app/server.py \
 biotools
@@ -58,7 +57,7 @@ docker run -it --name biotools --rm `
 biotools
 ```
 
-### 可视化终端配置
+### Visual terminal configuration
 
 config.json
 
@@ -85,10 +84,10 @@ config.json
 }
 ```
 
-### 系统信息配置
+### System information configuration
 
 ```bash
-# 查看系统信息
+# View system information
 echo -n '{
   "system_type": "linux",
   "system_platform": "'$( (lsb_release -si 2>/dev/null || grep -E '^ID=' /etc/os-release | cut -d= -f2) | tr '[:upper:]' '[:lower:]')$((lsb_release -sr 2>/dev/null || grep -E '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"') | cut -d. -f1)'",
@@ -124,13 +123,13 @@ config.json
   }
 }
 
-* tmpdir: 运行结果保存的路径（请和docker映射路径保存一致）
-* language: 大模型回答使用的语言
+* tmpdir: Path to save running results (should match docker mapping path)
+* language: Language used for LLM responses
 ```
 
-## 第三方客户端启动方式
+## Third-party client startup method
 
-### 启动 docker 容器
+### Start docker container
 
 ```bash
 # linux
@@ -147,11 +146,11 @@ docker run -it --name biotools --rm `
 -v C:/Users/Administrator/Desktop/Document/transagent/biotools/data:/data `
 biotools
 
-# 测试
+# Test
 docker exec -it biotools bash -i -c 'bedtools --help'
 ```
 
-### MCP 服务配置
+### MCP service configuration
 
 config.json
 
@@ -164,15 +163,15 @@ config.json
 }
 ```
 
-# MCP 环境
+# MCP environment
 
 [python-sdk](https://github.com/modelcontextprotocol/python-sdk)
 
 ```bash
-# 安装
+# Installation
 ~/.local/bin/uv add "mcp[cli]"
 
-# 环境
+# Environment
 
 * linux
 source mcp_server/.venv/bin/activate
@@ -180,7 +179,7 @@ source mcp_server/.venv/bin/activate
 * window
 .\mcp_server\.venv\Scripts\activate
 
-# 测试
+# Test
 mcp dev mcp_server/server.py
 ```
 
