@@ -1,6 +1,6 @@
 # TransAgent
 
-![TransAgent](public/video/TransAgent.gif)
+![TransAgent](public/video/BixChat.gif)
 
 TransAgent是一款功能强大的跨平台智能体应用程序，支持Windows，Mac和Linux系统。通过ReAct架构，即思考、行动和观察，能够帮助使用研究人员完成复杂的转录调控分析任务。于此同时，我们提供了多种方式便于用户快速集成新的工具，其中包括了MCP服务和自定义工具工具，因此，TransAgent是一个通用的架构，能够在根据研究人员的需求进行定制化的配置。
 
@@ -64,8 +64,8 @@ _- 由于版本快速迭代，建议自己编译以体验最新功能. -_
 
 ## 若安装失败请手动复制配置文件(resources/config.json)到如下地址:
 
-- linux: /home/[用户]/.TransAgent/config.json
-- windown: C:\Users\\[用户]\\.TransAgent\config.json
+- linux: /home/[用户]/.transagent/config.json
+- windown: C:\Users\\[用户]\\.transagent\config.json
 
 ## 安装完成后需进行以下操作
 

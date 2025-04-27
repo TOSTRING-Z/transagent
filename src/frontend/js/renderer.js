@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function () {
   loadOptions();
 });
 
-user_message = `<div class="relative space-y-2 space-x-2" data-role="user" data-id="">
+let user_message = `<div class="relative space-y-2 space-x-2" data-role="user" data-id="">
   <div class="flex flex-row-reverse w-full">
     <div class="menu-container">
       <img class="menu user" src="img/user.svg" alt="User Avatar">
@@ -179,7 +179,7 @@ user_message = `<div class="relative space-y-2 space-x-2" data-role="user" data-
   </div>
 </div>`;
 
-system_message = `<div class="relative space-y-2 space-x-2" data-role="system" data-id="">
+let system_message = `<div class="relative space-y-2 space-x-2" data-role="system" data-id="">
   <div class="menu-container">
     <img class="menu system" src="" alt="System Avatar">
   </div>
@@ -212,7 +212,7 @@ const htmlContent = `
 <div class="base-container">
     <div class="base-header">
       <div class="base-icon">B</div>
-      <h1 class="base-title">I am BixChat, an AI agent specialized in transcriptional regulation analysis.</h1>
+      <h1 class="base-title">I am TransAgent, an AI agent specialized in transcriptional regulation analysis.</h1>
     </div>
     <div class="options-container">
       <div data-query="Coverage analysis of SNPs on the GATA2 gene" class="option-card">

@@ -1,8 +1,7 @@
 const { exec } = require('child_process');
-const { tmpdir } = require('os');
-const { writeFileSync, unlinkSync } = require('fs');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const { BrowserWindow, ipcMain } = require('electron');
 const { Client } = require('ssh2');
 const { utils } = require('../modules/globals');
@@ -38,15 +37,15 @@ function main(params) {
     if (!!params.cli_prompt && fs.existsSync(params.cli_prompt)) {
         cli_prompt = fs.readFileSync(params.cli_prompt, 'utf-8');
     } else {
-        cli_prompt = fs.readFileSync(path.join(__dirname, '../cli_prompt.md'), 'utf-8');
+        cli_prompt = fs.readFileSync(utils.getDefault("cli_prompt.md"), 'utf-8');
     }
     return async ({ code }) => {
         // Create temporary file
-        const tempFile = path.join(tmpdir(), `temp_${Date.now()}.sh`)
-        if (!!params?.bashrc) {
+        const tempFile = path.join(os.tmpdir(), `temp_${Date.now()}.sh`)
+        if (params?.bashrc) {
             code = `source ${params.bashrc};\n${code}`;
         }
-        writeFileSync(tempFile, code)
+        fs.writeFileSync(tempFile, code)
         console.log(tempFile)
 
         // Create terminal window
@@ -57,6 +56,7 @@ function main(params) {
             frame: false, // 隐藏默认标题栏和边框
             transparent: true, // 可选：实现透明效果
             resizable: true, // 允许调整窗口大小
+            // eslint-disable-next-line no-undef
             icon: path.join(__dirname, 'icon/icon.ico'),
             webPreferences: {
                 // devTools: true, // 保持 DevTools 开启
@@ -75,7 +75,7 @@ function main(params) {
             let output = "";
             let error = "";
             const sshConfig = utils.getSshConfig();
-            if (!!sshConfig) {
+            if (sshConfig) {
                 const conn = new Client();
 
                 ipcMain.on('close-window', () => {
@@ -115,9 +115,9 @@ function main(params) {
                                 stream.on('close', (code, signal) => {
                                     console.log(`命令执行完毕: 退出码 ${code}, 信号 ${signal}`);
                                     conn.end(); // 关闭连接
-                                    unlinkSync(tempFile);
+                                    fs.unlinkSync(tempFile);
                                     setTimeout(() => {
-                                        if (!!terminalWindow)
+                                        if (terminalWindow)
                                             terminalWindow?.close();
                                         resolve({
                                             success: code === 0,
@@ -183,9 +183,9 @@ function main(params) {
                 });
 
                 child.on('close', (code) => {
-                    unlinkSync(tempFile);
+                    fs.unlinkSync(tempFile);
                     setTimeout(() => {
-                        if (!!terminalWindow)
+                        if (terminalWindow)
                             terminalWindow?.close();
                         resolve({
                             success: code === 0,

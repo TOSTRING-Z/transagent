@@ -29,7 +29,7 @@ docker save -o biotools.tar biotools:latest
 docker load -i biotools.tar
 ```
 
-## BixChat 可视化虚拟终端启动方式 (推荐方式)
+## TransAgent 可视化虚拟终端启动方式 (推荐方式)
 
 ### data 基础环境数据下载
 
@@ -42,18 +42,19 @@ docker load -i biotools.tar
 docker run -it --name biotools --rm \
 -p 3001:3001 \
 -p 3002:22 \
--v /data/zgr/bixchat/biotools/analysis/case1/tmp:/tmp \
--v /data/zgr/bixchat/biotools/data:/data \
--v /data/zgr/bixchat/biotools/mcp_server/server_bixchat.py:/app/server.py \
+-v /data/zgr/
+/biotools/analysis/case1/tmp:/tmp \
+-v /data/zgr/transagent/biotools/data:/data \
+-v /data/zgr/transagent/biotools/mcp_server/server_transagent.py:/app/server.py \
 biotools
 
 # window
 docker run -it --name biotools --rm `
 -p 3001:3001 `
 -p 3002:22 `
--v C:/Users/Administrator/Desktop/Document/bixchat/biotools/tmp:/tmp `
--v C:/Users/Administrator/Desktop/Document/bixchat/biotools/data:/data `
--v C:/Users/Administrator/Desktop/Document/bixchat/biotools/mcp_server/server_bixchat.py:/app/server.py `
+-v C:/Users/Administrator/Desktop/Document/transagent/biotools/tmp:/tmp `
+-v C:/Users/Administrator/Desktop/Document/transagent/biotools/data:/data `
+-v C:/Users/Administrator/Desktop/Document/transagent/biotools/mcp_server/server_transagent.py:/app/server.py `
 biotools
 ```
 
@@ -101,7 +102,7 @@ config.json
 "tool_call": {
   "memory_length": 20,
   "mcp_timeout": 6000,
-  "extra_prompt": "{resourcesPath}/resources/system_prompts/prompt.md",
+  "extra_prompt": "/path/to/extra_prompt.md",
   "tmpdir": "/tmp",
   "language": "english",
   "system_type": "linux",
@@ -135,15 +136,15 @@ config.json
 # linux
 docker run -it --name biotools --rm \
 -p 3001:3001 \
--v /data/zgr/bixchat/biotools/tmp:/tmp \
--v /data/zgr/bixchat/biotools/data:/data \
+-v /data/zgr/transagent/biotools/tmp:/tmp \
+-v /data/zgr/transagent/biotools/data:/data \
 biotools
 
 # window
 docker run -it --name biotools --rm `
 -p 3001:3001 `
--v C:/Users/Administrator/Desktop/Document/bixchat/biotools/tmp:/tmp `
--v C:/Users/Administrator/Desktop/Document/bixchat/biotools/data:/data `
+-v C:/Users/Administrator/Desktop/Document/transagent/biotools/tmp:/tmp `
+-v C:/Users/Administrator/Desktop/Document/transagent/biotools/data:/data `
 biotools
 
 # 测试

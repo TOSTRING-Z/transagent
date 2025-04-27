@@ -12,6 +12,7 @@ class Plugins {
     }
     // 配置插件接口
     loadPlugin(params) {
+        // eslint-disable-next-line no-undef
         const pluginPath = utils.getConfig("plugins")[params.version]?.path?.format(process);
         const pluginParams = utils.getConfig("plugins")[params.version]?.params;
         try {
@@ -21,6 +22,7 @@ class Plugins {
                 plugin = require(pluginPath);
             }
             else {
+                // eslint-disable-next-line no-undef
                 plugin = require(path.join(__dirname, `../tools/${params.version}.js`));
             }
             let item;
@@ -44,7 +46,7 @@ class Plugins {
         Object.keys(plugins).forEach((version) => {
             const params = { version, ...plugins[version] }
             let enabled = true;
-            if (params.hasOwnProperty("enabled")) {
+            if (Object.prototype.hasOwnProperty.call(params, "enabled")) {
                 enabled = params.enabled;
             }
             if (enabled) {

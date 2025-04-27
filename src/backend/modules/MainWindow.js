@@ -11,7 +11,6 @@ const { BrowserWindow, Menu, shell, ipcMain, clipboard, dialog } = require('elec
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const fs = require('fs');
-const os = require('os');
 const path = require('path');
 const { Client } = require('ssh2');
 
@@ -74,6 +73,7 @@ class MainWindow extends Window {
             width: 1200,
             height: 800,
             webPreferences: {
+                // eslint-disable-next-line no-undef
                 preload: path.join(__dirname, '../preload.js')
             }
         })
@@ -130,9 +130,9 @@ class MainWindow extends Window {
 
     setup() {
 
-        ipcMain.handle('get-file-path', async (_event) => {
+        ipcMain.handle('get-file-path', async () => {
             return new Promise((resolve, rejects) => {
-                const lastDirectory = store.get('lastFileDirectory') || path.join(os.homedir(), '.bixchat', 'config.json');
+                const lastDirectory = store.get('lastFileDirectory') || utils.getDefault("config.json");
                 dialog
                     .showOpenDialog(this.window, {
                         properties: ['openFile'],
@@ -143,9 +143,9 @@ class MainWindow extends Window {
                             const filePath = result.filePaths[0];
                             store.set('lastFileDirectory', path.dirname(filePath));
                             console.log(filePath);
-                            if (!!this.funcItems.react) {
+                            if (this.funcItems.react) {
                                 const ssh_config = utils.getSshConfig();
-                                if (!!ssh_config) {
+                                if (ssh_config) {
                                     const conn = new Client();
                                     conn
                                         .on('ready', () => {
@@ -193,6 +193,7 @@ class MainWindow extends Window {
         })
 
         ipcMain.handle('query-text', async (_event, data) => {
+            // eslint-disable-next-line no-undef
             if (process.platform !== 'win32') {
                 this.window.show();
             } else {
@@ -233,7 +234,7 @@ class MainWindow extends Window {
                         _event.sender.send('stream-data', { id: data.id, content: "Stop!", end: true });
                         break;
                     }
-                    data = { ...data, ...defaults, ...tool_call, step: ++step };
+                    data = { ...data, ...defaults, ...tool_call, step: ++step, memory_id: this.tool_call.memory_id };
 
                     let options = await this.tool_call.step(data);
                     this.setHistory()
@@ -316,7 +317,7 @@ class MainWindow extends Window {
             shell.openExternal(href);
         })
 
-        ipcMain.handle('new-chat', (_event) => {
+        ipcMain.handle('new-chat', () => {
             clearMessages();
             this.window.webContents.send('clear');
             global.chat.id = utils.getChatId();
@@ -445,7 +446,7 @@ class MainWindow extends Window {
             else {
                 const ssh_config = utils.getSshConfig();
                 let extra = [{ "type": "act-plan" }];
-                if (!!ssh_config) {
+                if (ssh_config) {
                     extra.push({ "type": "file-upload" });
                 }
                 this.window.webContents.send("extra_load", e.statu ? extra : utils.getConfig("extra"));
@@ -619,7 +620,7 @@ class MainWindow extends Window {
                     {
                         label: 'Save Conversation',
                         click: () => {
-                            const lastPath = path.join(store.get('lastSavePath') || path.join(os.homedir(), '.bixchat', 'history/'), `messages_${utils.formatDate()}.json`);
+                            const lastPath = path.join(store.get('lastSavePath') || utils.getDefault("history/"), `messages_${utils.formatDate()}.json`);
                             console.log(lastPath)
                             dialog.showSaveDialog(this.window, {
                                 defaultPath: lastPath,
@@ -640,7 +641,7 @@ class MainWindow extends Window {
                     {
                         label: 'Load Conversation',
                         click: () => {
-                            const lastPath = store.get('lastSavePath') || path.join(os.homedir(), '.bixchat', 'history/');
+                            const lastPath = store.get('lastSavePath') || utils.getDefault("history/");
                             dialog.showOpenDialog(this.window, {
                                 defaultPath: lastPath,
                                 filters: [
@@ -665,7 +666,7 @@ class MainWindow extends Window {
     setPrompt(filePath = null) {
         if (!!filePath && fs.existsSync(filePath)) {
             const config = utils.getConfig();
-            if (!!this.funcItems.react.statu) {
+            if (this.funcItems.react.statu) {
                 config.tool_call.extra_prompt = filePath;
             } else {
                 config.prompt = filePath;
@@ -677,6 +678,7 @@ class MainWindow extends Window {
     }
 
     loadPrompt() {
+        // eslint-disable-next-line no-undef
         const lastDirectory = store.get('lastPromptDirectory') || path.join(process.resourcesPath, 'resources/', 'system_prompts/');
         dialog
             .showOpenDialog(this.window, {
@@ -730,6 +732,7 @@ class MainWindow extends Window {
     }
 
     loadChain() {
+        // eslint-disable-next-line no-undef
         const lastDirectory = store.get('lastChainDirectory') || path.join(process.resourcesPath, 'resources/', 'chain_calls/');
         dialog
             .showOpenDialog(this.window, {

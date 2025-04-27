@@ -46,7 +46,7 @@ class Utils {
                     const candidate = text.substring(startIndex, i + 1);
                     try {
                         return JSON.stringify(JSON5.parse(candidate),null,2);
-                    } catch (e) {
+                    } catch {
                         // 继续扫描后续内容
                         startIndex = text.indexOf('{', i + 1);
                         if (startIndex === -1) return null;
@@ -56,7 +56,7 @@ class Utils {
                 }
             }
             return null;
-        } catch (error) {
+        } catch {
             return null;
         }
 
@@ -66,8 +66,12 @@ class Utils {
         return new Promise(resolve => setTimeout(resolve, seconds * 1000));
     }
 
+    getDefault(name) {
+        return path.join(os.homedir(), '.transagent', name);
+    }
+
     getConfig(key = null) {
-        const configFilePath = path.join(os.homedir(), '.bixchat', 'config.json');
+        const configFilePath = path.join(os.homedir(), '.transagent', 'config.json');
         const data = fs.readFileSync(configFilePath, 'utf-8');
         let config = JSON.parse(data);
         if (key === null) {
@@ -90,7 +94,7 @@ class Utils {
     }
 
     setConfig(config) {
-        const configPath = path.join(os.homedir(), '.bixchat', 'config.json');
+        const configPath = path.join(os.homedir(), '.transagent', 'config.json');
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2)); // 美化输出
         return true;
     }
@@ -109,7 +113,9 @@ class Utils {
         let locale = app.getLocale();
 
         // 方法2: 如果为空，尝试 process.env.LANG (Unix-like 系统)
+        // eslint-disable-next-line no-undef
         if (!locale && process.env.LANG) {
+            // eslint-disable-next-line no-undef
             locale = process.env.LANG.split('.')[0].replace('_', '-');
         }
 
@@ -165,7 +171,7 @@ class Utils {
     }
 
     getHistoryData() {
-        const historyFilePath = path.join(os.homedir(), '.bixchat', 'history.json');
+        const historyFilePath = path.join(os.homedir(), '.transagent', 'history.json');
         if (!fs.existsSync(historyFilePath)) {
             return []
         } else {
@@ -176,14 +182,15 @@ class Utils {
     }
 
     setHistoryData(historyData) {
-        const historyFilePath = path.join(os.homedir(), '.bixchat', 'history.json');
+        const historyFilePath = path.join(os.homedir(), '.transagent', 'history.json');
         fs.writeFileSync(historyFilePath, JSON.stringify({ data: historyData }, null, 2));
     }
 
     getHistoryPath(id) {
+        // eslint-disable-next-line no-undef
         let history_path = this.getConfig("history_path")?.format(process);
         if (!fs.existsSync(history_path)) {
-            history_path = path.join(os.homedir(), '.bixchat', 'history/', `${id}.json`);
+            history_path = path.join(os.homedir(), '.transagent', 'history/', `${id}.json`);
         } else {
             history_path = path.join(history_path, `${id}.json`);
         }

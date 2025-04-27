@@ -66,7 +66,7 @@ function loadMessages(filePath) {
 
 function toggleMessage({ id, del, del_mode }) {
     try {
-        if (!!del_mode) {
+        if (del_mode) {
             messages = messages.filter(message => message.id != id);
         }
         else {
@@ -78,26 +78,26 @@ function toggleMessage({ id, del, del_mode }) {
             });
         }
         return messages.length;
-    } catch (error) {
+    } catch {
         return 0;
     }
 }
 
 function toggleMemory({ memory_id, del_mode }) {
     try {
-        if (!!del_mode) {
+        if (del_mode) {
             messages = messages.filter(message => message.memory_id != memory_id);
         }
         else {
             messages = messages.map(message => {
                 if (message.memory_id == memory_id) {
-                    message.del = message.hasOwnProperty("del") ? !message.del : true;
+                    message.del = Object.prototype.hasOwnProperty.call(message, "del") ? !message.del : true;
                 }
                 return message;
             });
         }
         return messages.length;
-    } catch (error) {
+    } catch {
         return 0;
     }
 }
@@ -124,7 +124,7 @@ function format_messages(messages_list, params, env_message = null) {
     });
 
     // 判断是否是视觉模型
-    if (!params.hasOwnProperty("vision")) {
+    if (!Object.prototype.hasOwnProperty.call(params, "vision")) {
         messages_list = messages_list.filter(message => {
             if (typeof message.content !== "string") {
                 return false;
@@ -149,7 +149,7 @@ function format_messages(messages_list, params, env_message = null) {
     }
 
     // ollama
-    if (!!params?.ollama) {
+    if (params?.ollama) {
         messages_list = messages_list.map(message => {
             if (typeof message.content !== "string") {
                 const image = message.content[1].image_url.url.split(",")[1];
@@ -167,7 +167,7 @@ function format_messages(messages_list, params, env_message = null) {
     }
 
     // env_message
-    if (!!env_message) {
+    if (env_message) {
         messages_list.push(env_message);
     }
 
@@ -203,17 +203,17 @@ function getMemory(data) {
         messages_success = messages_success.map(message => {
             let content_json = utils.extractJson(message.content);
             let content_parse = null;
-            if (!!content_json) {
+            if (content_json) {
                 content_parse = JSON5.parse(content_json);
             }
             if (content_parse?.tool_call == "cli_execute" && message.role == "user") {
                 if (content_parse.tool_call == "cli_execute") {
                     let success = true;
-                    if (content_parse.observation.hasOwnProperty("success"))
+                    if (Object.prototype.hasOwnProperty.call(content_parse.observation, "success"))
                         success = content_parse.observation?.success
                     else {
                         let observation_json = utils.extractJson(content_parse.observation);
-                        if (!!observation_json)
+                        if (observation_json)
                             success = JSON5.parse(observation_json).success;
                         else
                             success = true;
@@ -223,7 +223,7 @@ function getMemory(data) {
                     }
                 }
             } else {
-                if (!!content_parse?.error) {
+                if (content_parse?.error) {
                     message.content == `Assistant called ${content_parse.tool_call} tool: Error occurred!`;
                 }
             }
@@ -237,7 +237,7 @@ function getMemory(data) {
 async function chatBase(data) {
     try {
         let content = data.input;
-        if (!!data?.img_url) {
+        if (data?.img_url) {
             content = [
                 {
                     "type": "text",
@@ -251,7 +251,9 @@ async function chatBase(data) {
                 }
             ];
         }
-        if (!!data.system_prompt) {
+        let messages_list = null;
+        let message_input = null;
+        if (data.system_prompt) {
             messages_list = [{ role: "system", content: data.system_prompt, id: data.id, memory_id: null, show: true, react: false }]
             messages_list = messages_list.concat(getMemory(data))
         }
@@ -273,7 +275,7 @@ async function chatBase(data) {
         let headers = {
             "Content-Type": "application/json"
         }
-        if (!!data?.api_key) {
+        if (data?.api_key) {
             headers["Authorization"] = `Bearer ${data.api_key}`;
         }
 
@@ -297,15 +299,15 @@ async function chatBase(data) {
                     }
                     // 处理流式输出
                     content = "";
-                    if (chunk.hasOwnProperty("message")) {
+                    if (Object.prototype.hasOwnProperty.call(chunk, "message")) {
                         content = chunk.message.content;
                         message_output.content += content;
                     } else {
                         let delta = chunk.choices[0]?.delta;
                         if (chunk.choices.length > 0 && delta) {
-                            if (delta.hasOwnProperty("reasoning_content") && delta.reasoning_content)
+                            if (Object.prototype.hasOwnProperty.call(delta, "reasoning_content") && delta.reasoning_content)
                                 content = delta.reasoning_content;
-                            else if (delta.hasOwnProperty("content") && delta.content) {
+                            else if (Object.prototype.hasOwnProperty.call(delta, "content") && delta.content) {
                                 content = delta.content;
                                 message_output.content += content;
                             }
@@ -335,11 +337,11 @@ async function chatBase(data) {
                 body: JSON.stringify(body),
             });
             const respJson = await resp.json();
-            if (respJson.hasOwnProperty("error")) {
+            if (Object.prototype.hasOwnProperty.call(respJson, "error")) {
                 data.event.sender.send('info-data', { id: data.id, content: `POST Error:\n\n\`\`\`\n${respJson.error?.message}\n\`\`\`\n\n` });
                 return null;
             }
-            if (respJson.hasOwnProperty("message")) {
+            if (Object.prototype.hasOwnProperty.call(respJson, "message")) {
                 data.output = respJson.message.content;
             } else {
                 data.output = respJson.choices[0].message.content;

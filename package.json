@@ -1,7 +1,7 @@
 {
   "name": "transagent",
   "version": "1.1.0",
-  "description": "bixchat",
+  "description": "transagent",
   "main": "src/backend/main.js",
   "homepage": ".",
   "author": {
@@ -51,8 +51,8 @@
       "installerSidebar": "resources/icon/icon.bmp",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "BixChat",
-      "menuCategory": "BixChat"
+      "shortcutName": "TransAgent",
+      "menuCategory": "TransAgent"
     },
     "mac": {
       "target": "dmg",

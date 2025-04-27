@@ -181,7 +181,7 @@
     },
     "cli_execute": {
       "params": {
-        "cli_prompt": "/path/to/cli_prompt.md",
+        "cli_prompt": null,
         "bashrc": "/root/.bashrc",
         "delay_time": 5,
         "threshold": 40
@@ -202,7 +202,7 @@
     "memory_length": 20,
     "long_memory_length": 100,
     "mcp_timeout": 60,
-    "extra_prompt": "{resourcesPath}/resources/system_prompts/prompt.md",
+    "extra_prompt": null,
     "tmpdir": "/tmp",
     "language": "english",
     "system_type": "linux",

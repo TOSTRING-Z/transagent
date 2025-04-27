@@ -5,7 +5,6 @@ const { MCPClient } = require('./mcp_client.js')
 const JSON5 = require("json5")
 const fs = require('fs');
 const os = require('os');
-const path = require('path');
 
 class ToolCall extends ReActAgent {
 
@@ -75,14 +74,14 @@ class ToolCall extends ReActAgent {
 
     this.tool_prompt = []
     for (let key in tools) {
-      if (!!tools[key]?.getPrompt) {
+      if (tools[key]?.getPrompt) {
         const getPrompt = tools[key].getPrompt;
         this.tool_prompt.push(getPrompt());
       }
     }
     this.tools = { ...tools, ...base_tools }
 
-    this.task_prompt = `You are BixChat, an all-around AI assistant designed to solve any tasks proposed by users. You can use various tools to efficiently complete complex requests.
+    this.task_prompt = `You are TransAgent, an all-around AI assistant designed to solve any tasks proposed by users. You can use various tools to efficiently complete complex requests.
 
 You should strictly follow the entire process of thinking first, then acting, and then observing:
 1. Thinking: Describe your thought process or plan to solve this problem
@@ -398,10 +397,12 @@ Example Usage Scenarios:
 
   get_extra_prompt(file) {
     try {
+      // eslint-disable-next-line no-undef
       const prompt_path = file?.format(process);
       if (!fs.existsSync(prompt_path)) {
-        return fs.readFileSync(path.join(__dirname, '../extra_prompt.md'), 'utf-8');
+        return fs.readFileSync(utils.getDefault("extra_prompt.md"), 'utf-8');
       }
+      // eslint-disable-next-line no-undef
       return fs.readFileSync(file.format(process), 'utf-8');
     } catch (error) {
       console.log(error.message);
@@ -414,7 +415,7 @@ Example Usage Scenarios:
     let messages_list = messages.slice(Math.max(messages.length - data.long_memory_length - data.memory_length,0), messages.length - data.memory_length).map(message => {
       let message_copy = utils.copy(message)
       const content_json = utils.extractJson(message_copy.content);
-      if (!!content_json) {
+      if (content_json) {
         const content_parse = JSON5.parse(content_json);
         if (content_parse?.observation && message_copy.role == "user") {
           message_copy.content = `Assistant called ${content_parse.tool_call} tool`;
@@ -496,7 +497,7 @@ Example Usage Scenarios:
 
   async act({ tool, params }) {
     try {
-      if (!this.tools.hasOwnProperty(tool)) {
+      if (!Object.prototype.hasOwnProperty.call(this.tools, tool)) {
         const observation = `{
   "tool_call": "${tool}",
   "observation": "Tool does not exist",
@@ -535,16 +536,16 @@ Example Usage Scenarios:
     pushMessage("assistant", content, data.id, ++this.memory_id);
     try {
       const tool_info = JSON5.parse(content);
-      if (!!tool_info?.thinking) {
+      if (tool_info?.thinking) {
         data.event.sender.send('stream-data', { id: data.id, memory_id: this.memory_id, content: `${tool_info.thinking}\n\n---\n\n` });
       }
-      if (!!tool_info?.tool) {
+      if (tool_info?.tool) {
         return tool_info;
       }
     } catch (error) {
       console.log(error);
       data.output_format = `{
-  "tool_call": "${tool}",
+  "tool_call": "",
   "observation": "Tool was not executed",
   "error": "Your response is not a pure JSON text, or there is a problem with the JSON format: ${error.message}"
 }`;
@@ -565,10 +566,10 @@ Example Usage Scenarios:
       const maxId = messages.reduce((max, current) => {
         return parseInt(current.id) > parseInt(max.id) ? current : max;
       }, messages[0]);
-      if (!!maxId.id) {
+      if (maxId.id) {
         global.id = parseInt(maxId.id);
         const react = messages.find(message => message.react);
-        if (!!react) {
+        if (react) {
           const maxMemoryId = messages.reduce((max, current) => {
             return parseInt(current.memory_id) > parseInt(max.memory_id) ? current : max;
           }, messages[0]);
@@ -579,9 +580,9 @@ Example Usage Scenarios:
           if (Object.hasOwnProperty.call(messages, i)) {
             let { role, content, id, memory_id, react, del } = messages[i];
             if (role == "user") {
-              if (!!react) {
+              if (react) {
                 const content_json = utils.extractJson(content);
-                if (!!content_json) {
+                if (content_json) {
                   const tool_info = JSON5.parse(content_json);
                   const tool = tool_info?.tool_call;
                   if (tool == "display_file") {
@@ -593,27 +594,27 @@ Example Usage Scenarios:
                     this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: `${observation.question}\n\n`, end: true, del: del });
                   }
                 }
-                let content_format = content.replaceAll("\`", "'").replaceAll("`", "'");
+                let content_format = content.replaceAll("\\`", "'").replaceAll("`", "'");
                 this.window.webContents.send('info-data', { id: id, memory_id: memory_id, content: `Step ${i}, id: ${id}, memory_id: ${memory_id}, Output:\n\n\`\`\`json\n${content_format}\n\`\`\`\n\n`, del: del });
               }
               else {
                 this.window.webContents.send('user-data', { id: id, memory_id: memory_id, content: content, del: del });
               }
             } else {
-              if (!!react) {
+              if (react) {
                 try {
                   content = utils.extractJson(content) || content;
                   const tool_info = JSON5.parse(content);
-                  if (!!tool_info?.thinking) {
+                  if (tool_info?.thinking) {
                     const thinking = `${tool_info.thinking}\n\n---\n\n`
-                    let content_format = content.replaceAll("\`", "'").replaceAll("`", "'");
+                    let content_format = content.replaceAll("\\`", "'").replaceAll("`", "'");
                     this.window.webContents.send('info-data', { id: id, memory_id: memory_id, content: `Step ${i}, id: ${id}, memory_id: ${memory_id}, Output:\n\n\`\`\`json\n${content_format}\n\`\`\`\n\n`, del: del });
                     this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: thinking, end: true, del: del });
                     if (tool_info.tool == "terminate") {
                       this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: tool_info.params.final_answer, end: true, del: del });
                     }
                   }
-                } catch (error) {
+                } catch {
                   continue;
                 }
               } else {
