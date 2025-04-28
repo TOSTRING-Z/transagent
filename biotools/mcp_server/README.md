@@ -33,7 +33,7 @@ docker load -i biotools.tar
 
 ### Download basic environment data
 
-[OSF](https://osf.io/dbfne/files/osfstorage)
+[Baidu Netdisk](https://localhost)
 
 ### Start docker container
 
