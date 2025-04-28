@@ -33,7 +33,7 @@ docker load -i biotools.tar
 
 ### Download basic environment data
 
-[data](http://www.data.com)
+[OSF](https://osf.io/dbfne/files/osfstorage)
 
 ### Start docker container
 
