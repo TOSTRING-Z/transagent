@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install -y openssh-server && \
 
 COPY --from=uv /app/.venv /app/.venv
 ADD server.py /app/server.py
-ADD .bashrc /root/.bashrc
+ADD bashrc /root/.bashrc
 
 ENV PATH="/app/.venv/bin:$PATH"
 
