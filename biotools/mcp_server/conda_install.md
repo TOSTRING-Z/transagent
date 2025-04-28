@@ -40,3 +40,8 @@ RUN conda install -y -n cutadapt bioconda::bioconductor-deseq2
 
 RUN conda clean --all
 ```
+
+# Export conda environment
+```bash
+docker cp my_conda_container:/opt/conda /path/to/data/conda
+```
