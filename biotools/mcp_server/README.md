@@ -33,7 +33,7 @@ docker load -i biotools.tar
 
 ### Download basic environment data
 
-[Baidu Netdisk](https://localhost)
+[Baidu Netdisk](https://pan.baidu.com/s/1YSH2Y-n_1N4YY1Rk-L7KLA?pwd=khzx)
 
 ### Start docker container
 
