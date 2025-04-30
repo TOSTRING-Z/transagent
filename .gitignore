@@ -4,7 +4,9 @@ glm_token.py
 .vscode
 *.log
 *.tar.gz
+*.tar
 biotools/data/
 biotools/tmp/
 biotools/script/
 analysis
+run.md

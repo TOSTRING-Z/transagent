@@ -35,25 +35,31 @@ docker load -i biotools.tar
 
 [Baidu Netdisk](https://pan.baidu.com/s/1YSH2Y-n_1N4YY1Rk-L7KLA?pwd=khzx)
 
+### Data decompression
+```bash
+tar -xzvf data.tar.gz -C data
+tar -xzvf conda.tar.gz -C data/conda
+```
+
 ### Start docker container
 
 ```bash
 # linux
-docker run -it --name biotools --rm \
+docker run -it --name biotools \
 -p 3001:3001 \
 -p 3002:22 \
--v /data/zgr/transagent/biotools/analysis/case1/tmp:/tmp \
--v /data/zgr/transagent/biotools/data:/data \
--v /data/zgr/transagent/biotools/mcp_server/server_transagent.py:/app/server.py \
+-v /data/zgr/transagent/biotools/tmp:/tmp \
+-v /data/zgr/transagent/biotools/data:/data:ro \
+-v /data/zgr/transagent/biotools/mcp_server/server_transagent.py:/app/server.py:ro \
 biotools
 
 # window
-docker run -it --name biotools --rm `
+docker run -it --name biotools `
 -p 3001:3001 `
 -p 3002:22 `
 -v C:/Users/Administrator/Desktop/Document/transagent/biotools/tmp:/tmp `
--v C:/Users/Administrator/Desktop/Document/transagent/biotools/data:/data `
--v C:/Users/Administrator/Desktop/Document/transagent/biotools/mcp_server/server_transagent.py:/app/server.py `
+-v C:/Users/Administrator/Desktop/Document/transagent/biotools/data:/data:ro `
+-v C:/Users/Administrator/Desktop/Document/transagent/biotools/mcp_server/server_transagent.py:/app/server.py:ro `
 biotools
 ```
 
@@ -133,17 +139,17 @@ config.json
 
 ```bash
 # linux
-docker run -it --name biotools --rm \
+docker run -it --name biotools \
 -p 3001:3001 \
 -v /data/zgr/transagent/biotools/tmp:/tmp \
--v /data/zgr/transagent/biotools/data:/data \
+-v /data/zgr/transagent/biotools/data:/data:ro \
 biotools
 
 # window
-docker run -it --name biotools --rm `
+docker run -it --name biotools `
 -p 3001:3001 `
 -v C:/Users/Administrator/Desktop/Document/transagent/biotools/tmp:/tmp `
--v C:/Users/Administrator/Desktop/Document/transagent/biotools/data:/data `
+-v C:/Users/Administrator/Desktop/Document/transagent/biotools/data:/data:ro `
 biotools
 
 # Test
