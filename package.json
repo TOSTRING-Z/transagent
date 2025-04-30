@@ -68,7 +68,7 @@
     }
   },
   "scripts": {
-    "start": "electron .",
+    "start": "electron . --enable-logging --log-level=debug",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
     "dist:win": "electron-builder --win --x64",

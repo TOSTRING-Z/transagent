@@ -33,7 +33,8 @@ docker load -i biotools.tar
 
 ### Download basic environment data
 
-[Baidu Netdisk](https://pan.baidu.com/s/1YSH2Y-n_1N4YY1Rk-L7KLA?pwd=khzx)
+- [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15291175.svg)](https://doi.org/10.5281/zenodo.15291175)
+- [Baidu Netdisk](https://pan.baidu.com/s/1YSH2Y-n_1N4YY1Rk-L7KLA?pwd=khzx)
 
 ### Data decompression
 ```bash
