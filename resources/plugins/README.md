@@ -1,14 +1,14 @@
-# 工具配置
+# Tool Configuration
 
-> 安装依赖包
+> Install dependencies
 
 ```shell
 npm install
 ```
 
-_- 若插件报错，请手动配置插件绝对路径。配置示例如下：-_
+_- If plugins report errors, please manually configure the absolute path of plugins. Configuration example: -_
 
-> Agent工具
+> Agent Tools
 
 config.json
 
@@ -52,9 +52,9 @@ config.json
 }
 ```
 
-> 自定义工具
+> Custom Tools
 
-* Agent工具必须需实现`getPrompt`函数
+* Agent Tools must implement the `getPrompt` function
 
 config.json
 
@@ -75,6 +75,6 @@ config.json
 }
 ```
 
-_- 更多案例见： -_
+_- More examples: -_
 
 [./script](script)

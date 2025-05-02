@@ -1,0 +1,20 @@
+{
+    "chain_call": [
+        {
+            "model": "plugins",
+            "version": "file_load",
+            "input_data": {
+                "file_path": "{file_path}"
+            }
+        },
+        {
+            "model": "deepseek",
+            "version": "deepseek-chat",
+            "prompt": "You are a data processing engineer, please complete the requirements according to the user's intention.",
+            "input_template": "The following is the text content in the PDF:\n\n<pdf>{output_formats[0]}</pdf>\n\nThe following is the user input content:\n\n<user>{query}</user>\n\nPlease extract the relevant content from the PDF according to the user input. The extraction requirements are as follows:\n\n- The extracted text should be consistent with the original expression and translated into English, and output in a standardized format. \n- The extracted text should automatically filter out irrelevant paragraphs and formulas. \n- Filter out redundant text, such as line numbers, dates and names. \n- Extract as many details, potentially related and possibly related content as possible. \n- No need to summarize, put forward opinions and output content that may be inconsistent with the original text."
+        },
+        {
+            "end": true
+        }
+    ]
+}

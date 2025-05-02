@@ -3,7 +3,7 @@
         {
             "model": "deepseek-reasoner",
             "version": "deepseek-chat",
-            "prompt": "请思考后回答"
+            "prompt": "Please think before answering"
         },
         {
             "model": "plugins",

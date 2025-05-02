@@ -186,13 +186,14 @@ class DisplayFile {
       if (['.png', '.jpg', '.jpeg', '.gif', '.svg', '.pdf'].includes(ext)) {
         return this.processImage(filePath);
       } else if (['.csv', '.tsv', '.xls', '.xlsx'].includes(ext)) {
-        return this.processTable(filePath,maxLines=10,maxLineLength=100);
+        return this.processTable(filePath,maxLines,maxLineLength);
       } else {
-        return this.processText(filePath,maxLines=10,maxLineLength=100);
+        return this.processText(filePath,maxLines,maxLineLength);
       }
     } else {
       // 否则使用远程文件处理
-      const tempPath = path.join(os.tmpdir(), path.basename(filePath));
+      const tmpdir = utils.getConfig("tool_call")?.tmpdir || os.tmpdir();
+      const tempPath = path.join(tmpdir, path.basename(filePath));
       await this.downloadViaSSH(filePath, tempPath);
 
       const ext = path.extname(tempPath).toLowerCase();
