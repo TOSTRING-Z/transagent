@@ -26,8 +26,8 @@ async function main({ path, regex="test", file_pattern="*.js" }) {
       const content = fs.readFileSync(file, 'utf8');
       let match;
       while ((match = regexObj.exec(content)) !== null) {
-        const start = Math.max(0, match.index - 50);
-        const end = Math.min(content.length, match.index + match[0].length + 50);
+        const start = Math.max(0, match.index - 10);
+        const end = Math.min(content.length, match.index + match[0].length + 10);
         const context = content.substring(start, end);
         results.push({
           file: path_.relative(path, file),
@@ -47,20 +47,22 @@ async function main({ path, regex="test", file_pattern="*.js" }) {
 }
 
 function getPrompt() {
-  const prompt = `## search_files 
-Description: Request to perform a regular expression search in the specified directory, providing context-rich results. This tool searches for patterns or specific content across multiple files, displaying each match and its surrounding context.
+  const prompt = `## search_files
+Description: Performs recursive regex pattern matching within files of specified types, returning matches with surrounding context (10 results max per response). Ideal for code analysis, log inspection, or content discovery.
+
 Parameters:
-path: (Required) The directory path to search. This directory will be searched recursively. 
-regex: (Required) The regular expression pattern to search for. Uses NodeJs regular expression syntax. 
-file_pattern: (Required) The Glob pattern to filter files (e.g., '*.ts' for TypeScript files).
+- path: (Required) Absolute directory path to search (recursive traversal always enabled)
+- regex: (Required) Search pattern following Node.js RegExp syntax (flags supported)
+- file_pattern: (Required) Glob pattern for file selection (e.g., "*.{js,ts}", "**/.env*")
+
 Usage:
 {
-  "thinking": "[Thinking process]",
-  "tool": "search_files",
+  "thinking": "[Explain why this search is needed and expected outcome]",
+  "tool": "search_files", 
   "params": {
-    "path": "[value]",
-    "regex": "[value]",
-    "file_pattern": "[value]"
+    "path": "/absolute/target/path",
+    "regex": "/api/v1/\\d+",  // Example: API version pattern
+    "file_pattern": "**/*.{ts,tsx}"  // Example: TypeScript files only
   }
 }`
   return prompt

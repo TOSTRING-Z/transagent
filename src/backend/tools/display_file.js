@@ -228,17 +228,22 @@ async function main({ filePath }) {
 function getPrompt() {
   const prompt = `## display_file
 Description: Display or read various file types (images, tables, text) in Markdown format and download files via SSH.
+- When to use this tool  
+  - When you need to view a table or text file  
+  - When you need to display results to the user
+- Supported file types:
+  - Images: .png, .jpg, .jpeg, .gif, .svg, .pdf
+  - Tables: .csv, .tsv, .xls, .xlsx
+  - Text: .txt, .md
+
 Parameters:
 - filePath: (Required) Path to the file to be displayed or read
 - maxLines: Maximum number of rows to read for text or tables (default: 20).
 - maxLineLength: Maximum character length per line or cell for text/tables (default: 100).
-Supported file types:
-- Images: .png, .jpg, .jpeg, .gif, .svg, .pdf
-- Tables: .csv, .tsv, .xls, .xlsx
-- Text: .txt, .md
-SSH Usage:
+
+Usage:
 {
-  "thinking": "[Thinking process]",
+  "thinking": "[Record the absolute path of the file to be displayed/read in detail]",
   "tool": "display_file",
   "params": {
     "filePath": "[file-path]",

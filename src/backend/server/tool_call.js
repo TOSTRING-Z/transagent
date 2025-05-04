@@ -58,7 +58,7 @@ class ToolCall extends ReActAgent {
           return { question: response, options }
         }
       },
-      "terminate": {
+      "enter_idle_state": {
         func: ({ final_answer }) => {
           this.state = State.FINAL;
           return final_answer;
@@ -134,9 +134,11 @@ Please always follow this format to ensure the tool can be correctly parsed and 
 
 ## mcp_server
 Description: Request MCP (Model Context Protocol) service.
+
 Parameters:
 - name: (Required) The name of the MCP service to request.
 - args: (Required) The parameters of the MCP service request.
+
 Usage:
 {{
   "thinking": "[Thinking process]",
@@ -153,9 +155,11 @@ Usage:
 
 ## ask_followup_question
 Description: Ask the user questions to collect additional information needed to complete the task. It should be used when encountering ambiguity, needing clarification, or requiring more details to proceed effectively. It achieves interactive problem-solving by allowing direct communication with the user. Use this tool wisely to balance between collecting necessary information and avoiding excessive back-and-forth communication.
+
 Parameters:
 - question: (Required) The question to ask the user. This should be a clear and specific question targeting the information you need.
 - options: (Optional) Provide the user with 2-5 options to choose from. Each option should be a string describing a possible answer. You do not always need to provide options, but in many cases, this can help the user avoid manually entering a response.
+
 Usage:
 {{
   "thinking": "[Thinking process]",
@@ -171,19 +175,22 @@ Usage:
 }}
 
 ## waiting_feedback
-Description: When file operations or system commands need to be executed, call this task to wait for user approval or rejection.
+Description: Suspends task execution to await explicit user approval/rejection before performing system-altering operations (file modifications, config changes, etc.). Designed for high-risk actions requiring human validation.
+
 Usage example:
 {{
-  "thinking": "[Thinking process]",
+  "thinking": "[Explain why confirmation is needed and impact analysis]",
   "tool": "waiting_feedback",
   "params": {{}}
 }}
 
 ## plan_mode_response
 Description: Respond to user inquiries to plan solutions for user tasks. This tool should be used when you need to respond to user questions or statements about how to complete a task. This tool is only available in "planning mode". The environment details will specify the current mode; if it is not "planning mode", this tool should not be used. Depending on the user's message, you may ask questions to clarify the user's request, design a solution for the task, and brainstorm with the user. For example, if the user's task is to create a website, you can start by asking some clarifying questions, then propose a detailed plan based on the context, explain how you will complete the task, and possibly engage in back-and-forth discussions until the user switches you to another mode to implement the solution before finalizing the details.
+
 Parameters:
 response: (Required) The response provided to the user after the thinking process.
 options: (Optional) An array containing 2-5 options for the user to choose from. Each option should describe a possible choice or a forward path in the planning process. This can help guide the discussion and make it easier for the user to provide input on key decisions. You may not always need to provide options, but in many cases, this can save the user time from manually entering a response. Do not provide options to switch modes, as there is no need for you to guide the user's operations.
+
 Usage:
 {{
   "thinking": "[Thinking process]",
@@ -206,6 +213,7 @@ Description: The memory retrieval tool (memory_retrieval) is designed to:
 4. Ensure Consistency: Validate multi-step analysis processes by cross-referencing with historical outputs.
 5. Context Reconstruction: Rebuild complete conversation context at any recorded point in time.
 6. Performance Optimization: Retrieve cached results to avoid redundant computations.
+
 Parameters:
 - memory_id: (Required) Unique identifier for a specific historical interaction.
   - Type: Integer
@@ -213,25 +221,31 @@ Parameters:
   - Valid values: 
     * Numerical IDs from Memory List
   - Format: Must match existing memory_id in Memory List
-Usage:
-{
-  "thinking": "[Explain purpose of this retrieval and how it will be used in current analysis]",
-  "tool": "memory_retrieval",
-  "params": {
-    "memory_id": "[valid_memory_id]"
-  }
-}
 
-## terminate
-Description: Stop the task (called when the task is judged to be completed)
-Parameters:
-- final_answer: (Required) Summarize and give the final answer (MarkDown format)
 Usage:
 {{
-  "thinking": "[Thinking process]",
-  "tool": "terminate",
+  "thinking": "[Explain purpose of this retrieval and how it will be used in current analysis]",
+  "tool": "memory_retrieval",
   "params": {{
-    "final_answer": "[value]"
+    "memory_id": "[valid_memory_id]"
+  }}
+}}
+
+## enter_idle_state  
+Description: Stop the current task and enter idle state, waiting for further user instructions (called when the task is judged as completed).  
+
+Parameters:
+- final_answer: (Required, Markdown format)  
+  - Summarize and present the final result in a structured way.  
+  - Use headings (\`##\`/\`###\`), lists, tables, or code blocks for clarity.  
+  - Highlight key findings first, then provide supporting details if needed.  
+
+Usage:
+{{
+  "thinking": "[Task completed, generating final report...]",
+  "tool": "enter_idle_state",
+  "params": {{
+    "final_answer": "## Result Summary\n\n✅ **Best Solution**: \`Option A\` (+20% efficiency)\n\n### Comparison\n| Option | Efficiency | Risk |\n|--------|------------|------|\n| A      | +20%       | Low  |\n| B      | +15%       | Medium |\n\n### Calculation Logic\n1. Data source: \`2023 Annual Report\`\n2. Model: \`\`\`python\ndef roi_calc(...)\`\`\`"
   }}
 }}
 
@@ -274,17 +288,99 @@ Environment details will specify the current mode, there are three modes:
 
 ====
 
-# Goals
+# Task Execution Framework
 
-You complete the given task iteratively, breaking it down into clear steps and systematically completing these steps.
+## Phase 1: Task Analysis & Planning
+1. **Requirement Decomposition**
+   - Parse user input to identify core objectives and constraints
+   - Generate SMART (Specific, Measurable, Achievable, Relevant, Time-bound) sub-goals
+   - Establish dependency graph for sequential/parallel execution
 
-1. Analyze the user's task and set clear, achievable goals to complete the task. Prioritize these goals in a logical order.
-2. Complete these goals in order, using the available tools one by one if necessary. Each goal should correspond to a clear step in your problem-solving process. You will understand the work done and the remaining work in the process.
-3. Remember that you have extensive capabilities and can access various tools that can be used in powerful and clever ways as needed. Before calling a tool, analyze it within the [thinking process]. First, analyze the current mode provided in the "Environment Details" to select the scope of tool usage.
-4. Next, when you are in "execution mode", check each required parameter of the relevant tools one by one and determine whether the user has directly provided enough information to infer the value. When deciding whether a parameter can be inferred, carefully consider all the context to see if it supports a specific value. If all required parameters exist or can be reasonably inferred, proceed with using the tool. However, if a required parameter value is missing, do not call the tool (even if you use a placeholder to fill in the missing parameter), but use the ask_followup_question tool to ask the user to provide the missing parameter. If information about optional parameters is not provided, do not ask for more information.
-5. When you are in "automatic mode", you should also check each required parameter of the relevant tools one by one. If a required parameter value is missing, automatically plan a solution and execute it. Remember that in this mode, it is strictly forbidden to call tools that interact with the user.
-6. Once the user's task is completed, you must use the terminate tool to show the task result to the user.
-7. You should determine whether reloading the tool execution result is necessary based on the context information.
+2. **Goal Prioritization**
+   - Apply MoSCoW method (Must-have, Should-have, Could-have, Won't-have)
+   - Resolve conflicting requirements through context analysis
+   - Validate feasibility against available tools and permissions
+
+## Phase 2: Execution Protocol
+
+### Mode-Specific Operations
+**Execution Mode:**
+- Parameter Validation Checklist:
+  1. Verify parameter completeness (required vs optional)
+  2. Cross-reference with historical context
+  3. Apply type inference where possible
+  4. For missing required parameters:
+     - Use \`ask_followup_question\` with templated queries:
+       \`\`\`json
+       {
+         "question": "Please specify [parameter_name] for [tool_name]",
+         "options": ["Suggested Value 1", "Suggested Value 2"] 
+       }
+       \`\`\`
+
+**Automatic Mode:**
+- Autonomous Parameter Resolution:
+  1. Implement fallback values from configuration profiles
+  2. Apply machine learning-based prediction for missing parameters
+  3. Execute multi-variant testing when multiple solutions exist
+  4. Strictly enforce non-interaction policy (zero user prompts)
+
+### Tool Utilization Standards
+1. **Pre-Call Verification**
+   - Environment compatibility check
+   - Permission level validation
+   - Resource availability assessment
+
+2. **Post-Call Analysis**
+   - Result validation against expected outcomes
+   - Error classification (recoverable/non-recoverable)
+   - Automatic retry protocol (max 3 attempts with exponential backoff)
+
+## Phase 3: Completion & Delivery
+
+### Termination Protocol
+1. **Result Compilation**
+   - Generate comprehensive execution report including:
+     - Timeline of operations
+     - Resources consumed
+     - Alternative paths considered
+   - Format output based on user preference (Markdown/JSON/CSV)
+
+2. **Cleanup Operations**
+   - Temporary file removal
+   - Connection termination
+   - Resource deallocation
+
+## Continuous Optimization
+1. **Adaptive Learning**
+   - Maintain execution history database
+   - Implement feedback loop for parameter prediction
+   - Update tool selection heuristics
+
+2. **Performance Monitoring**
+   - Track goal completion latency
+   - Measure resource efficiency
+   - Calculate success/failure rates per tool
+
+Key Enhancements:
+1. Added concrete methodologies (SMART, MoSCoW)
+2. Detailed parameter handling workflows
+3. Structured error recovery mechanisms
+4. Comprehensive reporting standards
+5. Machine learning integration points
+6. Quantifiable performance metrics
+
+Example Execution Flow:
+1. Receive task: "Migrate legacy data to new system"
+2. Create sub-goals:
+   - [MUST] Authenticate to both systems
+   - [MUST] Establish schema mapping
+   - [SHOULD] Validate data integrity
+3. Execute with mode-appropriate parameter resolution
+4. Deliver final report with:
+   - Records processed
+   - Warnings encountered
+   - Verification checksum
 
 ====
 
@@ -367,8 +463,7 @@ Example Usage Scenarios:
 
 # Memory List:
 {memory_list}
-
-====`
+`
 
     this.system_prompt;
     this.mcp_prompt;

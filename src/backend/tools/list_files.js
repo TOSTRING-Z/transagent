@@ -58,19 +58,21 @@ function main(params = { threshold: 1000 }) {
 
 function getPrompt() {
   const prompt = `## list_files
-Description: Request to list files and directories in the specified directory. Do not use this tool to confirm the existence of files you may have created, as the user will let you know if the file was successfully created.
+Description: Retrieves directory contents with flexible filtering options.
+
 Parameters:
-- path: (Required) The folder path to read
-- recursive: (Optional) true or false, if recursive is true, it will recursively list all files and directories. If recursive is false or not provided, it will only list the top-level content.
-- regex: (Optional) Regular expression pattern to filter files by name
+- path: (Required) Absolute path of target directory
+- recursive: (Optional, default=false) When true, includes all subdirectory contents
+- regex: (Optional) Filters results by filename pattern (case-sensitive)
+
 Usage:
 {
-  "thinking": "[Thinking process]",
+  "thinking": "[Brief justification for using this tool]",
   "tool": "list_files",
   "params": {
-    "path": "[value]",
-    "recursive": [value],
-    "regex": "[value]"
+    "path": "[valid_directory_path]",
+    "recursive": [true|false],
+    "regex": "[pattern]"
   }
 }`
   return prompt

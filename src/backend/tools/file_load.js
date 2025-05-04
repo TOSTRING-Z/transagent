@@ -61,19 +61,22 @@ if (require.main === module) {
 
 function getPrompt() {
     const prompt = `## file_load
-Description: Read files (only supports docx,doc,pdf,odt,odp,ods and pptx)
+Description: Extracts text content from supported office documents (textfile, DOCX, DOC, PDF, ODT, ODP, ODS, PPTX) with optional line range selection. Preserves original document formatting and structure where possible.
+
 Parameters:
-- file_path: (Required) File path to read
-- startLine: (Optional) Starting line number to read
-- endLine: (Optional) Ending line number to read
+- file_path: (Required) Absolute path to document file (forward slashes recommended)
+    Supported extensions: textfile, .docx, .doc, .pdf, .odt, .odp, .ods, .pptx
+- startLine: (Optional) First line to extract (1-indexed, inclusive)
+- endLine: (Optional) Last line to extract (inclusive)
+
 Usage:
 {
-  "thinking": "[Thinking process]",
+  "thinking": "[Explain document analysis purpose and expected content]",
   "tool": "file_load",
   "params": {
-    "file_path": "[value]",
-    "startLine": [value],
-    "endLine": [value]
+  "file_path": "/path/to/document.docx",
+  "startLine": 10,  // Omit for full document
+  "endLine": 50     // Omit for full document
   }
 }`
     return prompt

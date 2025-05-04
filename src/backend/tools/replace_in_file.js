@@ -2,19 +2,31 @@ const fs = require('fs');
 
 function main({ file_path, diff }) {
     try {
+        // 新改进的函数实现
         const originalContent = fs.readFileSync(file_path, 'utf8');
         let content = originalContent;
-        const blocks = diff.split('<<<<<<< SEARCH');
-        blocks.shift(); // Remove the first element as it is empty
+        
+        // 更健壮的块分割处理
+        const blocks = diff.split(/<<<<<<< SEARCH/g);
+        blocks.shift(); // 移除第一个空元素
+        
         blocks.forEach(block => {
-            const [search, replace] = block.split('=======');
+            const [search, replaceBlock] = block.split(/=======/);
             const searchContent = search.trim();
-            const replaceContent = replace.split('>>>>>>> REPLACE')[0].trim();
+            const replaceContent = replaceBlock.split(/>>>>>>> REPLACE/)[0].trim();
+            
+            // 更精确的内容匹配
+            if (!content.includes(searchContent)) {
+                throw new Error(`Search content not found: "${searchContent.replace(/\n/g, '\\n')}"`);
+            }
+            
             content = content.replace(searchContent, replaceContent);
         });
+        
         if (content === originalContent) {
-            return `File ${file_path} not modified: The content in SEARCH block, "\r", "\n", spaces or special characters may not exactly match the actual content in the file`;
+            return `File ${file_path} not modified: The content in SEARCH block may not exactly match the actual content in the file`;
         }
+        
         fs.writeFileSync(file_path, content);
         return `File ${file_path} modified successfully`;
     } catch (error) {
@@ -22,45 +34,53 @@ function main({ file_path, diff }) {
     }
 }
 
+// 保留原始脚本中的getPrompt函数
 function getPrompt() {
     const prompt = `## replace_in_file
-Description: This tool is used to replace parts of content in existing files using SEARCH/REPLACE blocks. It should be used when precise modifications to specific parts of a file are needed.
+Description: Performs surgical text replacements in files using SEARCH/REPLACE diffs. Ideal for precise code modifications, configuration updates, or documentation changes while preserving file integrity.
+
 Parameters:
-- file_path: (Required) The file path to be modified
-- diff: (Required) One or more SEARCH/REPLACE blocks, formatted as follows:
+- file_path: (Required) Absolute path to target file (forward slashes recommended)
+- diff: (Required) One or more atomic replacement blocks in unified diff format:
+    \`\`\`
     <<<<<<< SEARCH
-    [exact content to search for]
+    [exact original content]
     =======
-    [new content after replacement]
+    [new content]
     >>>>>>> REPLACE
-    Key Rules:
-        1. SEARCH content must exactly match the target part in the file:
-            * Compare character by character when matching, including spaces, indentation and line endings
-            * Include all comments, docstrings, etc.
-        2. SEARCH/REPLACE blocks only replace the first match:
-            * If multiple modifications are needed, include multiple independent SEARCH/REPLACE blocks
-            * Each SEARCH section only needs to contain enough lines to ensure uniqueness
-            * The order of SEARCH/REPLACE blocks should match their appearance in the file
-        3. Keep SEARCH/REPLACE blocks concise:
-            * Split larger blocks into multiple smaller ones, each modifying only a small part of the file
-            * Only include lines that need to be changed and necessary context lines for uniqueness
-            * Don't include large amounts of unchanged lines in SEARCH/REPLACE blocks
-            * Each line must be complete, not truncated midway, otherwise matching may fail
-        4. Special operations:
-            * Move code: Use two SEARCH/REPLACE blocks (one to delete from original location, another to insert at new location)
-            * Delete code: Use empty REPLACE section
+    \`\`\`
+
+Replacement Rules:
+1. Matching Requirements:
+    - Exact character-by-character matching (including whitespace, line endings)
+    - Case-sensitive comparison
+    - Must match complete lines (no partial line matches)
+
+2. Block Specifications:
+    - Each block operates on first match only
+    - Multiple blocks execute sequentially
+    - Maintain original file's line ending style
+
+3. Best Practices:
+    - Include minimal context (2-3 surrounding lines max)
+    - Split large changes into multiple atomic blocks
+    - For moves: Use delete-then-insert pattern
+    - For deletions: Leave REPLACE section empty
+
 Usage:
 {
-  "thinking": "[Thinking process]",
-  "tool": "replace_in_file",
-  "params": {
-    "file_path": "[value]",
-    "diff": "[value]"
-  }
+    "thinking": "[Explain change purpose and verification method]",
+    "tool": "replace_in_file",
+    "params": {
+    "file_path": "/project/src/main.js",
+    "diff": "<<<<<<< SEARCH\nconst API_URL = 'http://old.api';\n=======\nconst API_URL = 'https://new.api';\n>>>>>>> REPLACE\n<<<<<<< SEARCH\nconst API_KEY = 'key-old';\n=======\nconst API_KEY = 'key-new';\n>>>>>>> REPLACE"
+    }
 }`
     return prompt
 }
 
+// 保留原始导出部分
 module.exports = {
-    main, getPrompt
+    main, 
+    getPrompt
 };

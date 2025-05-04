@@ -16,18 +16,20 @@ async function main({ file_path, context }) {
 
 function getPrompt() {
     const prompt = `## write_to_file
-Description: Save file to specified path (text files only)
+Description: Safely writes text content to specified filesystem location (supports UTF-8 text files only). Automatically handles path normalization and directory creation when needed.
+
 Parameters:
-- file_path: (Required) File path to save (must use /)
-- context: (Required) Content to save
+- file_path: (Required) Absolute file path using forward slashes (/)
+- content: (Required) String data to write (supports multiline text)
+
 Usage:
 {
-  "thinking": "[Thinking process]",
-  "tool": "write_to_file",
-  "params": {
-    "file_path": "[value]",
-    "context": "[value]"
-  }
+    "thinking": "[Explain purpose of this write operation and content significance]",
+    "tool": "write_to_file",
+    "params": {
+    "file_path": "/absolute/path/to/target.txt",
+    "content": "This will be\nwritten exactly\nas formatted"
+    }
 }`
     return prompt
 }

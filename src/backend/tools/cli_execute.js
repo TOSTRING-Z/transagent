@@ -225,14 +225,16 @@ function main(params) {
 function getPrompt() {
     const prompt = `## cli_execute
 Description: ${cli_prompt}
+
 Parameters:
 - code: (Required) Executable bash code snippet (please strictly follow the code format, incorrect indentation and line breaks will cause code execution to fail)
+
 Usage:
 {
-  "thinking": "[Thinking process]",
+  "thinking": "[Detailed thought process, including specifics of the executing code. If the current execution involves file content, please record the absolute file path here in detail.]",
   "tool": "cli_execute",
   "params": {
-    "code": "[value]"
+    "code": "[Code snippet to execute]"
   }
 }`
     return prompt
