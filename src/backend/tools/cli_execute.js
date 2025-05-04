@@ -51,8 +51,8 @@ function main(params) {
         // Create terminal window
         let terminalWindow = null;
         terminalWindow = new BrowserWindow({
-            width: 850,
-            height: 650,
+            width: 800,
+            height: 600,
             frame: false, // 隐藏默认标题栏和边框
             transparent: true, // 可选：实现透明效果
             resizable: true, // 允许调整窗口大小
@@ -69,6 +69,10 @@ function main(params) {
 
         ipcMain.on('minimize-window', () => {
             terminalWindow?.minimize()
+        })
+        
+        terminalWindow.on('closed', () => {
+            terminalWindow = null;
         })
 
         return new Promise((resolve, reject) => {
@@ -214,10 +218,6 @@ function main(params) {
                     }
                 });
             }
-
-            terminalWindow.on('close', () => {
-                terminalWindow = null;
-            })
         });
     }
 }
