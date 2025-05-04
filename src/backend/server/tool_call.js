@@ -276,7 +276,7 @@ Environment details will specify the current mode, there are three modes:
 - In execution mode, you can use tools other than plan_mode_response to complete the user's task.
 - Once the task is completed, you use the terminate tool to show the task result to the user.
 
-**Planning Mode**: In this special mode, you can only use the plan_mode_response tool.
+**Planning Mode**: In this restricted mode, you can only use the plan_mode_response tool and file/path query tools, but file modifications are strictly prohibited.
 
 - In planning mode, the goal is to collect information and obtain context to create a detailed plan to complete the user's task. The user will review and approve the plan, then switch to execution mode or automatic mode to implement the solution.
 - In planning mode, when you need to communicate with the user or present a plan, you should directly use the plan_mode_response tool to deliver your response.
