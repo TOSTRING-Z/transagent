@@ -51,8 +51,8 @@ function main(params) {
         // Create terminal window
         let terminalWindow = null;
         terminalWindow = new BrowserWindow({
-            width: 800,
-            height: 600,
+            width: 850,
+            height: 650,
             frame: false, // 隐藏默认标题栏和边框
             transparent: true, // 可选：实现透明效果
             resizable: true, // 允许调整窗口大小
