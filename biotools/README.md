@@ -31,7 +31,7 @@ Check TP53 gene expression in TCGA breast cancer
 - Upload: /tmp/SRR9091033_1.fastq.gz (Control group)
 I have provided 2 single-end sequencing files (hg38), please perform the following analysis:
 1. Super enhancer identification and analysis
-2. Find transcriptional regulatory loops
+2. Find core transcriptional regulatory circuitries
 - Save path: /tmp/KYSE200_hg38
 ```
 
