@@ -37,6 +37,9 @@ RUN conda install -y -n cutadapt bioconda::meme
 RUN conda install -y -n cutadapt -c conda-forge -c bioconda rgt
 RUN conda install -y -n cutadapt conda-forge::scipy
 RUN conda install -y -n cutadapt bioconda::bioconductor-deseq2
+RUN conda install -y bioconda::bioconductor-genie3
+RUN conda install -y conda-forge::r-optparse
+RUN conda install -y -c conda-forge ant
 
 RUN conda clean --all
 ```

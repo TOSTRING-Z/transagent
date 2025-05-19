@@ -136,6 +136,7 @@ body {
 .history-list {
   overflow-y: auto;
   height: 100%;
+  padding-right: 5px;
 }
 
 .history-text {
