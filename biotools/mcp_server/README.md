@@ -140,17 +140,19 @@ config.json
 
 ```bash
 # linux
-docker run -it --name biotools \
+docker run -it --name mcp-biotools \
 -p 3001:3001 \
 -v /data/zgr/transagent/biotools/tmp:/tmp \
 -v /data/zgr/transagent/biotools/data:/data:ro \
+-v /data/zgr/transagent/biotools/mcp_server/server.py:/app/server.py:ro \
 biotools
 
 # window
-docker run -it --name biotools `
+docker run -it --name mcp-biotools `
 -p 3001:3001 `
 -v C:/Users/Administrator/Desktop/Document/transagent/biotools/tmp:/tmp `
 -v C:/Users/Administrator/Desktop/Document/transagent/biotools/data:/data:ro `
+-v C:/Users/Administrator/Desktop/Document/transagent/biotools/mcp_server/server.py:/app/server.py:ro `
 biotools
 
 # Test
