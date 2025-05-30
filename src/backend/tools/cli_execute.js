@@ -79,7 +79,7 @@ function main(params) {
             let output = "";
             let error = "";
             const sshConfig = utils.getSshConfig();
-            if (sshConfig) {
+            if (sshConfig?.enabled) {
                 const conn = new Client();
 
                 ipcMain.on('close-window', () => {

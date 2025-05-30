@@ -278,65 +278,53 @@ async function chatBase(data) {
         if (data?.api_key) {
             headers["Authorization"] = `Bearer ${data.api_key}`;
         }
+        if (stop_ids.includes(data.id)) {
+            return "Stop!";
+        }
+        if (body?.stream) {
+            const resp = await fetch(new URL(data.api_url), {
+                method: "POST",
+                headers: headers,
+                body: JSON.stringify(body),
+            });
+            const contentType = resp.headers.get('content-type');
+            let stream_res;
+            if (contentType && contentType.includes('text/event-stream'))
+                stream_res = streamSse(resp);
+            else
+                stream_res = streamJSON(resp);
 
-        if (body?.stream && data.end) {
-            try {
-                const resp = await fetch(new URL(data.api_url), {
-                    method: "POST",
-                    headers: headers,
-                    body: JSON.stringify(body),
-                });
-                const contentType = resp.headers.get('content-type');
-                let stream_res;
-                if (contentType && contentType.includes('text/event-stream'))
-                    stream_res = streamSse(resp);
-                else
-                    stream_res = streamJSON(resp);
-
-                for await (const chunk of stream_res) {
-                    if (stop_ids.includes(data.id)) {
-                        break;
-                    }
-                    // 处理流式输出
-                    content = "";
-                    if (Object.prototype.hasOwnProperty.call(chunk, "message")) {
-                        content = chunk.message.content;
-                        message_output.content += content;
-                    } else {
-                        let delta = chunk.choices[0]?.delta;
-                        if (chunk.choices.length > 0 && delta) {
-                            if (Object.prototype.hasOwnProperty.call(delta, "reasoning_content") && delta.reasoning_content)
-                                content = delta.reasoning_content;
-                            else if (Object.prototype.hasOwnProperty.call(delta, "content") && delta.content) {
-                                content = delta.content;
-                                message_output.content += content;
-                            }
+            for await (const chunk of stream_res) {
+                if (stop_ids.includes(data.id)) {
+                    return "Stop!";
+                }
+                content = "";
+                if (Object.prototype.hasOwnProperty.call(chunk, "message")) {
+                    content = chunk.message.content;
+                    message_output.content += content;
+                } else {
+                    let delta = chunk.choices[0]?.delta;
+                    if (chunk.choices.length > 0 && delta) {
+                        if (Object.prototype.hasOwnProperty.call(delta, "reasoning_content") && delta.reasoning_content)
+                            content = delta.reasoning_content;
+                        else if (Object.prototype.hasOwnProperty.call(delta, "content") && delta.content) {
+                            content = delta.content;
+                            message_output.content += content;
                         }
                     }
+                }
+                if (!data?.react)
                     data.event.sender.send('stream-data', { id: data.id, content: content, end: false });
-                }
-                if (data?.stream_push != false) {
-                    messages.push(message_input);
-                    messages.push(message_output);
-                    console.log(message_output)
-                }
-                data.event.sender.send('stream-data', { id: data.id, content: "", end: true });
-                return true;
-            } catch (error) {
-                console.log(error);
-                data.event.sender.send('info-data', { id: data.id, content: error.message });
             }
+            data.output = message_output.content;
         } else {
-            if (stop_ids.includes(data.id)) {
-                return "Stop!";
-            }
             body.stream = false;
             const resp = await fetch(new URL(data.api_url), {
                 method: "POST",
                 headers: headers,
                 body: JSON.stringify(body),
             });
-            const respJson = await resp.json();
+            respJson = await resp.json();
             if (Object.prototype.hasOwnProperty.call(respJson, "error")) {
                 data.event.sender.send('info-data', { id: data.id, content: `POST Error:\n\n\`\`\`\n${respJson.error?.message}\n\`\`\`\n\n` });
                 return null;
@@ -347,19 +335,26 @@ async function chatBase(data) {
                 data.output = respJson.choices[0].message.content;
             }
             message_output.content = data.output;
-            if (data.end) {
+        }
+        if (stop_ids.includes(data.id)) {
+            return "Stop!";
+        }
+
+        if (data.end) {
+            messages.push(message_input);
+            messages.push(message_output);
+            if (!data?.react)
+                data.event.sender.send('stream-data', { id: data.id, content: "", end: true });
+            else
+                data.event.sender.send('stream-data', { id: data.id, content: data.output_template ? data.output_template.format(data) : data.output, end: true });
+            return true;
+        } else {
+            if (data?.push_message) {
                 messages.push(message_input);
                 messages.push(message_output);
-                data.event.sender.send('stream-data', { id: data.id, content: data.output_template ? data.output_template.format(data) : data.output, end: true });
-                return true;
-            } else {
-                if (data?.push_message) {
-                    messages.push(message_input);
-                    messages.push(message_output);
-                }
             }
-            return data.output;
         }
+        return data.output;
     } catch (error) {
         console.log(error)
         data.event.sender.send('info-data', { id: data.id, content: `Response error: ${error.message}\n\n` });

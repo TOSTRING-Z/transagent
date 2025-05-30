@@ -143,9 +143,9 @@ class MainWindow extends Window {
                             const filePath = result.filePaths[0];
                             store.set('lastFileDirectory', path.dirname(filePath));
                             console.log(filePath);
-                            if (this.funcItems.react) {
+                            if (this.funcItems.react.statu) {
                                 const ssh_config = utils.getSshConfig();
-                                if (ssh_config) {
+                                if (ssh_config?.enabled) {
                                     const conn = new Client();
                                     conn
                                         .on('ready', () => {
@@ -234,7 +234,7 @@ class MainWindow extends Window {
                         _event.sender.send('stream-data', { id: data.id, content: "Stop!", end: true });
                         break;
                     }
-                    data = { ...data, ...defaults, ...tool_call, step: ++step, memory_id: this.tool_call.memory_id };
+                    data = { ...data, ...defaults, ...tool_call, step: ++step, memory_id: this.tool_call.memory_id, react: true };
 
                     let options = await this.tool_call.step(data);
                     this.setHistory()
@@ -446,7 +446,7 @@ class MainWindow extends Window {
             else {
                 const ssh_config = utils.getSshConfig();
                 let extra = [{ "type": "act-plan" }];
-                if (ssh_config) {
+                if (ssh_config?.enabled) {
                     extra.push({ "type": "file-upload" });
                 }
                 this.window.webContents.send("extra_load", e.statu ? extra : utils.getConfig("extra"));

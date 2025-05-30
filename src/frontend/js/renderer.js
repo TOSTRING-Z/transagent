@@ -896,6 +896,7 @@ async function showConfig() {
   document.getElementById('ssh-port').value = config.tool_call.ssh_config?.port || null;
   document.getElementById('ssh-username').value = config.tool_call.ssh_config?.username || null;
   document.getElementById('ssh-password').value = config.tool_call.ssh_config?.password || null;
+  document.getElementById('ssh-enabled').value = !!config.tool_call.ssh_config?.enabled || null;
   document.getElementById('cli-prompt').value = config.plugins.cli_execute.params.cli_prompt || null;
   document.getElementById('mcp_server-biotools-url').value = config.mcp_server.biotools.url || null;
   document.getElementById('mcp_server-biotools-enabled').checked = !!config.mcp_server.biotools.enabled || null;
@@ -915,7 +916,8 @@ async function saveConfig() {
         host: document.getElementById('ssh-host').value,
         port: parseInt(document.getElementById('ssh-port').value),
         username: document.getElementById('ssh-username').value,
-        password: document.getElementById('ssh-password').value
+        password: document.getElementById('ssh-password').value,
+        enabled: document.getElementById('ssh-enabled').checked
       }
     },
     plugins: {
