@@ -132,16 +132,16 @@
   },
   "plugins": {
     "baidu_translate": {
-      "path": "{resourcesPath}/resources/plugins/script/baidu_translate.js",
       "show": true
     },
     "baidu_search": {
-      "path": "{resourcesPath}/resources/plugins/script/baidu_search.js",
       "params": {
         "jina": "",
-        "num_results": 5,
-        "text_max_len": 2000
+        "text_max_len": 500
       },
+      "enabled": false
+    },
+    "fetch_url": {
       "enabled": false
     },
     "python_execute": {

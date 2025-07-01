@@ -48,21 +48,53 @@ async function main({ path, regex="test", file_pattern="*.js" }) {
 
 function getPrompt() {
   const prompt = `## search_files
-Description: Performs recursive regex pattern matching within files of specified types, returning matches with surrounding context (10 results max per response). Ideal for code analysis, log inspection, or content discovery.
+Description: Advanced recursive content search tool with regex pattern matching and file type filtering. Returns matches with surrounding context (100 results max).
+
+Key Features:
+- Recursive directory scanning (always enabled)
+- Supports full Node.js RegExp syntax with flags
+- Flexible file selection using glob patterns
+- Returns contextual matches with line numbers
+- Built-in result limiting for performance
 
 Parameters:
-- path: (Required) Absolute directory path to search (recursive traversal always enabled)
-- regex: (Required) Search pattern following Node.js RegExp syntax (flags supported)
-- file_pattern: (Required) Glob pattern for file selection (e.g., "*.{js,ts}", "**/.env*")
+- path: (Required) Absolute root directory path to search
+- regex: (Required) Regular expression pattern to match
+- file_pattern: (Required) Glob pattern for file selection (e.g., "*.{js,ts}", "**/*.env")
 
-Usage:
+Best Practices:
+1. Use specific file patterns to narrow search scope
+2. Include regex flags like /i for case-insensitive search
+3. For large codebases, start with restrictive file patterns
+4. Combine with list_files to first identify candidate files
+
+Output Format:
+Array of objects containing:
+- file: relative path
+- match: matched text
+- context: surrounding content
+- line: line number
+
+Usage Examples:
+1. Find all API version patterns:
 {
-  "thinking": "[Explain why this search is needed and expected outcome]",
-  "tool": "search_files", 
+  "thinking": "Need to locate all API version references in TypeScript files",
+  "tool": "search_files",
   "params": {
-    "path": "/absolute/target/path",
-    "regex": "/api/v1/\\d+",  // Example: API version pattern
-    "file_pattern": "**/*.{ts,tsx}"  // Example: TypeScript files only
+    "path": "/project/src",
+    "regex": "/api/v\\d+",
+    "file_pattern": "**/*.{ts,tsx}"
+  }
+}
+
+2. Search for environment variables:
+{
+  "thinking": "Need to find all environment variable declarations",
+  "tool": "search_files",
+  "params": {
+    "path": "/config",
+    "regex": "process\\.env\\.\\w+",
+    "file_pattern": "*.{js,env}"
   }
 }`
   return prompt

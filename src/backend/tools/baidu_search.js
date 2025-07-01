@@ -1,16 +1,13 @@
-const axios = require('axios')
 const cheerio = require('cheerio')
 const S = require('string');
 
 function main(params) {
-    return async ({ context }) => {
-        let num_results = 5;
-        let text_max_len = 1000;
+    return async ({ context, num_results = 5 }) => {
+        let text_max_len = 500
         let jina = "https://r.jina.ai/";
         if (params) {
-            num_results = params.num_results;
-            text_max_len = params.text_max_len;
             jina = params.jina;
+            text_max_len = params.text_max_len;
         }
 
         const searchResults = []
@@ -22,6 +19,7 @@ function main(params) {
             searchResults.push(...results)
             if (!nextPageUrl) break
             nextUrl = nextPageUrl
+            // eslint-disable-next-line no-unused-vars
             page++
         }
 
@@ -35,14 +33,14 @@ function main(params) {
 async function parseBaiduPage(url, rankStart, num_results, text_max_len, jina) {
 
     try {
-        const response = await axios.get(url, {
+        const response = await fetch(url, {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
                 'Accept-Language': 'zh-CN,zh;q=0.9'
             }
         })
-
-        const $ = cheerio.load(response.data)
+        const html = await response.text()
+        const $ = cheerio.load(html)
         const infos = []
 
         $('#content_left .c-container').each((i, el) => {
@@ -77,6 +75,8 @@ async function parseBaiduPage(url, rankStart, num_results, text_max_len, jina) {
                 if (cleanText) {
                     results.push({
                         title: info.title,
+                        url: info.url,
+                        rank: info.rank,
                         abstract: info.abstract,
                         text: cleanText.slice(text_max_len)
                     })
@@ -94,7 +94,7 @@ async function parseBaiduPage(url, rankStart, num_results, text_max_len, jina) {
             results,
             nextPageUrl: nextPageUrl ? new URL(nextPageUrl, 'https://www.baidu.com').href : null
         }
-    } catch (error) {
+    } catch {
         console.error('parseBaiduPage error!')
         return { results: [], nextPageUrl: null }
     }
@@ -102,16 +102,16 @@ async function parseBaiduPage(url, rankStart, num_results, text_max_len, jina) {
 
 async function getText(url, jina) {
     try {
-        const response = await axios.get(`${jina}${url}`, {
+        const response = await fetch(`${jina}${url}`, {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
                 'Accept-Language': 'zh-CN,zh;q=0.9'
             }
         })
-
-        const $ = cheerio.load(response.data)
+        const html = await response.text()
+        const $ = cheerio.load(html)
         let text;
-        if (!!jina) {
+        if (jina) {
             text = $('body').text();
         } else {
             // Clean the page before getting text
@@ -129,7 +129,7 @@ async function getText(url, jina) {
                 .join('\n');
         }
         return text;
-    } catch (error) {
+    } catch {
         console.error('getText error!')
         return null;
     }
@@ -141,12 +141,14 @@ function getPrompt() {
 Description: Perform online search
 Parameters:
 - context: (Required) Text to be searched, which should be keywords extracted from user input or summarized search content
+- num_results: (Optional) Number of search results to return, default is 5
 Usage:
 {
   "thinking": "[Thinking process]",
   "tool": "baidu_search",
   "params": {
-    "context": "[value]"
+    "context": "[value]",
+    "num_results": "[value]"
   }
 }`
     return prompt

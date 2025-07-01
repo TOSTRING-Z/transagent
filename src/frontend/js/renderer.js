@@ -23,7 +23,6 @@ const pause = document.getElementById("pause");
 const progress_container = document.getElementById('progress-container')
 const progress_bar = document.getElementById('progress-bar')
 
-const content = document.getElementById("content");
 const input = document.getElementById("input");
 const submit = document.getElementById("submit");
 const messages = document.getElementById("messages");
@@ -41,11 +40,11 @@ const formData = {
   img_url: null
 }
 
-global = {
+let global = {
   math_statu: true,
   markdown_statu: true,
   seconds_timer: null,
-  chat: { tokens: 0, seconds: 0 },
+  chat: { tokens: 0, seconds: 0, id: null },
   scroll_top: {
     info: true,
     data: true,
@@ -84,21 +83,21 @@ function toggleMode(mode) {
   }
 }
 
-auto.addEventListener("click", async function (e) {
+auto.addEventListener("click", async function () {
   toggleMode("auto");
 })
 
-act.addEventListener("click", async function (e) {
+act.addEventListener("click", async function () {
   toggleMode("act");
 })
 
-plan.addEventListener("click", async function (e) {
+plan.addEventListener("click", async function () {
   toggleMode("plan");
 })
 
 file_upload.addEventListener("click", async function (e) {
   formData.file_path = await window.electronAPI.getFilePath();
-  if (!!formData.file_path) {
+  if (formData.file_path) {
     e.target.innerText = getFileName(formData.file_path);
   } else {
     e.target.innerText = "Select file";
@@ -120,7 +119,7 @@ function init_size() {
   let bottom_div_height = bottom_div.clientHeight;
   system_prompt.style.height = input_h + "px";
   input.style.height = input_h + "px";
-  top_div.style.height = window.innerHeight - (bottom_div_height - system_prompt_height - input_height + (!!system_prompt_height ? 2 : 1) * input_h) + "px";
+  top_div.style.height = window.innerHeight - (bottom_div_height - system_prompt_height - input_height + (system_prompt_height ? 2 : 1) * input_h) + "px";
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -244,6 +243,8 @@ function loadOptions() {
   pause.style.display = "none";
   pause.innerHTML = "";
   global.chat.seconds = 0;
+  if (global.seconds_timer)
+    clearInterval(global.seconds_timer);
   global.chat.tokens = 0;
   tokens.innerText = global.chat.tokens;
   seconds.innerText = global.chat.seconds;
@@ -339,7 +340,7 @@ function userAdd(data) {
   }, "system")
   messages.appendChild(messageSystem);
   addEventStop(messageSystem, data.id);
-  if (!!data?.del) {
+  if (data?.del) {
     messageUser.classList.add("message_del")
     messageSystem.classList.add("message_del")
     messageUser.classList.add("message_toggle")
@@ -354,7 +355,7 @@ function infoAdd(info) {
   if (info_div && info_div.classList.contains('hidden')) {
     info_div.classList.remove('hidden');
   }
-  if (!!info.content) {
+  if (info.content) {
     if (global.seconds_timer) {
       global.chat.tokens += getTokens(info.content);
       tokens.innerText = global.chat.tokens;
@@ -380,13 +381,13 @@ function infoAdd(info) {
 async function streamMessageAdd(chunk) {
   const messageSystem = document.querySelectorAll(`[data-id='${chunk.id}']`)[1];
   const message_content = messageSystem.getElementsByClassName('message')[0];
-  if (!!chunk.content) {
+  if (chunk.content) {
     if (global.seconds_timer) {
       global.chat.tokens += getTokens(chunk.content);
       tokens.innerText = global.chat.tokens;
     }
     optionDom?.remove();
-    let memory_id = chunk.hasOwnProperty("memory_id") ? chunk.memory_id : chunk.id;
+    let memory_id = Object.prototype.hasOwnProperty.call(chunk, "memory_id") ? chunk.memory_id : chunk.id;
     console.log(`memory_id: ${memory_id}`)
     console.log(`content: ${chunk.content}`)
     console.log(`------------------------`)
@@ -448,7 +449,7 @@ async function delete_message(id) {
   elements.forEach(async function (message_element) {
     if (message_element.classList.contains('message_del')) {
       let { del_mode } = await window.electronAPI.toggleMessage({ id, del: false });
-      if (!!del_mode) {
+      if (del_mode) {
         message_element.remove();
       }
       else {
@@ -465,7 +466,7 @@ async function delete_message(id) {
       }
     } else {
       let { del_mode } = await window.electronAPI.toggleMessage({ id, del: true });
-      if (!!del_mode) {
+      if (del_mode) {
         message_element.remove();
       } else {
         message_element.classList.add('message_del')
@@ -489,14 +490,14 @@ async function delete_memory(memory_id) {
   let { del_mode } = await window.electronAPI.toggleMemory(memory_id);
   let elements = document.querySelectorAll(`[info_data-id="${memory_id}"]`);
   elements.forEach(function (element) {
-    if (!!del_mode)
+    if (del_mode)
       element.remove();
     else
       element.classList.toggle('del');
   });
   elements = document.querySelectorAll(`[chunk_data-id="${memory_id}"]`);
   elements.forEach(function (element) {
-    if (!!del_mode)
+    if (del_mode)
       element.remove();
     else
       element.classList.toggle('del');
@@ -529,7 +530,7 @@ const marked = new Marked(
   markedHighlight({
     langPrefix: "hljs language-",
     highlight(code, lang) {
-      language = hljs.getLanguage(lang) ? lang : 'plaintext';
+      let language = hljs.getLanguage(lang) ? lang : 'plaintext';
       return hljs.highlight(code, { language }).value;
     }
   })
@@ -546,7 +547,7 @@ const marked_input = new Marked({
       return formatText(token);
     },
     text(token) {
-      if (token.hasOwnProperty("tokens")) {
+      if (Object.prototype.hasOwnProperty.call(token, "tokens")) {
         return this.parser.parseInline(token.tokens);
       } else {
         token.type = "plaintext";
@@ -607,9 +608,9 @@ const renderer = {
     return formatImage(token);
   },
   text(token) {
-    if (token.hasOwnProperty("tokens")) {
+    if (Object.prototype.hasOwnProperty.call(token, "tokens")) {
       return this.parser.parseInline(token.tokens);
-    } else if (token.hasOwnProperty("typeThink")) {
+    } else if (Object.prototype.hasOwnProperty.call(token, "typeThink")) {
       const highlightResult = marked_input.parse(token.text);
       return `<div class="think">${highlightResult}</div>`;
     } else {
@@ -622,7 +623,7 @@ const think = {
   name: 'think',
   level: 'block',
   start(src) { return src.match(/<think>/)?.index; },
-  tokenizer(src, tokens) {
+  tokenizer(src) {
     const rule0 = /^<think>([\s\S]*?)<\/think>/;
     const match0 = rule0.exec(src);
     const rule1 = /^<think>([\s\S]*)/;
@@ -655,14 +656,14 @@ function createElement(html) {
 String.prototype.formatMessage = function (params, role) {
   const newElement = createElement(this);
   let message = newElement.getElementsByClassName("message")[0]
-  if (params.hasOwnProperty("icon")) {
+  if (Object.prototype.hasOwnProperty.call(params, "icon")) {
     let menu = newElement.getElementsByClassName("menu")[0]
     menu.src = `img/${params["icon"]}.svg`;
   }
   if (role === "system") {
     message.innerHTML = marked.parse(params["message"])
   } else {
-    if (!!params.image_url) {
+    if (params.image_url) {
       let img = createElement(`<img class="size-48 shadow-xl rounded-md mb-1" src="${params.image_url}">`);
       message.appendChild(img);
     }
@@ -676,7 +677,7 @@ String.prototype.formatMessage = function (params, role) {
 
 String.prototype.format = function (params) {
   const formattedText = this.replace(/@(\w+)/g, (match, key) => {
-    if (params.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(params, key)) {
       return params[key];
     } else {
       console.warn(`Key "${key}" not found in params`);
@@ -706,15 +707,6 @@ window.electronAPI.handleMathFormat((math_statu) => {
   }
 })
 
-function response_success(id) {
-  var elements = document.querySelectorAll(`[data-id="${id}"]`);
-  elements.forEach(function (element) {
-    if (element.getAttribute('data-role') === 'system') {
-      element.remove();
-    }
-  });
-}
-
 function getIcon(is_plugin) {
   return is_plugin ? "api" : "ai";
 }
@@ -737,6 +729,8 @@ function addEventStop(messageSystem, id) {
   const btn = messageSystem.getElementsByClassName("btn")[0];
   btn.addEventListener("click", () => {
     window.electronAPI.streamMessageStop(id);
+    if (global.seconds_timer)
+      clearInterval(global.seconds_timer);
     thinking.remove();
     typesetMath();
     menuEvent(messageSystem, message_content.dataset.content);
@@ -878,7 +872,7 @@ async function showConfig() {
   const config = await window.electronAPI.getConfig();
   ai_model.innerHTML = null;
   for (const model in config.models) {
-    if (config.models[model].hasOwnProperty("api_key")) {
+    if (Object.prototype.hasOwnProperty.call(config.models[model], "api_key")) {
       if (!api_url.value && !api_key.value) {
         api_url.value = config.models[model]?.api_url || null;
         api_key.value = config.models[model]?.api_key || null;
@@ -896,7 +890,7 @@ async function showConfig() {
   document.getElementById('ssh-port').value = config.tool_call.ssh_config?.port || null;
   document.getElementById('ssh-username').value = config.tool_call.ssh_config?.username || null;
   document.getElementById('ssh-password').value = config.tool_call.ssh_config?.password || null;
-  document.getElementById('ssh-enabled').value = !!config.tool_call.ssh_config?.enabled || null;
+  document.getElementById('ssh-enabled').checked = !!config.tool_call.ssh_config?.enabled || null;
   document.getElementById('cli-prompt').value = config.plugins.cli_execute.params.cli_prompt || null;
   document.getElementById('mcp_server-biotools-url').value = config.mcp_server.biotools.url || null;
   document.getElementById('mcp_server-biotools-enabled').checked = !!config.mcp_server.biotools.enabled || null;
@@ -999,7 +993,8 @@ function addChatItem(chat) {
   const item = createElement(new_item.replaceAll("@id", chat.id));
   item.getElementsByClassName("history-text")[0].innerText = chat.name;
   item.id = chat.id;
-  history_list.appendChild(item);
+  // 插入到history_list头部
+  history_list.insertBefore(item, history_list.firstChild);
 }
 
 async function newChat() {
@@ -1049,11 +1044,9 @@ function showHistoryMenu(event, chatId) {
 
   const menu = event.currentTarget.querySelector('.history-menu-dropdown');
   menu.style.display = 'block';
-  currentChatId = chatId;
+  global.chat.id = chatId;
 }
 
-// 添加对话框控制逻辑
-let currentChatId = null;
 const renameDialog = document.getElementById('renameDialog');
 const renameInput = document.getElementById('renameInput');
 
@@ -1071,21 +1064,33 @@ async function confirmRename() {
   const newName = renameInput.value.trim();
   if (newName) {
     // 这里调用Electron主进程或执行重命名逻辑
-    console.log(`重命名对话 ${currentChatId} 为: ${newName}`);
-    await window.electronAPI.renameChat({ id: currentChatId, name: newName });
+    console.log(`重命名对话 ${global.chat.id} 为: ${newName}`);
+    await window.electronAPI.renameChat({ id: global.chat.id, name: newName });
     // 实际更新UI...
     const items = history_list.getElementsByClassName("history-item");
     [...items].forEach(item_ => {
-      if (item_.id == currentChatId)
+      if (item_.id == global.chat.id)
         item_.getElementsByClassName("history-text")[0].innerText = newName;
     });
   }
   hideDialog();
 }
 
+window.electronAPI.handleAutoRenameChat(async (chat) => {
+  global.chat.id = chat.id;
+  console.log(`重命名对话 ${global.chat.id} 为: ${chat.name}`);
+  await window.electronAPI.renameChat({ id: global.chat.id, name: chat.name });
+  // 实际更新UI...
+  const items = history_list.getElementsByClassName("history-item");
+  [...items].forEach(item_ => {
+    if (item_.id == global.chat.id)
+      item_.getElementsByClassName("history-text")[0].innerText = chat.name;
+  });
+})
+
 // 修改后的重命名函数
 function renameChat(chatId) {
-  currentChatId = chatId;
+  global.chat.id = chatId;
   showDialog();
 }
 

@@ -206,44 +206,97 @@ Usage:
 }}
 
 ## memory_retrieval
-Description: The memory retrieval tool (memory_retrieval) is designed to:
-1. Reload Historical Data: Access complete details of past tool calls including parameters, execution results and contextual information.
-2. Troubleshoot Issues: Compare current operations with historical successful records to identify potential errors.
-3. Continue Analyses: Seamlessly resume interrupted workflows by restoring exact previous states.
-4. Ensure Consistency: Validate multi-step analysis processes by cross-referencing with historical outputs.
-5. Context Reconstruction: Rebuild complete conversation context at any recorded point in time.
-6. Performance Optimization: Retrieve cached results to avoid redundant computations.
+Core Function: Query historical interactions by memory_id
+
+Typical Scenarios:
+1. Review analysis steps
+2. Verify historical discussions
+3. Resume previous work
 
 Parameters:
-- memory_id: (Required) Unique identifier for a specific historical interaction.
+- memory_id: (Required)
   - Type: Integer
-  - Description: Unique identifier for a specific historical interaction
-  - Valid values: 
-    * Numerical IDs from Memory List
-  - Format: Must match existing memory_id in Memory List
+  - Values: Numeric IDs from Memory List
+  - Example: 42
 
-Usage:
+Usage Example:
 {{
-  "thinking": "[Explain purpose of this retrieval and how it will be used in current analysis]",
+  "thinking": "Need to confirm previous discussion about X",
   "tool": "memory_retrieval",
   "params": {{
-    "memory_id": "[valid_memory_id]"
+    "memory_id": 24
   }}
 }}
 
+Best Practices:
+• Add memory tags for key milestones
+• Check available records with list_memories
+• Create checkpoints regularly
+
 ## enter_idle_state  
-Description: Stop the current task and enter idle state, waiting for further user instructions (called when the task is judged as completed).  
+Description: Stop current task and enter idle state, waiting for further instructions (called when task is completed).
+
+Key Enhancements:
+1. Enhanced summary structure
+2. Added bilingual parameter descriptions
+3. Included complete template
 
 Parameters:
-- final_answer: (Required, Markdown format)  
-  - Summarize and present the final result in a structured way.  
-  - Use headings (\`##\`/\`###\`), lists, tables, or code blocks for clarity.  
-  - Highlight key findings first, then provide supporting details if needed.  
+- final_answer: (Required, Markdown format)
+  - Structured result presentation
+  - Must include:
+    1. **Task Overview**: Restate original objectives
+    2. **Execution Process**: Key steps and decisions
+    3. **Result Analysis**: Quantitative metrics and quality assessment
+    4. **Improvement Suggestions**: Optimization directions
+  - Format requirements:
+    - Use headings (\`##\`/\`###\`)
+    - Highlight key findings first
+    - Use tables/code blocks for complex data
+
+Standard Template:
+\`\`\`markdown
+## Task Summary
+
+### Objective Completion
+- Original requirements: [Brief restatement]
+- Completion rate: [Percentage]
+- Key achievements: [List]
+
+### Execution Analysis
+1. Main phases:
+   - Phase 1: [Description]
+   - Phase 2: [Description]
+2. Key decisions:
+   - [Decision] → [Rationale]
+
+### Quality Assessment
+| Dimension | Rating(1-5) | Comments |
+|-----------|------------|----------|
+| Accuracy  | ⭐⭐⭐⭐ | [Evaluation] |
+| Efficiency| ⭐⭐⭐ | [Evaluation] |
+
+### Optimization Suggestions
+1. Immediate improvements:
+   - [Suggestion 1]
+   - [Suggestion 2]
+2. Long-term optimizations:
+   - [Suggestion 3]
+\`\`\`
 
 Usage:
 {{
-  "thinking": "[Task completed, generating final report...]",
+  "thinking": "Task analysis completed. Key steps:\n1. Executed 3 code analyses\n2. Performed 2 file searches\n3. Validated architecture patterns",
   "tool": "enter_idle_state",
+  "params": {{
+    "final_answer": "## System Analysis Report\n\n### Core Findings\n- Discovered scheduling mechanism in module X\n- Identified 3 performance bottlenecks\n\n### Recommendations\n1. Implement caching for component Y\n2. Refactor Z module for better maintainability"
+  }}
+}}
+
+Best Practices:
+1. Include quantitative metrics in thinking field
+2. Structure final_answer with clear sections
+3. Use proper JSON escaping for special characters
   "params": {{
     "final_answer": "## Result Summary\n\n✅ **Best Solution**: \`Option A\` (+20% efficiency)\n\n### Comparison\n| Option | Efficiency | Risk |\n|--------|------------|------|\n| A      | +20%       | Low  |\n| B      | +15%       | Medium |\n\n### Calculation Logic\n1. Data source: \`2023 Annual Report\`\n2. Model: \`\`\`python\ndef roi_calc(...)\`\`\`"
   }}
@@ -400,64 +453,69 @@ Example Execution Flow:
 
 ===
 
-# Memory List Explanation
+# Memory List Usage Guide
 
-## Basic Concepts
+## Core Concepts
 1. **What is Memory List**
    - Each user-assistant interaction generates a unique \`memory_id\`
-   - These \`memory_id\`s are sequentially arranged to form complete interaction history
+   - These \`memory_id\`s form a complete interaction history in sequence
    - Essentially our "conversation memory bank"
 
 2. **Function of memory_retrieval tool**
-   - Specialized query tool for viewing detailed historical interaction information
+   - Specialized tool for querying historical interaction details
    - Can be understood as a "conversation recall" function
 
-## Usage Scenarios (When to call)
-1. **Backtracking analysis**: When needing to reference previous analysis steps
-2. **Content verification**: When user questions involve historically discussed content
-3. **Detail confirmation**: When needing to understand specific parameters/results of historical tool calls
-4. **Repeat operations**: Before executing the same tool again, first check previous execution results
+## Usage Scenarios
+✅ **Backtracking analysis**: When needing to reference previous analysis steps
+✅ **Content verification**: When user questions involve historical discussions
+✅ **Detail confirmation**: When needing to check historical tool call parameters/results
+✅ **Repeat operations**: Before re-executing the same tool, check previous results
 
-## Important Notes
-- Memory capacity: System saves complete interaction history but with storage limits
-- Query method: Can only be accessed via memory_retrieval tool
-- Automatic recording: All user queries and tool calls are automatically saved
+## Technical Notes
+⚠️ **Important Notes**
+- Memory capacity: System saves complete history with storage limits
+- Query method: Only accessible via memory_retrieval tool
+- Automatic recording: All user queries and tool calls are auto-saved
 
-## Usage Recommendation
-**For users**:
-When needing to reference previous content in conversation, you can say: "Please check our previous discussion about XX", and I'll use memory_retrieval tool.
+## Best Practices
+🔧 **User Recommendations**
+When needing to reference previous content, say: "Please check our previous discussion about XX", I'll use memory_retrieval.
 
-**For AI autonomous calls**:
-I will automatically invoke memory_retrieval when:
-1. Detecting repeated questions or similar requests
+🤖 **AI Auto-call Scenarios**
+I automatically invoke memory_retrieval when:
+1. Detecting repeated or similar questions
 2. Needing to maintain conversation continuity
-3. Required to verify historical tool execution parameters
-4. Asked to summarize or continue previous work
-5. Encountering ambiguous references that need context clarification
+3. Requiring historical tool parameter verification
+4. Asked to summarize/continue previous work
+5. Encountering ambiguous references needing clarification
 
-Example autonomous call situations:
-- "Let me check our previous analysis steps..."
-- "I'll verify the parameters used last time..."
-- "Based on our earlier discussion about XX..."
-
-Example Usage Scenarios:
-1. Retrieving parameters from previous successful run:
+## Practical Examples
+📌 **Example 1: Retrieving historical parameters**
+\`\`\`json
 {
-  "thinking": "Need to verify the exact parameters used in xxx successful analysis for consistency",
+  "thinking": "Need to verify exact parameters from previous successful analysis",
   "tool": "memory_retrieval",
   "params": {
     "memory_id": 12
   }
 }
+\`\`\`
 
-2. Retrieving the results from previous tool execution:
+📌 **Example 2: Getting previous tool results**
+\`\`\`json
 {
-  "thinking": "Since the xxx file was not found, but I noticed that the xxx tool has been successfully executed in the memory of previous conversations, and I can directly retrieve the results of its execution.",
+  "thinking": "Although xxx file wasn't found, I noticed xxx tool was successfully executed before and can retrieve its results directly",
   "tool": "memory_retrieval",
   "params": {
     "memory_id": 24
   }
 }
+\`\`\`
+
+💡 **Usage Tips**
+• Add memory tags for key milestones
+• Create checkpoints regularly
+• Use list_memories to view available records
 
 ====
 
@@ -631,10 +689,9 @@ Example Usage Scenarios:
     pushMessage("assistant", content, data.id, ++this.memory_id);
     try {
       const tool_info = JSON5.parse(content);
-      if (tool_info?.thinking) {
-        data.event.sender.send('stream-data', { id: data.id, memory_id: this.memory_id, content: `${tool_info.thinking}\n\n---\n\n` });
-      }
       if (tool_info?.tool) {
+        const thinking = `${tool_info?.thinking||`Tool call: ${tool_info.tool}`}\n\n---\n\n`
+        data.event.sender.send('stream-data', { id: data.id, memory_id: this.memory_id, content: thinking }); 
         return tool_info;
       }
     } catch (error) {
@@ -674,6 +731,9 @@ Example Usage Scenarios:
           i = parseInt(i);
           if (Object.hasOwnProperty.call(messages, i)) {
             let { role, content, id, memory_id, react, del } = messages[i];
+            if (memory_id === 188) {
+              console.log(`Memory ID: ${memory_id}, Content: ${content}`);
+            }
             if (role == "user") {
               if (react) {
                 const content_json = utils.extractJson(content);
@@ -700,8 +760,8 @@ Example Usage Scenarios:
                 try {
                   content = utils.extractJson(content) || content;
                   const tool_info = JSON5.parse(content);
-                  if (tool_info?.thinking) {
-                    const thinking = `${tool_info.thinking}\n\n---\n\n`
+                  if (tool_info?.tool) {
+                    const thinking = `${tool_info?.thinking||`Tool call: ${tool_info.tool}`}\n\n---\n\n`
                     let content_format = content.replaceAll("\\`", "'").replaceAll("`", "'");
                     this.window.webContents.send('info-data', { id: id, memory_id: memory_id, content: `Step ${i}, id: ${id}, memory_id: ${memory_id}, Output:\n\n\`\`\`json\n${content_format}\n\`\`\`\n\n`, del: del });
                     this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: thinking, end: true, del: del });
@@ -710,6 +770,7 @@ Example Usage Scenarios:
                     }
                   }
                 } catch {
+                  this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: "", end: true, del: del });
                   continue;
                 }
               } else {

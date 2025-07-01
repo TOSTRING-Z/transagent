@@ -22,7 +22,7 @@ function shouldExclude(path) {
 }
 
 
-function main(params = { threshold: 1000 }) {
+function main(params) {
   return ({ path, recursive = false, regex = null }) => {
     const regexObj = regex ? new RegExp(regex) : null;
     try {
@@ -58,21 +58,40 @@ function main(params = { threshold: 1000 }) {
 
 function getPrompt() {
   const prompt = `## list_files
-Description: Retrieves directory contents with flexible filtering options.
+Description: Recursively scans directory structures with advanced filtering capabilities. Supports exclusion of common development artifacts and binary files.
+
+Key Features:
+- Recursive directory traversal (when enabled)
+- Regex pattern matching for filenames
+- Built-in exclusion of:
+  - IDE config files (.vscode/, .idea/)
+  - Cache directories (.cache/, .npm/)
+  - Media files (.gif, .mp4, etc)
+  - Binary files (.exe, .dll, etc)
+  - Documents (.pptx, etc)
 
 Parameters:
-- path: (Required) Absolute path of target directory
-- recursive: (Optional, default=false) When true, includes all subdirectory contents
-- regex: (Optional) Filters results by filename pattern (case-sensitive)
+- path: (Required) Absolute filesystem path to target directory
+- recursive: (Optional) Enable recursive subdirectory scanning (default=false)
+- regex: (Optional) Filter files by name using regular expression
 
-Usage:
+Best Practices:
+1. For large directories, first run without recursion
+2. Use specific regex patterns to narrow results
+3. Combine with search_files for content-based searches
+4. Results limited to 1000 items by default
+
+Output Format:
+Returns array of absolute file paths or error message string
+
+Usage Example:
 {
-  "thinking": "[Brief justification for using this tool]",
+  "thinking": "Need to find all JavaScript files in src directory",
   "tool": "list_files",
   "params": {
-    "path": "[valid_directory_path]",
-    "recursive": [true|false],
-    "regex": "[pattern]"
+    "path": "/project/src",
+    "recursive": true,
+    "regex": "\\.js$"
   }
 }`
   return prompt

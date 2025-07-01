@@ -1,7 +1,7 @@
 const { Window } = require("./Window")
 const { Plugins } = require('./Plugins');
 const { store, global, inner, utils } = require('./globals')
-const { clearMessages, saveMessages, toggleMessage, toggleMemory, stopMessage, getStopIds } = require('../server/llm_service');
+const { clearMessages, saveMessages, toggleMessage, toggleMemory, stopMessage, getStopIds, pushMessage, popMessage } = require('../server/llm_service');
 const { captureMouse } = require('../mouse/capture_mouse');
 const { State } = require("../server/agent.js")
 const { ToolCall } = require('../server/tool_call');
@@ -126,6 +126,24 @@ class MainWindow extends Window {
         })
 
         global.last_clipboard_content = clipboard.readText();
+    }
+
+    async setChatName(data) {
+        const data_copy = utils.copy(data);
+        // 调用大模型自动生成聊天名称
+        const content =`Generate a short ${data.language||"Chinese"} chat name based on context. Return name only (strictly no JSON/XML/formatting). Requirements: max 10 chars, must contain letters, no pure numbers/symbols/spaces.`;
+        data_copy.push_message = false;
+        pushMessage("user", content, data_copy.id, this.tool_call.memory_id);
+        data_copy.return_response = true;
+        delete data_copy.llm_parmas.response_format;
+        data_copy.system_prompt = `You are an intelligent assistant skilled at generating short chat names based on contextual content. Please ensure the generated names are concise and clear, accurately reflecting the chat content.`;
+        const result = await this.tool_call.llmCall(data_copy);
+        popMessage(); // 删除输入消息
+        if (result) {
+            global.chat.name = data_copy.output;
+            this.setHistory();
+            this.window.webContents.send('auto-rename-chat', {id: global.chat.id, name: global.chat.name});
+        }
     }
 
     setup() {
@@ -279,6 +297,9 @@ class MainWindow extends Window {
                     _event.sender.send('info-data', { id: data.id, content: info });
                 }
             }
+            if (!global.chat.name) {
+                global.chat.name = await this.setChatName(data)
+            }
         })
 
         ipcMain.handle("toggle-message", async (_event, data) => {
@@ -321,11 +342,13 @@ class MainWindow extends Window {
             clearMessages();
             this.window.webContents.send('clear');
             global.chat.id = utils.getChatId();
-            global.chat.name = utils.formatDate();
+            global.chat.name = null;
             global.chat.tokens = 0;
             global.chat.seconds = 0;
             this.setHistory();
-            return global.chat
+            let chat = utils.copy(global.chat);
+            chat.name = utils.formatDate();
+            return chat;
         })
 
         ipcMain.handle('load-chat', (_event, id) => {
@@ -614,6 +637,7 @@ class MainWindow extends Window {
                         click: () => {
                             clearMessages();
                             this.window.webContents.send('clear')
+                            global.chat.name = null;
                             this.setHistory();
                         }
                     },
@@ -641,7 +665,7 @@ class MainWindow extends Window {
                     {
                         label: 'Load Conversation',
                         click: () => {
-                            const lastPath = store.get('lastSavePath') || utils.getDefault("history/");
+                            const lastPath = store.get('lastLoadPath') || utils.getDefault("history/");
                             dialog.showOpenDialog(this.window, {
                                 defaultPath: lastPath,
                                 filters: [
@@ -650,6 +674,7 @@ class MainWindow extends Window {
                                 ]
                             }).then(result => {
                                 if (!result.canceled) {
+                                    store.set('lastLoadPath', path.dirname(result.filePaths[0]));
                                     this.tool_call.load_message(this.window, result.filePaths[0])
                                 }
                             }).catch(err => {

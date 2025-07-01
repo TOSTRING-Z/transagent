@@ -76,17 +76,20 @@
     "dist:linux": "electron-builder --linux"
   },
   "dependencies": {
+    "@babel/parser": "^7.24.0",
+    "@babel/traverse": "^7.27.4",
     "@modelcontextprotocol/sdk": "^1.10.2",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
+    "cheerio": "^1.1.0",
     "electron-store": "^8.2.0",
+    "he": "^1.2.0",
     "jsdom": "^26.1.0",
     "json5": "^2.2.3",
     "officeparser": "^5.1.1",
     "ssh2": "^1.16.0",
     "string": "^3.3.3",
-    "xlsx": "^0.18.5",
-    "he": "^1.2.0"
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@electron-forge/cli": "^7.8.0",

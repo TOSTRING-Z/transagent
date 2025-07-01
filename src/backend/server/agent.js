@@ -8,7 +8,7 @@ String.prototype.format = function (data) {
         return new Function(...keys, `return \`$${template}\`;`)(...values);
     }
     
-    if (!!this) {
+    if (this) {
         let format_text = this.replaceAll("{{", "@bracket_left").replaceAll("}}", "@bracket_right");
         format_text = format_text.replace(/(\{.*?\})/g, (match, cmd) => {
             try {
@@ -39,12 +39,12 @@ class ReActAgent {
     }
 
     async retry(func, data) {
-        if (data.hasOwnProperty("output_format")) {
+        if (Object.prototype.hasOwnProperty.call(data, "output_format")) {
             data.input = data.output_format;
         } else {
             data.input = data.query;
         }
-        if (data.hasOwnProperty("prompt_format")) {
+        if (Object.prototype.hasOwnProperty.call(data, "prompt_format")) {
             data.system_prompt = data.prompt_format;
         } else {
             data.system_prompt = data.prompt;
@@ -60,14 +60,14 @@ class ReActAgent {
             }
             try {
                 let output = await func(data);
-                if (!!output) {
+                if (output) {
                     return output;
                 }
                 else {
                     count++;
                     await utils.delay(2);
                 }
-            } catch (_error) {
+            } catch {
                 count++;
                 await utils.delay(2);
             }
@@ -81,7 +81,7 @@ class ReActAgent {
         data.params = utils.getConfig("models")[data.model].versions.find(version => {
             return typeof version !== "string" && version.version === data.version;
         });
-        if (data.params?.hasOwnProperty("llm_parmas"))
+        if (Object.prototype.hasOwnProperty.call(data.params, "llm_parmas"))
             data.llm_parmas = data.params.llm_parmas;
         if (data.prompt_template)
             data.prompt_format = data.prompt_template.format(data);
@@ -104,7 +104,7 @@ class ReActAgent {
     
     get_info(data) {
         const output_format = utils.copy(data.output_format);
-        data.output_format = data.output_format?.replaceAll("\`","'").replaceAll("`","'");
+        data.output_format = data.output_format?.replaceAll("\\`","'").replaceAll("`","'");
         let info = utils.getConfig("info_template").format(data);
         data.output_format = output_format;
         console.log(info);

@@ -21,6 +21,14 @@ function pushMessage(role, content, id, memory_id, show = true, react = true) {
     messages.push(message);
 }
 
+function popMessage() {
+    if (messages.length > 0) {
+        return messages.pop();
+    } else {
+        return null;
+    }
+}
+
 function envMessage(content) {
     return { role: "user", content: content };
 }
@@ -313,8 +321,9 @@ async function chatBase(data) {
                         }
                     }
                 }
-                if (!data?.react)
+                if (!data?.react && !data?.return_response) {
                     data.event.sender.send('stream-data', { id: data.id, content: content, end: false });
+                }
             }
             data.output = message_output.content;
         } else {
@@ -324,8 +333,8 @@ async function chatBase(data) {
                 headers: headers,
                 body: JSON.stringify(body),
             });
-            respJson = await resp.json();
-            if (Object.prototype.hasOwnProperty.call(respJson, "error")) {
+            let respJson = await resp.json();
+            if (Object.prototype.hasOwnProperty.call(respJson, "error") && !data?.return_response) {
                 data.event.sender.send('info-data', { id: data.id, content: `POST Error:\n\n\`\`\`\n${respJson.error?.message}\n\`\`\`\n\n` });
                 return null;
             }
@@ -343,6 +352,8 @@ async function chatBase(data) {
         if (data.end) {
             messages.push(message_input);
             messages.push(message_output);
+            if (data?.return_response)
+                return true;
             if (!data?.react)
                 data.event.sender.send('stream-data', { id: data.id, content: "", end: true });
             else
@@ -357,11 +368,12 @@ async function chatBase(data) {
         return data.output;
     } catch (error) {
         console.log(error)
-        data.event.sender.send('info-data', { id: data.id, content: `Response error: ${error.message}\n\n` });
+        if (!data?.return_response)
+            data.event.sender.send('info-data', { id: data.id, content: `Response error: ${error.message}\n\n` });
         return null;
     }
 }
 
 module.exports = {
-    chatBase, clearMessages, saveMessages, loadMessages, toggleMessage, toggleMemory, stopMessage, getStopIds, pushMessage, getMessages, envMessage, setTag
+    chatBase, clearMessages, saveMessages, loadMessages, toggleMessage, toggleMemory, stopMessage, getStopIds, pushMessage, getMessages, popMessage, envMessage, setTag
 };

@@ -4,7 +4,9 @@ const fs = require('fs')
 
 // 根据操作系统选择可执行文件
 function getExecutablePath() {
+  // eslint-disable-next-line no-undef
   const platform = process.platform
+  // eslint-disable-next-line no-undef
   const executableDir = path.join(__dirname, 'bin')
 
   let executableName

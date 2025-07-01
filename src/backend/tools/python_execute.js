@@ -27,6 +27,7 @@ function main(params) {
             frame: false, // 隐藏默认标题栏和边框
             transparent: true, // 可选：实现透明效果
             resizable: true, // 允许调整窗口大小
+            // eslint-disable-next-line no-undef
             icon: path.join(__dirname, 'icon/icon.ico'),
             webPreferences: {
                 nodeIntegration: true,
@@ -49,7 +50,7 @@ function main(params) {
             terminalWindow?.close()
         })
 
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const child = spawn(params.python_bin, [tempFile]);
             
             ipcMain.on('terminal-input', (event, input) => {
@@ -86,7 +87,7 @@ function main(params) {
             child.on('close', (code) => {
                 unlinkSync(tempFile);
                 setTimeout(() => {
-                    if (!!terminalWindow)
+                    if (terminalWindow)
                         terminalWindow.close();
                     resolve(JSON.stringify({
                         success: code === 0,

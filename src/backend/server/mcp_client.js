@@ -41,16 +41,16 @@ class MCPClient {
 
             const caps = this.client.getServerCapabilities();
             let description = "";
-            if (caps.hasOwnProperty("prompts")) {
+            if (Object.prototype.hasOwnProperty.call(caps, "prompts")) {
                 const prompts = await this.client.listPrompts();
-                if (!!prompts.prompts.length) {
+                if (prompts.prompts.length) {
                     description = prompts.prompts[0].description;
                     description = `\n\n${description}`;
                 }
             }
 
             let tools;
-            if (caps.hasOwnProperty("tools")) {
+            if (Object.prototype.hasOwnProperty.call(caps, "tools")) {
                 console.log('Listing tools...');
                 tools = await this.client.listTools();
                 console.log('Tools:', tools);
@@ -82,12 +82,12 @@ class MCPClient {
 
     async setTransport({ name, config }) {
         let enabled = true;
-        if (config.hasOwnProperty("enabled")) {
+        if (Object.prototype.hasOwnProperty.call(config, "enabled")) {
             enabled = config.enabled;
             delete config.enabled;
         }
-        if (!this.transports.hasOwnProperty(name) && enabled) {
-            if (config.hasOwnProperty("url")) {
+        if (!Object.prototype.hasOwnProperty.call(this.transports, name) && enabled) {
+            if (Object.prototype.hasOwnProperty.call(config, "url")) {
                 const transport = new SSEClientTransport(new URL(config.url));
                 this.transports[name] = transport;
             }

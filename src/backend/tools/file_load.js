@@ -17,11 +17,9 @@ function getFileExtension(filename) {
 
 function readLines(data, startLine, endLine, params) {
     const lines = data.split('\n');
-    if (!startLine || !endLine) {
-        data = data;
-    } else {
+    if (startLine && endLine) {
         data = lines.slice(Math.max(startLine - 1,0), Math.min(endLine,lines.length)).join('\n');
-    } 
+    }
     if (data.length > params.threshold) {
         return "Returned content is too large, please try another solution!";
     } else {
@@ -34,7 +32,7 @@ function main(params) {
         let dataBuffer = fs.readFileSync(file_path);
         switch (getFileExtension(file_path)) {
             case "docx": case "doc": case "pdf": case "odt": case "odp": case "ods": case "pptx": case "xlsx":
-                return new Promise((resolve, reject) => {
+                return new Promise((resolve) => {
                     officeParser.parseOfficeAsync(dataBuffer).then(function (data) {
                          resolve(readLines(data, startLine, endLine, params));
                     }).catch(function (error) {
@@ -42,17 +40,19 @@ function main(params) {
                         resolve(error.message);
                     });
                 })
-            default:
+            default: {
                 const data = dataBuffer.toString();
                 if (startLine && endLine) {
                     return readLines(data, startLine, endLine, params);
                 }
                 return data;
+            }
         }
     }
 }
 
 if (require.main === module) {
+    // eslint-disable-next-line no-undef
     const file_path = process.argv[2];
     main({ threshold: 10000 })({ file_path }).then(result => {
         console.log(result);

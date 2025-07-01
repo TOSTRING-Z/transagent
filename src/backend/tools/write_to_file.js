@@ -1,13 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 
-async function main({ file_path, context }) {
+async function main({ file_path, content }) {
     try {
         const dir = path.dirname(file_path);
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
-        await fs.writeFileSync(file_path, context);
+        await fs.writeFileSync(file_path, content);
         return `File ${file_path} saved successfully`;
     } catch (error) {
         return `File ${file_path} save failed: ${error.message}`;

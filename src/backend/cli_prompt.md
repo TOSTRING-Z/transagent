@@ -23,7 +23,22 @@ The current tool can be used for complex bioinformatics analysis workflows, incl
 - **BETA**: Find target genes with only binding data (regulatory potential score)  
   - Input: `input.bed`  
   - Output: `output_dir`  
-  - Use: `awk '{print $1"\t"$2"\t"$3}' input.bed > BETA_input.bed && BETA minus -p BETA_input.bed -g hg38 -n BETA_targets -o output_dir`  
+  - Use: `awk '{print $1"\t"$2"\t"$3}' input.bed > BETA_input.bed && BETA minus -p BETA_input.bed -g hg38 -n BETA_targets -o output_dir`
+
+- **ABC**: Identifies TF-enhancer-driven target genes by integrating chromatin accessibility (ATAC-seq), enhancer activity (H3K27ac), and Hi-C data.
+  - Input: `TF names`  
+  - Output: `output.txt`  
+  - Use: `python /data/abc/abc_chipseq.py -o /data/aracne/output -t "TP53,ESR1"`
+
+- **ARACNe**: Infers TF-target gene interactions from gene expression data using mutual information (MI) and data processing inequality (DPI).
+  - Input: `TF names`  
+  - Output: `output.txt`  
+  - Use: `python /data/aracne/aracne.py -e /data/exp/normal_tissue_GTEx.txt -t "ESR1,FOXA1" -o /data/aracne/output`
+
+- **GENIE3**: Predicts co-expression-based TF-target networks using random forest regression.
+  - Input: `TF names`  
+  - Output: `output.txt`  
+  - Use: `Rscript /data/genie3/GENIE3_network.R -e /data/exp/normal_tissue_GTEx.txt -t "ESR1,FOXA1" -o /data/genie3/network_TF.txt`
 
 - **TRAPT**: Identify key transcriptional regulators for a set of genes in humans  
   - Input: `genes.txt` (a single column of gene names)  
@@ -97,7 +112,7 @@ The current tool can be used for complex bioinformatics analysis workflows, incl
     - `-S` can specify multiple `bw` files, and use `--samplesLabel` in `plotHeatmap` and `plotProfile` to set subtitles (e.g., `--samplesLabel label-1 label-2`).  
     - `-R` can specify multiple `bed` files, and use `--regionsLabel` in `plotHeatmap` and `plotProfile` to set subtitles (e.g., `--regionsLabel label-1 label-2`).  
     - `--perGroup`: The default is to plot all groups of regions by sample. Using this option instead plots all samples by group of regions. Note that this is only useful if you have multiple groups of regions. by sample rather than group.
-    - `--colorMap`: Color map to use for the heatmap (e.g. –colorMap BrBG).
+    - `--colorMap`: Color map to use for the heatmap (e.g. --colorMap BrBG).
     - If a control group exists, please include it in the plotting as well.
 
 - **ucsc-liftover**: Genome coordinate conversion  
