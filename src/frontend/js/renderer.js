@@ -48,7 +48,8 @@ let global = {
   scroll_top: {
     info: true,
     data: true,
-  }
+  },
+  chunk_id: null,
 };
 
 messages.addEventListener('mouseenter', () => {
@@ -291,14 +292,6 @@ function showLog(log) {
   setInterval(() => { newElement.remove() }, 2000)
 }
 
-function copy_message(raw) {
-  navigator.clipboard.writeText(raw).then(() => {
-    showLog('Copy successful');
-  }).catch(err => {
-    console.error('Copy failed', err);
-  });
-}
-
 function getTokens(text) {
   // 1. 先处理转义字符（可选，根据需求）
   const normalizedText = text
@@ -350,97 +343,104 @@ function userAdd(data) {
 
 function infoAdd(info) {
   const messageSystem = document.querySelectorAll(`[data-id='${info.id}']`)[1];
-  const info_content = messageSystem.getElementsByClassName('info-content')[0];
-  const info_div = messageSystem.getElementsByClassName('info')[0];
-  if (info_div && info_div.classList.contains('hidden')) {
-    info_div.classList.remove('hidden');
-  }
-  if (info.content) {
-    if (global.seconds_timer) {
-      global.chat.tokens += getTokens(info.content);
-      tokens.innerText = global.chat.tokens;
+  if (messageSystem) {
+    const info_content = messageSystem.getElementsByClassName('info-content')[0];
+    const info_div = messageSystem.getElementsByClassName('info')[0];
+    if (info_div && info_div.classList.contains('hidden')) {
+      info_div.classList.remove('hidden');
     }
-    let info_item_content = marked.parse(info.content);
-    let info_item = createElement(`<div info_data-id="${info.memory_id}">
-  <div class="info-item">
-  </div>
-</div>`);
-    if (info?.del)
-      info_item.classList.add("del");
-    info_item.getElementsByClassName('info-item')[0].innerHTML = info_item_content;
-    info_content.appendChild(info_item);
-    info_content.dataset.content += info.content;
-    if (global.scroll_top.info)
-      info_content.scrollTop = info_content.scrollHeight;
-    if (global.scroll_top.data)
-      top_div.scrollTop = top_div.scrollHeight;
+    if (info.content) {
+      if (global.seconds_timer) {
+        global.chat.tokens += getTokens(info.content);
+        tokens.innerText = global.chat.tokens;
+      }
+      let info_item_content = marked.parse(info.content);
+      let info_item = createElement(`<div info_data-id="${info.memory_id}">
+    <div class="info-item">
+    </div>
+  </div>`);
+      if (info?.del)
+        info_item.classList.add("del");
+      info_item.getElementsByClassName('info-item')[0].innerHTML = info_item_content;
+      info_content.appendChild(info_item);
+      info_content.dataset.content += info.content;
+      if (global.scroll_top.info)
+        info_content.scrollTop = info_content.scrollHeight;
+      if (global.scroll_top.data)
+        top_div.scrollTop = top_div.scrollHeight;
+    }
   }
 }
 
 
 async function streamMessageAdd(chunk) {
   const messageSystem = document.querySelectorAll(`[data-id='${chunk.id}']`)[1];
-  const message_content = messageSystem.getElementsByClassName('message')[0];
-  if (chunk.content) {
-    if (global.seconds_timer) {
-      global.chat.tokens += getTokens(chunk.content);
-      tokens.innerText = global.chat.tokens;
+  if (messageSystem) {
+    const message_content = messageSystem.getElementsByClassName('message')[0];
+    if (chunk.content) {
+      if (global.seconds_timer) {
+        global.chat.tokens += getTokens(chunk.content);
+        tokens.innerText = global.chat.tokens;
+      }
+      optionDom?.remove();
+      let memory_id = Object.prototype.hasOwnProperty.call(chunk, "memory_id") ? chunk.memory_id : chunk.id;
+      console.log(`memory_id: ${memory_id}`)
+      console.log(`content: ${chunk.content}`)
+      console.log(`------------------------`)
+  
+      let chunk_content = null;
+      let chunk_item_content = null;
+      let chunk_item = null;
+      let chunk_item_query = message_content.querySelectorAll(`[chunk_data-id='${memory_id}']`);
+      if (chunk_item_query.length > 0) {
+        chunk_content = chunk_item_query[0].dataset.content + chunk.content;
+        chunk_item_content = marked.parse(chunk_content);
+        chunk_item = chunk_item_query[0];
+        chunk_item.dataset.content = chunk_content;
+        chunk_item.getElementsByClassName('chunk-content')[0].innerHTML = chunk_item_content;
+      } else {
+        chunk_item = createElement(`<div chunk_data-id="${memory_id}">
+    <div class="chunk-content"></div>
+    <div class="chunk-actions">
+      <button class="action-btn chunk-delete" title="删除">
+        <i class="far fa-trash-alt"></i>
+      </button>
+    </div>
+  </div>`);
+        if (chunk?.del)
+          chunk_item.classList.add("del");
+        chunk_content = chunk.content;
+        chunk_item_content = marked.parse(chunk_content);
+        chunk_item.dataset.content = chunk.content;
+        chunk_item.getElementsByClassName('chunk-content')[0].innerHTML = chunk_item_content;
+        chunk_item.getElementsByClassName('chunk-delete')[0].addEventListener("click", () => {
+          delete_memory(memory_id)
+        })
+        message_content.appendChild(chunk_item);
+      }
+      message_content.dataset.content += chunk.content;
+      if (global.scroll_top.data)
+        top_div.scrollTop = top_div.scrollHeight;
     }
-    optionDom?.remove();
-    let memory_id = Object.prototype.hasOwnProperty.call(chunk, "memory_id") ? chunk.memory_id : chunk.id;
-    console.log(`memory_id: ${memory_id}`)
-    console.log(`content: ${chunk.content}`)
-    console.log(`------------------------`)
-
-    let chunk_content = null;
-    let chunk_item_content = null;
-    let chunk_item = null;
-    let chunk_item_query = message_content.querySelectorAll(`[chunk_data-id='${memory_id}']`);
-    if (chunk_item_query.length > 0) {
-      chunk_content = chunk_item_query[0].dataset.content + chunk.content;
-      chunk_item_content = marked.parse(chunk_content);
-      chunk_item = chunk_item_query[0];
-      chunk_item.dataset.content = chunk_content;
-      chunk_item.getElementsByClassName('chunk-content')[0].innerHTML = chunk_item_content;
-    } else {
-      chunk_item = createElement(`<div chunk_data-id="${memory_id}">
-  <div class="chunk-content"></div>
-  <div class="chunk-actions">
-    <button class="action-btn chunk-delete" title="删除">
-      <i class="far fa-trash-alt"></i>
-    </button>
-  </div>
-</div>`);
-      if (chunk?.del)
-        chunk_item.classList.add("del");
-      chunk_content = chunk.content;
-      chunk_item_content = marked.parse(chunk_content);
-      chunk_item.dataset.content = chunk.content;
-      chunk_item.getElementsByClassName('chunk-content')[0].innerHTML = chunk_item_content;
-      chunk_item.getElementsByClassName('chunk-delete')[0].addEventListener("click", () => {
-        delete_memory(memory_id)
-      })
-      message_content.appendChild(chunk_item);
+    if (chunk.end) {
+      clearInterval(global.seconds_timer);
+      global.seconds_timer = null;
+      if (!messageSystem.dataset?.event_stop) {
+        messageSystem.dataset.event_stop = true;
+        const thinking = messageSystem.getElementsByClassName("thinking")[0];
+        thinking.remove();
+        typesetMath();
+      }
+      if (chunk.id == global.chunk_id) {
+        menuEvent(messageSystem, message_content.dataset.content);
+      } else {
+        global.chunk_id = chunk.id;
+      }
+      if (global.scroll_top.data)
+        top_div.scrollTop = top_div.scrollHeight;
     }
-    message_content.dataset.content += chunk.content;
-    if (global.scroll_top.data)
-      top_div.scrollTop = top_div.scrollHeight;
+    await window.electronAPI.setGlobal(global.chat);
   }
-  if (chunk.end) {
-    clearInterval(global.seconds_timer);
-    global.seconds_timer = null;
-    if (!messageSystem.dataset?.event_stop) {
-      messageSystem.dataset.event_stop = true;
-      const message_content = messageSystem.getElementsByClassName('message')[0];
-      const thinking = messageSystem.getElementsByClassName("thinking")[0];
-      thinking.remove();
-      typesetMath();
-      menuEvent(messageSystem, message_content.dataset.content);
-    }
-    if (global.scroll_top.data)
-      top_div.scrollTop = top_div.scrollHeight;
-  }
-  await window.electronAPI.setGlobal(global.chat);
 }
 
 
@@ -512,7 +512,12 @@ function menuEvent(messageSystem, raw) {
   del.classList.add("active");
   toggle.classList.add("active");
   copy.addEventListener("click", () => {
-    copy_message(raw);
+    navigator.clipboard.writeText(raw).then(() => {
+      showLog('Copy successful');
+      console.log(raw);
+    }).catch(err => {
+      console.log(err);
+    });
   })
   del.addEventListener("click", () => {
     delete_message(messageSystem.dataset.id);
@@ -725,9 +730,9 @@ window.electronAPI.userData((data) => {
 
 function addEventStop(messageSystem, id) {
   const message_content = messageSystem.getElementsByClassName('message')[0];
-  const thinking = messageSystem.getElementsByClassName("thinking")[0];
-  const btn = messageSystem.getElementsByClassName("btn")[0];
-  btn.addEventListener("click", () => {
+  const thinking = messageSystem?.getElementsByClassName("thinking")[0];
+  const btn = messageSystem?.getElementsByClassName("btn")[0];
+  btn?.addEventListener("click", () => {
     window.electronAPI.streamMessageStop(id);
     if (global.seconds_timer)
       clearInterval(global.seconds_timer);
@@ -804,7 +809,7 @@ window.electronAPI.handleOptions(({ options, id }) => {
   pause.style.display = "flex";
   options.forEach(value => {
     const option = option_template.format({ value, id });
-    option.addEventListener("click", async function (e) {
+    option.addEventListener("click", async function () {
       formData.query = value;
       formData.prompt = "";
       window.electronAPI.clickSubmit(formData);
@@ -991,7 +996,7 @@ const history_list = document.getElementById("history-list");
 
 function addChatItem(chat) {
   const item = createElement(new_item.replaceAll("@id", chat.id));
-  item.getElementsByClassName("history-text")[0].innerText = chat.name;
+  item.getElementsByClassName("history-text")[0].innerText = chat.name || "New Chat";
   item.id = chat.id;
   // 插入到history_list头部
   history_list.insertBefore(item, history_list.firstChild);

@@ -20,6 +20,7 @@ function main(params) {
         console.log(tempFile)
 
         let terminalWindow = null;
+        let child = null;
         // Create terminal window
         terminalWindow = new BrowserWindow({
             width: 800,
@@ -47,11 +48,13 @@ function main(params) {
         })
 
         ipcMain.on('close-window', () => {
+            child?.kill();
             terminalWindow?.close()
         })
 
         return new Promise((resolve) => {
-            const child = spawn(params.python_bin, [tempFile]);
+            child = spawn(params.python_bin, [tempFile]);
+            terminalWindow.webContents.send('terminal-data', `${code}\n`);
             
             ipcMain.on('terminal-input', (event, input) => {
                 if (!input) {

@@ -3,6 +3,10 @@ const he = require('he');
 const TRANSLATION_API_URL = 'https://fanyi.baidu.com/v2transapi'
 
 function decodeHtmlEntities(str) {
+    if (typeof str !== 'string') {
+        return str;
+    }
+    // Decode HTML entities like &amp;, &lt;, &gt;, etc.
     return str.replace(/&#x([0-9A-F]+);/gi, function (match, hex) {
         return String.fromCharCode(parseInt(hex, 16));
     });
@@ -61,38 +65,45 @@ function getMode(text) {
 // Result parsing
 function format(result) {
     try {
-        let text;
+        let text = '';
         if ('dict_result' in result) {
-            let en = result['dict_result']['simple_means']['symbols'][0]['ph_en']
-            let am = result['dict_result']['simple_means']['symbols'][0]['ph_am']
-            let word = result['dict_result']['simple_means']['word_means'].join(";")
-            text = `UK[${en}]\nUS[${am}]\n${word}`
+            let word = result['dict_result']['simple_means']?.word_means?.join(";")
+            if (word) {
+                let en = result['dict_result']['simple_means']['symbols'][0]['ph_en']
+                let am = result['dict_result']['simple_means']['symbols'][0]['ph_am']
+                if (en) 
+                    text += `UK[${en}]\n`
+                if (am)
+                    text += `US[${am}]\n`
+                if (word)   
+                    text += `${word}`
+            }
         }
-        else {
+        if ('trans_result' in result && !text) {
             text = result['trans_result']['data'].map((d) => {
                 return d['dst']
             }).join('\n')
         }
         return he.encode(text)
     } catch (error) {
-        console.log(error);
+        console.log(error.message);
         return null;
     }
 }
 
 async function main({ input }) {
     try {
-        let query_text = encodeURIComponent(input);
         let mode = getMode(input)
+        const sign = hash(input).toString();
         const params = new URLSearchParams();
         params.append('from', mode[0]);
         params.append('to', mode[1]);
-        params.append('sign', hash(input).toString());
+        params.append('sign', sign);
         params.append('simple_means_flag', '3');
         params.append('token', 'f1ea842a77d73327b3124c62454b13df');
         params.append('domain', 'common');
         params.append('transtype', 'realtime');
-        params.append('query', query_text);
+        params.append('query', input);
 
         const response = await fetch(TRANSLATION_API_URL, {
             method: 'POST',
@@ -113,7 +124,7 @@ async function main({ input }) {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
                 "X-Requested-With": "XMLHttpRequest",
             },
-            body: params.toString()
+            body: params.toString().replaceAll('+', '%20'),
         });
 
         const data = await response.json();

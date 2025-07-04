@@ -57,12 +57,15 @@ function saveMessages(filePath) {
             console.log(filePath);
         });
     } catch (error) {
-        console.log(error.message)
+        console.log(error)
     }
 }
 
 function loadMessages(filePath) {
     try {
+        if (!fs.existsSync(filePath)) {
+            return [];
+        }
         const data = fs.readFileSync(filePath, "utf-8");
         messages = JSON.parse(data);
         return messages.filter(message => message.show);

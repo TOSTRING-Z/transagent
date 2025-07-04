@@ -8,5 +8,6 @@ glm_token.py
 biotools/data/
 biotools/tmp/
 biotools/script/
+model/
 analysis
 run.md

@@ -45,7 +45,7 @@ class Utils {
                 if (stack.length === 0) {
                     const candidate = text.substring(startIndex, i + 1);
                     try {
-                        return JSON.stringify(JSON5.parse(candidate),null,2);
+                        return JSON.stringify(JSON5.parse(candidate), null, 2);
                     } catch {
                         // 继续扫描后续内容
                         startIndex = text.indexOf('{', i + 1);
@@ -66,12 +66,12 @@ class Utils {
         return new Promise(resolve => setTimeout(resolve, seconds * 1000));
     }
 
-    getDefault(name) {
+    getDefault(name = "") {
         return path.join(os.homedir(), '.transagent', name);
     }
 
     getConfig(key = null) {
-        const configFilePath = path.join(os.homedir(), '.transagent', 'config.json');
+        const configFilePath = this.getDefault('config.json');
         const data = fs.readFileSync(configFilePath, 'utf-8');
         let config = JSON.parse(data);
         if (key === null) {
@@ -94,7 +94,7 @@ class Utils {
     }
 
     setConfig(config) {
-        const configPath = path.join(os.homedir(), '.transagent', 'config.json');
+        const configPath = this.getDefault('config.json');
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2)); // 美化输出
         return true;
     }
@@ -134,13 +134,13 @@ class Utils {
 
         // 映射到友好名称
         const languageMap = {
-            'zh': 'You should answer in Chinese.',
-            'zh-CN': 'You should answer in Chinese.',
-            'zh-TW': 'You should answer in Chinese.',
-            'zh-HK': 'You should answer in Chinese.',
-            'en': 'You should answer in English.',
-            'en-US': 'You should answer in English.',
-            'en-GB': 'You should answer in English.'
+            'zh': 'chinese',
+            'zh-CN': 'chinese',
+            'zh-TW': 'chinese',
+            'zh-HK': 'chinese',
+            'en': 'english',
+            'en-US': 'english',
+            'en-GB': 'english'
         };
 
         // 尝试匹配完整代码，如果不匹配则尝试基础语言代码
@@ -171,30 +171,36 @@ class Utils {
     }
 
     getHistoryData() {
-        const historyFilePath = path.join(os.homedir(), '.transagent', 'history.json');
-        if (!fs.existsSync(historyFilePath)) {
-            return []
+        let historyConfigPath = this.getHistoryConfigPath();
+        if (!fs.existsSync(historyConfigPath)) {
+            if (!fs.existsSync(path.dirname(historyConfigPath))) {
+                fs.mkdirSync(path.dirname(historyConfigPath), { recursive: true });
+            }
+            return { data: [] }
         } else {
-            const data = fs.readFileSync(historyFilePath, 'utf-8');
+            const data = fs.readFileSync(historyConfigPath, 'utf-8');
             let historyData = JSON.parse(data);
-            return historyData.data
+            return historyData
         }
     }
 
     setHistoryData(historyData) {
-        const historyFilePath = path.join(os.homedir(), '.transagent', 'history.json');
-        fs.writeFileSync(historyFilePath, JSON.stringify({ data: historyData }, null, 2));
+        const historyConfigPath = this.getHistoryConfigPath();
+        fs.writeFileSync(historyConfigPath, JSON.stringify(historyData, null, 2));
+    }
+
+    getHistoryConfigPath() {
+        // eslint-disable-next-line no-undef
+        const history_path = this.getConfig("history_path")?.format(process) || this.getDefault();
+        const historyConfigPath = path.join(history_path, 'history.json');
+        return historyConfigPath;
     }
 
     getHistoryPath(id) {
         // eslint-disable-next-line no-undef
-        let history_path = this.getConfig("history_path")?.format(process);
-        if (!fs.existsSync(history_path)) {
-            history_path = path.join(os.homedir(), '.transagent', 'history/', `${id}.json`);
-        } else {
-            history_path = path.join(history_path, `${id}.json`);
-        }
-        return history_path;
+        const history_path = this.getConfig("history_path")?.format(process) || this.getDefault();
+        const history_file = path.join(history_path, 'history', `${id}.json`);
+        return history_file;
     }
 
     getChatInit() {

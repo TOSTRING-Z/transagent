@@ -1,5 +1,6 @@
 const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
 const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
+const { StreamableHTTPClientTransport } = require("@modelcontextprotocol/sdk/client/streamableHttp.js");
 const { SSEClientTransport } = require("@modelcontextprotocol/sdk/client/sse.js");
 
 class MCPClient {
@@ -7,7 +8,7 @@ class MCPClient {
         this.client = new Client(
             {
                 name: "mcp-client",
-                version: "1.0.0"
+                version: "1.1.0"
             },
             {
                 capabilities: {
@@ -81,20 +82,29 @@ class MCPClient {
     }
 
     async setTransport({ name, config }) {
-        let enabled = true;
-        if (Object.prototype.hasOwnProperty.call(config, "enabled")) {
-            enabled = config.enabled;
-            delete config.enabled;
+        let disabled = false;
+        if (Object.prototype.hasOwnProperty.call(config, "disabled")) {
+            disabled = config.disabled;
+            delete config.disabled;
         }
-        if (!Object.prototype.hasOwnProperty.call(this.transports, name) && enabled) {
+        if (!Object.prototype.hasOwnProperty.call(this.transports, name) && !disabled) {
+            let transport;
+            
             if (Object.prototype.hasOwnProperty.call(config, "url")) {
-                const transport = new SSEClientTransport(new URL(config.url));
-                this.transports[name] = transport;
+                if (Object.prototype.hasOwnProperty.call(config, "sse") && config.sse) {
+                    transport = new SSEClientTransport(
+                        new URL(config.url)
+                    );
+                } else {
+                    transport = new StreamableHTTPClientTransport(
+                        new URL(config.url)
+                    );
+                }
             }
             else {
-                const transport = new StdioClientTransport(config);
-                this.transports[name] = transport;
+                transport = new StdioClientTransport(config);
             }
+            this.transports[name] = transport;
         }
     }
 }

@@ -322,12 +322,12 @@ Environment details will specify the current mode, there are three modes:
 
 - In automatic mode, you can use tools other than plan_mode_response, waiting_feedback and ask_followup_question to complete the user's task, and the subsequent process does not need to ask the user questions until the mode changes.
 - When your environment changes from other modes to automatic mode, you should be aware that you do not need to ask the user questions in the subsequent process until the mode changes.
-- Once the task is completed, you use the terminate tool to show the task result to the user.
+- Once the task is completed, you use the enter_idle_state tool to show the task result to the user.
 
 **Execution Mode**: In this mode, you cannot use the plan_mode_response tool.
 
 - In execution mode, you can use tools other than plan_mode_response to complete the user's task.
-- Once the task is completed, you use the terminate tool to show the task result to the user.
+- Once the task is completed, you use the enter_idle_state tool to show the task result to the user.
 
 **Planning Mode**: In this restricted mode, you can only use the plan_mode_response tool and file/path query tools, but file modifications are strictly prohibited.
 
@@ -529,7 +529,7 @@ I automatically invoke memory_retrieval when:
     this.memory_list = [];
 
     this.env = `Environment details:
-- Language: {language}
+- Language: Please answer using {language}
 - Temporary folder: {tmpdir}
 - Current time: {time}
 - Current mode: {mode}`
@@ -765,7 +765,7 @@ I automatically invoke memory_retrieval when:
                     let content_format = content.replaceAll("\\`", "'").replaceAll("`", "'");
                     this.window.webContents.send('info-data', { id: id, memory_id: memory_id, content: `Step ${i}, id: ${id}, memory_id: ${memory_id}, Output:\n\n\`\`\`json\n${content_format}\n\`\`\`\n\n`, del: del });
                     this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: thinking, end: true, del: del });
-                    if (tool_info.tool == "terminate") {
+                    if (tool_info.tool == "enter_idle_state") {
                       this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: tool_info.params.final_answer, end: true, del: del });
                     }
                   }

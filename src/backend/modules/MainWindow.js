@@ -129,21 +129,27 @@ class MainWindow extends Window {
     }
 
     async setChatName(data) {
-        const data_copy = utils.copy(data);
-        // 调用大模型自动生成聊天名称
-        const content =`Generate a short ${data.language||"Chinese"} chat name based on context. Return name only (strictly no JSON/XML/formatting). Requirements: max 10 chars, must contain letters, no pure numbers/symbols/spaces.`;
-        data_copy.push_message = false;
-        pushMessage("user", content, data_copy.id, this.tool_call.memory_id);
-        data_copy.return_response = true;
-        delete data_copy.llm_parmas.response_format;
-        data_copy.system_prompt = `You are an intelligent assistant skilled at generating short chat names based on contextual content. Please ensure the generated names are concise and clear, accurately reflecting the chat content.`;
-        const result = await this.tool_call.llmCall(data_copy);
-        popMessage(); // 删除输入消息
-        if (result) {
-            global.chat.name = data_copy.output;
-            this.setHistory();
-            this.window.webContents.send('auto-rename-chat', {id: global.chat.id, name: global.chat.name});
+        if (data?.is_plugin) {
+            // 如果是插件调用
+            global.chat.name = utils.formatDate();
+        } else {
+            const data_copy = utils.copy(data);
+            // 调用大模型自动生成聊天名称
+            const content = `Generate a short ${data.language || utils.getLanguage()} chat name based on context. Return name only (strictly no JSON/XML/formatting). Requirements: max 20 chars, must contain letters, no pure numbers/symbols/spaces.`;
+            data_copy.push_message = false;
+            pushMessage("user", content, data_copy.id, this.tool_call.memory_id);
+            data_copy.return_response = true;
+            if (data_copy?.llm_parmas?.response_format)
+                delete data_copy.llm_parmas.response_format;
+            data_copy.system_prompt = `You are an intelligent assistant skilled at generating short chat names based on contextual content. Please ensure the generated names are concise and clear, accurately reflecting the chat content.`;
+            const result = await this.tool_call.llmCall(data_copy);
+            popMessage(); // 删除输入消息
+            if (result) {
+                global.chat.name = data_copy.output;
+            }
         }
+        this.setHistory();
+        this.window.webContents.send('auto-rename-chat', global.chat);
     }
 
     setup() {
@@ -354,7 +360,8 @@ class MainWindow extends Window {
         ipcMain.handle('load-chat', (_event, id) => {
             clearMessages();
             const history = this.loadHistory(id);
-            global.chat = history;
+            if (history)
+                global.chat = history;
             return history;
         })
 
@@ -493,9 +500,9 @@ class MainWindow extends Window {
         if (fs.existsSync(filePath)) {
             prompt = fs.readFileSync(filePath, 'utf-8');
         }
-        const chats = utils.getHistoryData();
+        const history_data = utils.getHistoryData();
         global.chat = utils.getChatInit();
-        this.window.webContents.send('init-info', { prompt, ...global, chats });
+        this.window.webContents.send('init-info', { prompt, ...global, chats: history_data.data });
     }
 
     updateVersionsSubmenu() {
@@ -623,6 +630,57 @@ class MainWindow extends Window {
                         label: 'Configuration',
                         click: async () => {
                             this.windowManager.configsWindow.create();
+                        }
+                    },
+                    {
+                        label: 'Save Configuration',
+                        click: () => {
+                            const lastPath = path.join(store.get('lastSaveConfigurationPath') || utils.getDefault(), 'config.json');
+                            dialog.showSaveDialog(this.window, {
+                                defaultPath: lastPath,
+                                filters: [
+                                    { name: 'JSON File', extensions: ['json'] },
+                                    { name: 'All Files', extensions: ['*'] }
+                                ]
+                            }).then(result => {
+                                if (!result.canceled) {
+                                    store.set('lastSaveConfigurationPath', path.dirname(result.filePath));
+                                    const config = utils.getConfig();
+                                    fs.writeFileSync(result.filePath, JSON.stringify(config, null, 2));
+                                    console.log('Configuration saved successfully.');
+                                }
+                            }).catch(err => {
+                                console.error(err);
+                            });
+                        }
+                    },
+                    {
+                        label: 'Load Configuration',
+                        click: () => {
+                            const lastPath = store.get('lastLoadConfigurationPath') || utils.getDefault();
+                            dialog.showOpenDialog(this.window, {
+                                defaultPath: lastPath,
+                                filters: [
+                                    { name: 'JSON File', extensions: ['json'] },
+                                    { name: 'All Files', extensions: ['*'] }
+                                ]
+                            }).then(result => {
+                                if (!result.canceled) {
+                                    store.set('lastLoadConfigurationPath', path.dirname(result.filePaths[0]));
+                                    // 复制配置文件到默认目录
+                                    const configFilePath = path.join(utils.getDefault(), 'config.json');
+                                    fs.copyFile(result.filePaths[0], configFilePath, (err) => {
+                                        if (err) {
+                                            console.error('Error copying configuration file:', err);
+                                        } else {
+                                            console.log('Configuration file copied successfully.');
+                                            this.windowManager.configsWindow.window?.webContents.send('load-config', configFilePath);
+                                        }
+                                    });
+                                }
+                            }).catch(err => {
+                                console.error(err);
+                            });
                         }
                     },
                     {
@@ -779,15 +837,22 @@ class MainWindow extends Window {
     }
 
     setHistory() {
-        if (!!global.chat.id && !!global.chat.name) {
+        if (global.chat.id) {
+            // 保存当前聊天记录到历史记录
+            if (global.chat.tokens == null) {
+                global.chat.tokens = 0;
+            }
+            if (global.chat.seconds == null) {
+                global.chat.seconds = 0;
+            }
             let history_data = utils.getHistoryData();
-            let history_exist = history_data.filter(history_ => history_.id == global.chat.id);
+            let history_exist = history_data.data.filter(history_ => history_.id == global.chat.id);
             if (history_exist.length == 0) {
                 const history = global.chat
-                history_data.push(history)
+                history_data.data.push(history)
                 utils.setHistoryData(history_data);
             } else {
-                history_data = history_data.map(history_ => {
+                history_data.data = history_data.data.map(history_ => {
                     if (history_.id == global.chat.id) {
                         history_ = global.chat
                     }
@@ -802,7 +867,7 @@ class MainWindow extends Window {
 
     delHistory(id) {
         let history_data = utils.getHistoryData();
-        history_data = history_data.filter(history => history.id != id);
+        history_data.data = history_data.data.filter(history => history.id != id);
         utils.setHistoryData(history_data);
     }
 
@@ -811,7 +876,7 @@ class MainWindow extends Window {
             global.chat.name = data.name;
         }
         let history_data = utils.getHistoryData();
-        history_data = history_data.map(history => {
+        history_data.data = history_data.data.map(history => {
             if (history.id == data.id) {
                 history.name = data.name;
             }
@@ -822,9 +887,9 @@ class MainWindow extends Window {
 
     loadHistory(id) {
         const history_path = utils.getHistoryPath(id);
-        this.tool_call.load_message(this.window, history_path);
+        this.tool_call.load_message(this.window, history_path);``
         const history_data = utils.getHistoryData();
-        const history = history_data.find(history_ => history_.id == id);
+        const history = history_data.data.find(history_ => history_.id == id);
         return history;
     }
 }

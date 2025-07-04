@@ -3,7 +3,7 @@
   "retry_time": 10,
   "icon_time": 5,
   "prompt": null,
-  "history_path": "{resourcesPath}/resources/history",
+  "history_path": null,
   "short_cut": "CommandOrControl+Shift+Space",
   "info_template": "Step: {step}, id: {id}, memory_id: {memory_id}, Call: {model}, Version: {version}, Output:\n\n```json\n{output_format}\n```\n\n",
   "llm_parmas": {
@@ -186,16 +186,17 @@
         "delay_time": 5,
         "threshold": 40
       },
-      "enabled": true
+      "disabled": false
     },
     "display_file": {
-      "enabled": true
+      "disabled": false
     }
   },
   "mcp_server": {
     "biotools": {
       "url": "http://127.0.0.1:3001/sse",
-      "enabled": true
+      "disabled": false,
+      "sse": true
     }
   },
   "tool_call": {
