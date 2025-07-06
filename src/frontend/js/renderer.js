@@ -185,7 +185,7 @@ let system_message = `<div class="relative space-y-2 space-x-2" data-role="syste
   </div>
   <div class="info hidden">
     <div class="info-header">Call information</div>
-    <div class="info-content" data-content=""></div>
+    <div class="info-content overflow-y-auto" data-content=""></div>
   </div>
   <div class="thinking">
     <div class="dot"></div>
@@ -430,11 +430,13 @@ async function streamMessageAdd(chunk) {
         const thinking = messageSystem.getElementsByClassName("thinking")[0];
         thinking.remove();
         typesetMath();
-      }
-      if (chunk.id == global.chunk_id) {
         menuEvent(messageSystem, message_content.dataset.content);
       } else {
-        global.chunk_id = chunk.id;
+        if (chunk.id == global.chunk_id) {
+          menuEvent(messageSystem, message_content.dataset.content);
+        } else {
+          global.chunk_id = chunk.id;
+        }
       }
       if (global.scroll_top.data)
         top_div.scrollTop = top_div.scrollHeight;
