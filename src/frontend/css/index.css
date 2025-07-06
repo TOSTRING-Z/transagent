@@ -571,9 +571,10 @@ body {
 }
 
 .btn {
-  border: 1px solid;
+  line-height: 1.2;
+  border: 1px solid #dedede;
   width: fit-content;
-  padding: 2px;
+  padding: 2px 5px;
   border-radius: 5px;
   background: white;
   font-size: small;
@@ -586,6 +587,12 @@ body {
   /* IE10+/Edge */
   user-select: none;
   /* Standard */
+}
+
+.btn.active {
+  background-color: #129124;
+  color: white;
+  border: none;
 }
 
 .ellipsis-div {

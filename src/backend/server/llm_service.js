@@ -12,7 +12,8 @@ function getStopIds() {
     return stop_ids;
 }
 
-function getMessages() {
+function getMessages(all=false) {
+    if (all) return messages;
     return messages.filter(message => !message?.del);
 }
 

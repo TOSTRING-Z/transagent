@@ -27,7 +27,10 @@ const global = {
     chat: utils.getChatInit(),
     last_clipboard_content: null,
     concat: false,
-    id: 0
+    id: 0,
+    status: {
+        auto_opt: false
+    }
 }
 
 

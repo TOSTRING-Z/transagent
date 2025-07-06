@@ -1,7 +1,7 @@
 const { Window } = require("./Window")
 const { Plugins } = require('./Plugins');
 const { store, global, inner, utils } = require('./globals')
-const { clearMessages, saveMessages, toggleMessage, toggleMemory, stopMessage, getStopIds, pushMessage, popMessage } = require('../server/llm_service');
+const { clearMessages, saveMessages, toggleMessage, toggleMemory, stopMessage, getStopIds, pushMessage, popMessage, getMessages } = require('../server/llm_service');
 const { captureMouse } = require('../mouse/capture_mouse');
 const { State } = require("../server/agent.js")
 const { ToolCall } = require('../server/tool_call');
@@ -13,6 +13,7 @@ const { JSDOM } = jsdom;
 const fs = require('fs');
 const path = require('path');
 const { Client } = require('ssh2');
+const JSON5 = require("json5");
 
 class MainWindow extends Window {
     constructor(windowManager) {
@@ -152,6 +153,34 @@ class MainWindow extends Window {
         this.window.webContents.send('auto-rename-chat', global.chat);
     }
 
+    async contextAutoOpt(user_input) {
+        const auto_optimization = inner.model_obj[inner.model_name.plugins][utils.getConfig('default')['auto_optimization']]?.func;
+        const messages = getMessages(true);
+        let memory_ids = [];
+        for (const key in messages) {
+            if (Object.hasOwnProperty.call(messages, key)) {
+                const message = messages[key];
+                const content_json = utils.extractJson(message.content)
+                if (!content_json) continue;
+                const content = JSON5.parse(content_json);
+                if (Object.prototype.hasOwnProperty.call(content,'thinking')) {
+                    const history = content['thinking'];
+                    const pred = await auto_optimization({ user_input, history });
+                    if (pred === null) {
+                        this.window.webContents.send('log', 'Error in loading context automatic optimization model!');
+                        break;
+                    }
+                    if (pred === 0) {
+                        message.del = true;
+                        memory_ids.push(message.memory_id);
+                    }
+                }
+            }
+        }
+        memory_ids = [...new Set(memory_ids)];
+        this.window.webContents.send('delete-memory', memory_ids);
+    }
+
     setup() {
 
         ipcMain.handle('get-file-path', async () => {
@@ -222,6 +251,9 @@ class MainWindow extends Window {
                 this.window.show();
             } else {
                 this.window.focus();
+            }
+            if (global.status.auto_opt) {
+                await this.contextAutoOpt(this.funcItems.text.event(data.query));
             }
             // Default values
             let defaults = {
@@ -320,6 +352,11 @@ class MainWindow extends Window {
             this.setHistory();
             console.log(`delete memory_id: ${memory_id}, length: ${memory_len}`)
             return { del_mode: !!this.funcItems.del.statu };
+        })
+
+        ipcMain.on("toggle-auto-opt", (_event) => {
+            global.status.auto_opt = !global.status.auto_opt;
+            console.log(`global.status.auto_opt: ${global.status.auto_opt}`)
         })
 
         ipcMain.on("stream-message-stop", (_event, id) => {
@@ -887,7 +924,7 @@ class MainWindow extends Window {
 
     loadHistory(id) {
         const history_path = utils.getHistoryPath(id);
-        this.tool_call.load_message(this.window, history_path);``
+        this.tool_call.load_message(this.window, history_path); ``
         const history_data = utils.getHistoryData();
         const history = history_data.data.find(history_ => history_.id == id);
         return history;

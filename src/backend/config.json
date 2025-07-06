@@ -22,7 +22,8 @@
   "default": {
     "model": "deepseek",
     "version": "deepseek-chat",
-    "plugin": "baidu_translate"
+    "plugin": "baidu_translate",
+    "auto_optimization": "auto_optimization"
   },
   "models": {
     "ollama": {
@@ -131,6 +132,15 @@
     }
   },
   "plugins": {
+    "auto_optimization": {
+      "params": {
+        "retry_time": 3,
+        "model_name": "epoch_10",
+        "allow_remote_models": false,
+        "local_model_path": "/data/zgr/transagent/model/saved_model/"
+      },
+      "show": false
+    },
     "baidu_translate": {
       "show": true
     },

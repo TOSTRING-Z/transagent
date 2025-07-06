@@ -33,6 +33,8 @@ const version = document.getElementById("version");
 const tokens = document.getElementById("tokens");
 const seconds = document.getElementById("seconds");
 
+const auto_opt = document.getElementById("auto_opt");
+
 const formData = {
   query: null,
   prompt: null,
@@ -49,8 +51,54 @@ let global = {
     info: true,
     data: true,
   },
+  status: {
+    auto_opt: false,
+  },
   chunk_id: null,
 };
+
+window.electronAPI.handleLog((log) => {
+  showLog(log);
+})
+window.electronAPI.handleDeleteMemory(async (memory_ids) => {
+  memory_ids.forEach(async memory_id => {
+    let { del_mode } = await window.electronAPI.toggleMemory(memory_id);
+    let elements = document.querySelectorAll(`[info_data-id="${memory_id}"]`);
+    elements.forEach(function (element) {
+        element.classList.toggle('del');
+    });
+    elements = document.querySelectorAll(`[chunk_data-id="${memory_id}"]`);
+    elements.forEach(function (element) {
+      if (del_mode)
+        element.remove();
+      else
+        element.classList.toggle('del');
+    });
+  });
+})
+
+window.electronAPI.initInfo((info) => {
+  system_prompt.value = info.prompt;
+  version.innerText = info.version;
+  info.chats.forEach(chat => addChatItem(chat));
+  if (global.seconds_timer) {
+    clearInterval(global.seconds_timer);
+  }
+  global.seconds_timer = null;
+  global.chat = info.chat;
+  tokens.innerText = global.chat.tokens;
+  seconds.innerText = global.chat.seconds;
+  // 上下文自动优化
+  global.status = info.status;
+  if (global.status.auto_opt) e.target.classList.add("active")
+  else e.target.classList.remove("active")
+})
+
+// 上下文自动优化
+auto_opt.addEventListener('click', async (e) => {
+  e.target.classList.toggle("active");
+  await window.electronAPI.toggleAutoOpt();
+})
 
 messages.addEventListener('mouseenter', () => {
   global.scroll_top.info = false;
@@ -387,7 +435,7 @@ async function streamMessageAdd(chunk) {
       console.log(`memory_id: ${memory_id}`)
       console.log(`content: ${chunk.content}`)
       console.log(`------------------------`)
-  
+
       let chunk_content = null;
       let chunk_item_content = null;
       let chunk_item = null;
@@ -826,19 +874,6 @@ window.electronAPI.handleOptions(({ options, id }) => {
 
 window.electronAPI.setPrompt((prompt) => {
   system_prompt.value = prompt;
-})
-
-window.electronAPI.initInfo((info) => {
-  system_prompt.value = info.prompt;
-  version.innerText = info.version;
-  info.chats.forEach(chat => addChatItem(chat));
-  if (global.seconds_timer) {
-    clearInterval(global.seconds_timer);
-  }
-  global.seconds_timer = null;
-  global.chat = info.chat;
-  tokens.innerText = global.chat.tokens;
-  seconds.innerText = global.chat.seconds;
 })
 
 window.electronAPI.handleClear(() => {
