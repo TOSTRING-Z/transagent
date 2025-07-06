@@ -65,7 +65,7 @@ _- Due to rapid version iterations, it is recommended to compile it yourself to 
 ## If the installation fails, please manually copy the configuration file (resources/config.json) to the following addresses:
 
 - linux: /home/[user]/.transagent/config.json
-- windows: C:\Users\\[user]\\.transagent\config.json
+- windows: C:\\Users\\[user]\\.transagent\\config.json
 
 ## After installation, the following operations need to be performed:
 

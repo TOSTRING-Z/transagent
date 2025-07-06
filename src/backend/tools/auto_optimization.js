@@ -38,9 +38,9 @@ async function predict(user_input, history, tokenizer, model) {
 function main(params) {
     return async ({ user_input, history }) => {
         const retry_time = params?.retry_time || 3;
-        const modelName = params?.model_name || "epoch_10";
+        const modelName = params?.model_name;
         env.allowRemoteModels = params?.allow_remote_models || false;
-        env.localModelPath = params?.local_model_path || "/data/zgr/transagent/model/saved_model/";
+        env.localModelPath = params?.local_model_path;
         const models = await loadModel(modelName);
         if (models === null) return null;
         const { tokenizer, model } = models;
