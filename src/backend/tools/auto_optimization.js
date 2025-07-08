@@ -19,7 +19,7 @@ async function predict(user_input, history, tokenizer, model) {
     @returns {Promise<number>} 预测结果 (0或1)
     */
     const inputs = await tokenizer(
-        user_input + [tokenizer.sep_token] + history,
+        user_input + tokenizer.sep_token + history,
         {
             padding: "max_length",
             truncation: true,

@@ -9,5 +9,6 @@ biotools/data/
 biotools/tmp/
 biotools/script/
 model/
+web/
 analysis
 run.md

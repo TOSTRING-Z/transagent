@@ -5,6 +5,7 @@
   "prompt": null,
   "history_path": null,
   "short_cut": "CommandOrControl+Shift+Space",
+  "backend_url": "http://www.licpathway.net/transagent_web",
   "info_template": "Step: {step}, id: {id}, memory_id: {memory_id}, Call: {model}, Version: {version}, Output:\n\n```json\n{output_format}\n```\n\n",
   "llm_parmas": {
     "max_tokens": 4000,
@@ -135,7 +136,7 @@
     "auto_optimization": {
       "params": {
         "retry_time": 3,
-        "model_name": "epoch_10",
+        "model_name": "epoch_28",
         "allow_remote_models": false,
         "local_model_path": "/data/zgr/transagent/model/saved_model/"
       },

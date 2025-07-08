@@ -8,34 +8,15 @@ const os = require('os');
 
 class ToolCall extends ReActAgent {
 
-  async init_mcp() {
-    try {
-      const configs = utils.getConfig("mcp_server");
-      for (const name in configs) {
-        if (Object.hasOwnProperty.call(configs, name)) {
-          const config = configs[name];
-          await this.mcp_client.setTransport({ name, config });
-        }
-      }
-      await this.mcp_client.connectMCP();
-      return this.mcp_client.mcp_prompt;
-    } catch (error) {
-      return error.message
-    }
-  }
-
   constructor(tools = {}) {
     super();
     this.mcp_client = new MCPClient();
     const base_tools = {
       "mcp_server": {
         func: async ({ name, args }) => {
-          const params = {
+          const result = await this.mcp_client.callTool({
             name: name,
             arguments: args
-          }
-          const result = await this.mcp_client.client.callTool(params, undefined, {
-            timeout: (utils.getConfig("tool_call")?.mcp_timeout || 600) * 1000
           });
           return result;
         }
@@ -565,7 +546,7 @@ I automatically invoke memory_retrieval when:
 
   memory_update(data) {
     let messages = getMessages()
-    let messages_list = messages.slice(Math.max(messages.length - data.long_memory_length - data.memory_length,0), messages.length - data.memory_length).map(message => {
+    let messages_list = messages.slice(Math.max(messages.length - data.long_memory_length - data.memory_length, 0), messages.length - data.memory_length).map(message => {
       let message_copy = utils.copy(message)
       const content_json = utils.extractJson(message_copy.content);
       if (content_json) {
@@ -607,7 +588,8 @@ I automatically invoke memory_retrieval when:
 
   async step(data) {
     if (!this.mcp_prompt) {
-      this.mcp_prompt = await this.init_mcp();
+      await this.mcp_client.initMcp();
+      this.mcp_prompt = this.mcp_client.mcp_prompt;
     }
     data.push_message = false
     if (this.state == State.IDLE) {
@@ -690,8 +672,8 @@ I automatically invoke memory_retrieval when:
     try {
       const tool_info = JSON5.parse(content);
       if (tool_info?.tool) {
-        const thinking = `${tool_info?.thinking||`Tool call: ${tool_info.tool}`}\n\n---\n\n`
-        data.event.sender.send('stream-data', { id: data.id, memory_id: this.memory_id, content: thinking }); 
+        const thinking = `${tool_info?.thinking || `Tool call: ${tool_info.tool}`}\n\n---\n\n`
+        data.event.sender.send('stream-data', { id: data.id, memory_id: this.memory_id, content: thinking });
         return tool_info;
       }
     } catch (error) {
@@ -744,7 +726,7 @@ I automatically invoke memory_retrieval when:
                     const observation = tool_info.observation;
                     this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: `${observation}\n\n`, end: true, del: del });
                   }
-                  if (["ask_followup_question","waiting_feedback","plan_mode_response"].includes(tool)) {
+                  if (["ask_followup_question", "waiting_feedback", "plan_mode_response"].includes(tool)) {
                     const observation = tool_info.observation;
                     this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: `${observation.question}\n\n`, end: true, del: del });
                   }
@@ -761,7 +743,7 @@ I automatically invoke memory_retrieval when:
                   content = utils.extractJson(content) || content;
                   const tool_info = JSON5.parse(content);
                   if (tool_info?.tool) {
-                    const thinking = `${tool_info?.thinking||`Tool call: ${tool_info.tool}`}\n\n---\n\n`
+                    const thinking = `${tool_info?.thinking || `Tool call: ${tool_info.tool}`}\n\n---\n\n`
                     let content_format = content.replaceAll("\\`", "'").replaceAll("`", "'");
                     this.window.webContents.send('info-data', { id: id, memory_id: memory_id, content: `Step ${i}, id: ${id}, memory_id: ${memory_id}, Output:\n\n\`\`\`json\n${content_format}\n\`\`\`\n\n`, del: del });
                     this.window.webContents.send('stream-data', { id: id, memory_id: memory_id, content: thinking, end: true, del: del });

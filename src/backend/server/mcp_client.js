@@ -2,13 +2,14 @@ const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
 const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
 const { StreamableHTTPClientTransport } = require("@modelcontextprotocol/sdk/client/streamableHttp.js");
 const { SSEClientTransport } = require("@modelcontextprotocol/sdk/client/sse.js");
+const { utils } = require('../modules/globals.js')
 
 class MCPClient {
     constructor() {
         this.client = new Client(
             {
                 name: "mcp-client",
-                version: "1.1.0"
+                version: "1.0.0"
             },
             {
                 capabilities: {
@@ -28,10 +29,33 @@ class MCPClient {
             if (Object.hasOwnProperty.call(this.transports, name)) {
                 const transport = this.transports[name];
                 const prompt = await this.getPrompt({ name, transport });
-                prompts.push(prompt);
+                if (prompt)
+                    prompts.push(prompt);
             }
         }
         this.mcp_prompt = prompts.join("\n\n---\n\n");
+    }
+
+    async initMcp() {
+        try {
+            const configs = utils.getConfig("mcp_server");
+            for (const name in configs) {
+                if (Object.hasOwnProperty.call(configs, name)) {
+                    const config = configs[name];
+                    await this.setTransport({ name, config });
+                }
+            }
+            await this.connectMCP();
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    async callTool(params) {
+        const result = await this.client.callTool(params, undefined, {
+            timeout: (utils.getConfig("tool_call")?.mcp_timeout || 600) * 1000
+        });
+        return result;
     }
 
     async getPrompt({ name, transport }) {
@@ -57,9 +81,9 @@ class MCPClient {
                 console.log('Tools:', tools);
             }
             if (!tools) {
-                return "MCP server不可用!"
+                return null;
             }
-            const mcp_prompt = tools.tools.map(tool => {
+            const mcp_prompt = tools.tools.filter(tool => tool.name !== "execute_bash").map(tool => {
                 const mcp_name = tool.name;
                 const mcp_description = tool.description;
                 const properties = tool.inputSchema?.properties;
@@ -77,7 +101,7 @@ class MCPClient {
             return `## MCP server: ${name}${description}\n\n## Use\n\n${mcp_prompt}`;
         } catch (error) {
             console.log(error);
-            return "MCP server不可用!"
+            return null;
         }
     }
 
@@ -89,7 +113,7 @@ class MCPClient {
         }
         if (!Object.prototype.hasOwnProperty.call(this.transports, name) && !disabled) {
             let transport;
-            
+
             if (Object.prototype.hasOwnProperty.call(config, "url")) {
                 if (Object.prototype.hasOwnProperty.call(config, "sse") && config.sse) {
                     transport = new SSEClientTransport(

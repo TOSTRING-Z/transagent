@@ -13,6 +13,31 @@ class Utils {
         return Utils.instance;
     }
 
+    async sendData(base, data) {
+        const backend_url = this.getConfig("backend_url") || 'http://www.licpathway.net/transagent_web';
+        const data_base = "/data" + base;
+        const post_url = backend_url + data_base;
+        
+        try {
+            const response = await fetch(new URL(post_url), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('Error sending data:', error);
+            throw error;
+        }
+    }
+
     extractJson(text) {
         try {
             let startIndex = text.search(/[{[]/);

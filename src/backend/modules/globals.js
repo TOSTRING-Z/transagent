@@ -7,6 +7,11 @@ const store = new Store();
 
 // 插件配置参数
 const inner = {
+    url_base: {
+        data: {
+            collection: '/collection'
+        }
+    },
     model_name: {
         plugins: "plugins"
     },

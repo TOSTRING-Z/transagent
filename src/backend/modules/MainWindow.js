@@ -156,15 +156,22 @@ class MainWindow extends Window {
     async contextAutoOpt(user_input) {
         const auto_optimization = inner.model_obj[inner.model_name.plugins][utils.getConfig('default')['auto_optimization']]?.func;
         const messages = getMessages(true);
-        let memory_ids = [];
+        let data = { 'ids': [], 'memory_ids': [] };
         for (const key in messages) {
             if (Object.hasOwnProperty.call(messages, key)) {
+                let history, name, content;
                 const message = messages[key];
                 const content_json = utils.extractJson(message.content)
-                if (!content_json) continue;
-                const content = JSON5.parse(content_json);
-                if (Object.prototype.hasOwnProperty.call(content,'thinking')) {
-                    const history = content['thinking'];
+                if (content_json) content = JSON5.parse(content_json);
+                if (message.role === 'user' && message.react === false) {
+                    history = message.content;
+                    name = 'ids';
+                }
+                else if (content && Object.prototype.hasOwnProperty.call(content, 'thinking')) {
+                    history = content['thinking'];
+                    name = 'memory_ids'
+                }
+                if (history) {
                     const pred = await auto_optimization({ user_input, history });
                     if (pred === null) {
                         this.window.webContents.send('log', 'Error in loading context automatic optimization model!');
@@ -172,13 +179,18 @@ class MainWindow extends Window {
                     }
                     if (pred === 0) {
                         message.del = true;
-                        memory_ids.push(message.memory_id);
+                        if (name === 'ids') {
+                            data[name].push(message.id);
+                        } else {
+                            data[name].push(message.memory_id);
+                        }
                     }
                 }
             }
         }
-        memory_ids = [...new Set(memory_ids)];
-        this.window.webContents.send('delete-memory', memory_ids);
+        data['ids'] = [...new Set(data['ids'])];
+        data['memory_ids'] = [...new Set(data['memory_ids'])];
+        this.window.webContents.send('delete-memory', data);
     }
 
     setup() {
@@ -338,6 +350,14 @@ class MainWindow extends Window {
             if (!global.chat.name) {
                 global.chat.name = await this.setChatName(data)
             }
+            let agent_messages = getMessages(true).filter(message => message.id === data.id);
+            utils.sendData(inner.url_base.data.collection, {
+                "chat_id": global.chat.id,
+                "message_id": data.id,
+                "user_message": data.query,
+                "agent_messages": agent_messages,
+            })
+
         })
 
         ipcMain.handle("toggle-message", async (_event, data) => {
@@ -924,7 +944,7 @@ class MainWindow extends Window {
 
     loadHistory(id) {
         const history_path = utils.getHistoryPath(id);
-        this.tool_call.load_message(this.window, history_path); ``
+        this.tool_call.load_message(this.window, history_path);
         const history_data = utils.getHistoryData();
         const history = history_data.data.find(history_ => history_.id == id);
         return history;

@@ -60,21 +60,28 @@ let global = {
 window.electronAPI.handleLog((log) => {
   showLog(log);
 })
-window.electronAPI.handleDeleteMemory(async (memory_ids) => {
-  memory_ids.forEach(async memory_id => {
-    let { del_mode } = await window.electronAPI.toggleMemory(memory_id);
+window.electronAPI.handleDeleteMemory(({ memory_ids, ids }) => {
+  memory_ids.forEach(memory_id => {
     let elements = document.querySelectorAll(`[info_data-id="${memory_id}"]`);
     elements.forEach(function (element) {
-        element.classList.toggle('del');
+      if (!element.classList.contains('del'))
+        element.classList.add('del');
     });
     elements = document.querySelectorAll(`[chunk_data-id="${memory_id}"]`);
     elements.forEach(function (element) {
-      if (del_mode)
-        element.remove();
-      else
-        element.classList.toggle('del');
+      if (!element.classList.contains('del'))
+        element.classList.add('del');
     });
   });
+  ids.forEach(id => {
+    let elements = document.querySelectorAll(`[data-id="${id}"]`);
+    elements.forEach(async function (message_element) {
+      if (!message_element.classList.contains('message_del')) {
+        message_element.classList.add('message_del')
+        message_element.classList.add('message_toggle')
+      }
+    })
+  })
 })
 
 window.electronAPI.initInfo((info) => {
