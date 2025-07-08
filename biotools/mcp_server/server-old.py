@@ -13,38 +13,39 @@ http = StreamableHTTPServerTransport("/messages/")
 app = Server("biotools")
 
 tmp_docker = "/tmp"
+data_docker = f"/data/zgr/transagent/biotools/data"
 
 bed_data_db = {
-    "Super_Enhancer_SEdbv2": "/data/human/human_Super_Enhancer_SEdbv2.bed",
-    "Super_Enhancer_SEAv3": "/data/human/human_Super_Enhancer_SEAv3.bed",
-    "Super_Enhancer_dbSUPER": "/data/human/human_Super_Enhancer_dbSUPER.bed",
-    "Enhancer": "/data/human/human_Enhancer.bed",
-    "Common_SNP": "/data/human/human_Common_SNP.bed",
-    "Risk_SNP": "/data/human/human_Risk_SNP.bed",
-    "eQTL": "/data/human/human_eQTL.bed",
-    "TFBS": "/data/human/human_TFBS.bed",
-    "eRNA": "/data/human/human_eRNA.bed",
-    "RNA_Interaction": "/data/human/human_RNA_Interaction.bed",
-    "CRISPR": "/data/human/human_CRISPR.bed",
+    "Super_Enhancer_SEdbv2": f"{data_docker}/human/human_Super_Enhancer_SEdbv2.bed",
+    "Super_Enhancer_SEAv3": f"{data_docker}/human/human_Super_Enhancer_SEAv3.bed",
+    "Super_Enhancer_dbSUPER": f"{data_docker}/human/human_Super_Enhancer_dbSUPER.bed",
+    "Enhancer": f"{data_docker}/human/human_Enhancer.bed",
+    "Common_SNP": f"{data_docker}/human/human_Common_SNP.bed",
+    "Risk_SNP": f"{data_docker}/human/human_Risk_SNP.bed",
+    "eQTL": f"{data_docker}/human/human_eQTL.bed",
+    "TFBS": f"{data_docker}/human/human_TFBS.bed",
+    "eRNA": f"{data_docker}/human/human_eRNA.bed",
+    "RNA_Interaction": f"{data_docker}/human/human_RNA_Interaction.bed",
+    "CRISPR": f"{data_docker}/human/human_CRISPR.bed",
 }
 
 tr_data_db = dict(
     map(
-        lambda x: (x.split(".")[0], f"/data/trapt/TR_bed/{x}"),
-        os.listdir("/data/trapt/TR_bed"),
+        lambda x: (x.split(".")[0], f"{data_docker}/trapt/TR_bed/{x}"),
+        os.listdir(f"{data_docker}/trapt/TR_bed"),
     )
 )
 
-bed_config = {"gene_bed_path": "/data/human/gene.bed"}
+bed_config = {"gene_bed_path": f"{data_docker}/human/gene.bed"}
 
-gene_expression_TCGA = "/data/exp/gene_expression_TCGA.feather"
+gene_expression_TCGA = f"{data_docker}/exp/gene_expression_TCGA.feather"
 
 exp_data_db = {
-    "cancer_TCGA": "/data/exp/cancer_TCGA.csv.gz",
-    "cell_line_CCLE": "/data/exp/cell_line_CCLE.csv.gz",
-    "cell_line_ENCODE": "/data/exp/cell_line_ENCODE.csv.gz",
-    "normal_tissue_GTEx": "/data/exp/normal_tissue_GTEx.csv.gz",
-    "primary_cell_ENCODE": "/data/exp/primary_cell_ENCODE.csv.gz",
+    "cancer_TCGA": f"{data_docker}/exp/cancer_TCGA.csv.gz",
+    "cell_line_CCLE": f"{data_docker}/exp/cell_line_CCLE.csv.gz",
+    "cell_line_ENCODE": f"{data_docker}/exp/cell_line_ENCODE.csv.gz",
+    "normal_tissue_GTEx": f"{data_docker}/exp/normal_tissue_GTEx.csv.gz",
+    "primary_cell_ENCODE": f"{data_docker}/exp/primary_cell_ENCODE.csv.gz",
 }
 
 from functools import wraps
@@ -413,7 +414,9 @@ Returns:
 
 
 async def handle_http(request):
-    async with http.connect(request.scope, request.receive, request._send) as streams:
+    async with http.handle_request(
+        request.scope, request.receive, request._send
+    ) as streams:
         await app.run(streams[0], streams[1], app.create_initialization_options())
 
 

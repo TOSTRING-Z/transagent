@@ -205,9 +205,8 @@
   },
   "mcp_server": {
     "biotools": {
-      "url": "http://127.0.0.1:3001/sse",
-      "disabled": false,
-      "sse": true
+      "url": "http://0.0.0.0:3001/biotools",
+      "disabled": false
     }
   },
   "tool_call": {

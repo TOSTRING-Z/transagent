@@ -5,18 +5,8 @@ WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
 
-RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --frozen --no-install-project --no-dev --no-editable
-
-ADD pyproject.toml /app/pyproject.toml
-ADD uv.lock /app/uv.lock
-
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --no-editable
-
-RUN . /app/.venv/bin/activate && python -m ensurepip --upgrade && pip3 install pyarrow
+RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --no-install-project --no-dev --no-editable
 
 FROM python:3.12-slim-bookworm
 
