@@ -3,15 +3,14 @@ import pandas as pd
 from typing import Optional
 import os
 from mcp import types
-from mcp.server.sse import SseServerTransport
+from mcp.server.streamable_http import StreamableHTTPServerTransport
 from mcp.server.lowlevel.server import Server
 from starlette.applications import Starlette
 from starlette.routing import Mount, Route
 import hashlib
 
-## 创建SSE Server
-sse = SseServerTransport("/messages/")  # 创建SSE服务器传输实例，路径为"/messages/"
-app = Server("biotools")  # 创建MCP服务器实例，名称为"biotools"
+http = StreamableHTTPServerTransport("/messages/")
+app = Server("biotools")
 
 tmp_docker = "/tmp"
 
@@ -353,31 +352,19 @@ Returns:
     ]
 
 
-async def handle_sse(request):
-    # 定义异步函数handle_sse，处理SSE请求
-    # 参数: request - HTTP请求对象
-
-    async with sse.connect_sse(
-        request.scope, request.receive, request._send
-    ) as streams:
-        # 建立SSE连接，获取输入输出流
-        await app.run(
-            streams[0], streams[1], app.create_initialization_options()
-        )  # 运行MCP应用，处理SSE连接
+async def handle_http(request):
+    async with http.connect(request.scope, request.receive, request._send) as streams:
+        await app.run(streams[0], streams[1], app.create_initialization_options())
 
 
 starlette_app = Starlette(
-    debug=True,  # 启用调试模式
+    debug=True,
     routes=[
-        Route("/sse", endpoint=handle_sse),  # 设置/sse路由，处理函数为handle_sse
-        Mount(
-            "/messages/", app=sse.handle_post_message
-        ),  # 挂载/messages/路径，处理POST消息
+        Route("/http", endpoint=handle_http),
+        Mount("/messages/", app=http._handle_post_request),
     ],
-)  # 创建Starlette应用实例，配置路由
+)
 
-import uvicorn  # 导入uvicorn ASGI服务器
+import uvicorn
 
-uvicorn.run(
-    starlette_app, host="0.0.0.0", port=3001
-)  # 运行Starlette应用，监听0.0.0.0和指定端口
+uvicorn.run(starlette_app, host="0.0.0.0", port=3001)
