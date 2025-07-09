@@ -138,6 +138,7 @@ class MainWindow extends Window {
             // 调用大模型自动生成聊天名称
             const content = `Generate a short ${data.language || utils.getLanguage()} chat name based on context. Return name only (strictly no JSON/XML/formatting). Requirements: max 20 chars, must contain letters, no pure numbers/symbols/spaces.`;
             data_copy.push_message = false;
+            data_copy.end = false;
             pushMessage("user", content, data_copy.id, this.tool_call.memory_id);
             data_copy.return_response = true;
             if (data_copy?.llm_parmas?.response_format)
@@ -543,6 +544,7 @@ class MainWindow extends Window {
 
     getReactEvent(e) {
         const extraReact = () => {
+            this.window.webContents.send('react-statu', e.statu);
             if (global.is_plugin) {
                 console.log(inner.model_obj)
                 console.log(global)

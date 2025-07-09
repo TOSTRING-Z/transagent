@@ -241,13 +241,13 @@ let system_message = `<div class="relative space-y-2 space-x-2" data-role="syste
     <div class="info-header">Call information</div>
     <div class="info-content overflow-y-auto" data-content=""></div>
   </div>
+  <div class="message" data-content=""></div>
   <div class="thinking">
     <div class="dot"></div>
     <div class="dot"></div>
     <div class="dot"></div>
     <button class="btn">Stop generation</button>
   </div>
-  <div class="message" data-content=""></div>
   <div class="message-actions">
     <i class="far fa-copy copy action-btn" title="copy"></i>
     <i class="far fa-trash-alt delete action-btn" title="delete"></i>
@@ -465,6 +465,9 @@ async function streamMessageAdd(chunk) {
         chunk_item_content = marked.parse(chunk_content);
         chunk_item.dataset.content = chunk.content;
         chunk_item.getElementsByClassName('chunk-content')[0].innerHTML = chunk_item_content;
+        if (!global.react_statu) {
+          chunk_item.getElementsByClassName('chunk-actions')[0].style.display = "none";
+        }
         chunk_item.getElementsByClassName('chunk-delete')[0].addEventListener("click", () => {
           delete_memory(memory_id);
         })
@@ -489,7 +492,6 @@ async function streamMessageAdd(chunk) {
         thinking.remove();
         typesetMath();
         menuEvent(messageSystem, message_content);
-        console.log("menuEvent1");
       }
       if (global.scroll_top.data)
         top_div.scrollTop = top_div.scrollHeight;
@@ -809,6 +811,10 @@ window.electronAPI.handleMathFormat((math_statu) => {
   else {
     typesetMath = function () { }
   }
+})
+
+window.electronAPI.handleReactStatu((react_statu) => {
+  global.react_statu = react_statu;
 })
 
 function getIcon(is_plugin) {

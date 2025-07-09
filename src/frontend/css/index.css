@@ -559,10 +559,7 @@ body {
   justify-content: start;
   align-items: center;
   gap: 4px;
-  bottom: -5px;
-  left: 30px;
-  position: absolute;
-  z-index: 2;
+  padding-left: var(--message-left);
 }
 
 .btn {

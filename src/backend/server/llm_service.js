@@ -97,15 +97,16 @@ function toggleMessage({ id, del, del_mode }) {
 
 function thumbMessage({ id, thumb }) {
     try {
+        const message_id = parseInt(id);
         if (thumb === 0) {
             return {
                 type: "thumb",
-                data: messages.find(message => message.id == id)?.thumb || 0
+                data: messages.find(message => message.id === message_id)?.thumb || 0
             }
             
         } else {
             messages = messages.map(message => {
-                if (message.id == id) {
+                if (message.id === message_id) {
                     // 1:up 0:null -1:down
                     message.thumb = thumb;
                 }
@@ -113,7 +114,7 @@ function thumbMessage({ id, thumb }) {
             });
             return {
                 type: "messages",
-                data: messages.filter(message => message.id == id)
+                data: messages.filter(message => message.id === message_id)
             };
         }
     } catch {

@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   handleLog: (callback) => ipcRenderer.on('log', (_event, log) => callback(log)),
   handleMarkDownFormat: (callback) => ipcRenderer.on('markdown-format', (_event, markdown_statu) => callback(markdown_statu)),
   handleMathFormat: (callback) => ipcRenderer.on('math-format', (_event, math_statu) => callback(math_statu)),
+  handleReactStatu: (callback) => ipcRenderer.on('react-statu', (_event, react_statu) => callback(react_statu)),
   queryText: (data) => ipcRenderer.invoke('query-text', data),
   getFilePath: () => ipcRenderer.invoke('get-file-path'),
   planActMode: (mode) => ipcRenderer.send('plan-act-mode', mode),
