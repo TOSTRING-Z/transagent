@@ -607,6 +607,10 @@ video {
   min-height: 100vh;
 }
 
+.w-1\/2 {
+  width: 50%;
+}
+
 .w-full {
   width: 100%;
 }
@@ -659,10 +663,6 @@ video {
   --tw-space-y-reverse: 0;
   margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse)));
   margin-bottom: calc(1rem * var(--tw-space-y-reverse));
-}
-
-.overflow-auto {
-  overflow: auto;
 }
 
 .overflow-y-auto {

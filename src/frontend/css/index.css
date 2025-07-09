@@ -1009,7 +1009,7 @@ body {
   display: flex;
   flex-direction: row;
   gap: var(--action-gap);
-  opacity: 0;
+  opacity: 0.5;
 }
 
 .chunk-actions i {
@@ -1053,4 +1053,11 @@ body {
 
 .thumbs-down.success {
   color: rgb(15, 109, 216);
+}
+
+/* ul覆盖tailwind.css */
+ol, ul, menu {
+  list-style: revert;
+  margin: 0;
+  padding: 0;
 }

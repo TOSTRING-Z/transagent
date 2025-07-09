@@ -691,7 +691,7 @@ const formatText = (token) => {
 }
 
 const formatImage = (token) => {
-  return `<img class="shadow-xl rounded-md mb-1" src="${token.href}" alt="${token.text}"></img>`;
+  return `<img class="w-1/2 shadow-xl rounded-md mb-1 hover" src="${token.href}" alt="${token.text}"></img>`;
 }
 
 const formatLink = (token) => {
