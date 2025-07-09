@@ -250,15 +250,9 @@ let system_message = `<div class="relative space-y-2 space-x-2" data-role="syste
   </div>
   <div class="message" data-content=""></div>
   <div class="message-actions">
-    <button class="action-btn copy" title="copy">
-      <i class="far fa-copy"></i>
-    </button>
-    <button class="action-btn delete" title="delete">
-      <i class="far fa-trash-alt"></i>
-    </button>
-    <button class="action-btn toggle" title="toggle">
-      <i class="fas fa-toggle-off"></i>
-    </button>
+    <i class="far fa-copy copy action-btn" title="copy"></i>
+    <i class="far fa-trash-alt delete action-btn" title="delete"></i>
+    <i class="fas fa-toggle-off toggle action-btn" title="toggle"></i>
   </div>
 </div>`
 
@@ -455,12 +449,14 @@ async function streamMessageAdd(chunk) {
         chunk_item.getElementsByClassName('chunk-content')[0].innerHTML = chunk_item_content;
       } else {
         chunk_item = createElement(`<div chunk_data-id="${memory_id}">
-    <div class="chunk-content"></div>
-    <div class="chunk-actions">
-      <button class="action-btn chunk-delete" title="删除">
-        <i class="far fa-trash-alt"></i>
-      </button>
+    <div class="chunk">
+      <div class="chunk-content"></div>
+      <div class="chunk-actions">
+        <i class="far fa-trash-alt action-btn chunk-delete" title="delete"></i>
+        <i class="fa fa-location-crosshairs action-btn chunk-location" title="location"></i>
+      </div>
     </div>
+        
   </div>`);
         if (chunk?.del)
           chunk_item.classList.add("del");
@@ -470,6 +466,9 @@ async function streamMessageAdd(chunk) {
         chunk_item.getElementsByClassName('chunk-content')[0].innerHTML = chunk_item_content;
         chunk_item.getElementsByClassName('chunk-delete')[0].addEventListener("click", () => {
           delete_memory(memory_id)
+        })
+        chunk_item.getElementsByClassName('chunk-location')[0].addEventListener("click", () => {
+          locate_memory(memory_id)
         })
         message_content.appendChild(chunk_item);
       }
@@ -540,6 +539,14 @@ async function delete_message(id) {
       }
     }
 
+  });
+}
+
+function locate_memory(memory_id) {
+  // 滚动到 info_data-id="memory_id"
+  let elements = document.querySelectorAll(`[info_data-id="${memory_id}"]`);
+  elements.forEach(function(element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
 }
 
@@ -649,7 +656,7 @@ const formatText = (token) => {
 }
 
 const formatImage = (token) => {
-  return `<img class="size-48 shadow-xl rounded-md mb-1" src="${token.href}" alt="${token.text}"></img>`;
+  return `<img class="shadow-xl rounded-md mb-1" src="${token.href}" alt="${token.text}"></img>`;
 }
 
 const formatLink = (token) => {

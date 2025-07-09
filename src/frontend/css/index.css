@@ -7,13 +7,14 @@
   --text: #2c3e50;
   --border: #e0e0e0;
   --tw-bg-opacity: 0;
+  --action-gap: 12px;
+  --message-left: 30px;
 }
 
 * {
   box-sizing: border-box;
   transition: all 0.2s ease;
 }
-
 
 a {
   color: #3b82f6;
@@ -270,7 +271,7 @@ body {
 }
 
 [data-role="system"] .message {
-  padding: 0 0 2rem 30px;
+  padding-left: var(--message-left);
 }
 
 .message.user {
@@ -456,8 +457,8 @@ body {
 .message-actions {
   display: flex;
   justify-content: flex-start;
-  gap: 12px;
-  padding-left: 30px;
+  gap: var(--action-gap);
+  padding-left: var(--message-left);
 }
 
 .action-btn {
@@ -472,12 +473,6 @@ body {
 }
 
 .message-actions>.active {
-  margin-top: -30px;
-  border: 1px solid #f1f1f1;
-  padding: 4px 8px;
-  background: #149131;
-  color: white;
-  border-radius: 8px;
   z-index: 1;
 }
 
@@ -486,16 +481,16 @@ body {
 }
 
 .action-btn.copy:hover {
-  background-color: var(--primary);
+  color: var(--primary);
 }
 
 .action-btn.delete:hover {
-  background-color: var(--secondary);
+  color: var(--secondary);
 }
 
 /* Call Information */
 .info {
-  padding-left: 30px;
+  padding-left: var(--message-left);
   margin: 1rem 0;
 }
 
@@ -999,24 +994,32 @@ body {
 }
 
 /* 记忆删除 */
-.chunk-content {
-  padding-left: 20px;
+.chunk {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.chunk:hover .chunk-actions {
+  opacity: 1;
+  transition: opacity 0.3s ease;
 }
 
 .chunk-actions {
-  position: relative;
+  display: flex;
+  flex-direction: row;
+  gap: var(--action-gap);
+  opacity: 0;
 }
 
-.chunk-actions>.chunk-delete {
-  position: absolute;
-  left: 0;
-  top: -25px;
+.chunk-actions i {
+  cursor: pointer;
   display: block;
 }
 
 .action-btn.chunk-delete:hover {
-  background-color: white;
   color: var(--secondary);
+  transition: color 0.3s;
 }
 
 /* del */
@@ -1035,4 +1038,10 @@ body {
 .message_toggle .message {
   max-height: 10rem;
   overflow-y: auto;
+  transition: max-height 0.3s ease;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  /* 提升移动端体验 */
+  scrollbar-color: var(--primary) transparent;
+  /* 定制 Firefox 滚动条颜色 */
 }
