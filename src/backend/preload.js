@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openExternal: (href) => ipcRenderer.send('open-external', href),
   captureRegion: (params) => ipcRenderer.invoke('capture-region', params),
   toggleMessage: (data) => ipcRenderer.invoke('toggle-message', data),
+  thumbMessage: (data) => ipcRenderer.invoke('thumb-message', data),
   toggleMemory: (memory_id) => ipcRenderer.invoke('toggle-memory', memory_id),
   handleDeleteMemory: (callback) => ipcRenderer.on('delete-memory', (_event, data) => callback(data)),
   toggleAutoOpt: () => ipcRenderer.send('toggle-auto-opt'),

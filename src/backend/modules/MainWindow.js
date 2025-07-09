@@ -1,7 +1,7 @@
 const { Window } = require("./Window")
 const { Plugins } = require('./Plugins');
 const { store, global, inner, utils } = require('./globals')
-const { clearMessages, saveMessages, toggleMessage, toggleMemory, stopMessage, getStopIds, pushMessage, popMessage, getMessages } = require('../server/llm_service');
+const { clearMessages, saveMessages, toggleMessage, thumbMessage, toggleMemory, stopMessage, getStopIds, pushMessage, popMessage, getMessages } = require('../server/llm_service');
 const { captureMouse } = require('../mouse/capture_mouse');
 const { State } = require("../server/agent.js")
 const { ToolCall } = require('../server/tool_call');
@@ -167,7 +167,7 @@ class MainWindow extends Window {
                     history = message.content;
                     name = 'ids';
                 }
-                else if (content && Object.prototype.hasOwnProperty.call(content, 'thinking')) {
+                else if (content && Object.hasOwnProperty.call(content, 'thinking')) {
                     history = content['thinking'];
                     name = 'memory_ids'
                 }
@@ -367,6 +367,24 @@ class MainWindow extends Window {
             return { del_mode: !!this.funcItems.del.statu };
         })
 
+        ipcMain.handle("thumb-message", async (_event, data) => {
+            let result = await thumbMessage(data);
+            if (result?.type === "messages") {
+                const messages = result.data;
+                this.setHistory();
+                console.log(`message id: ${data.id}, thumb: ${data.thumb}`);
+                utils.sendData(inner.url_base.data.collection, {
+                    "chat_id": global.chat.id,
+                    "message_id": data.id,
+                    "user_message": messages[0].content,
+                    "agent_messages": messages,
+                });
+                return messages?data.thumb: 0;
+            } else if (result?.type === "thumb") {
+                return result.data;
+            }
+        })
+
         ipcMain.handle("toggle-memory", async (_event, memory_id) => {
             let memory_len = await toggleMemory({ memory_id: memory_id, del_mode: !!this.funcItems.del.statu });
             this.setHistory();
@@ -374,7 +392,7 @@ class MainWindow extends Window {
             return { del_mode: !!this.funcItems.del.statu };
         })
 
-        ipcMain.on("toggle-auto-opt", (_event) => {
+        ipcMain.on("toggle-auto-opt", () => {
             global.status.auto_opt = !global.status.auto_opt;
             console.log(`global.status.auto_opt: ${global.status.auto_opt}`)
         })

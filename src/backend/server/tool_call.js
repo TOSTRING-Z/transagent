@@ -626,7 +626,7 @@ I automatically invoke memory_retrieval when:
     const raw_json = await this.llmCall(data);
     console.log(`raw_json: ${raw_json}`);
     data.output_format = utils.extractJson(raw_json) || raw_json;
-    data.event.sender.send('info-data', { id: data.id, memory_id: this.memory_id, content: this.get_info(data) });
+    data.event.sender.send('info-data', { id: data.id, memory_id: ++this.memory_id, content: this.get_info(data) });
     return this.get_tool(data.output_format, data);
   }
 
@@ -668,7 +668,7 @@ I automatically invoke memory_retrieval when:
   }
 
   get_tool(content, data) {
-    pushMessage("assistant", content, data.id, ++this.memory_id);
+    pushMessage("assistant", content, data.id, this.memory_id);
     try {
       const tool_info = JSON5.parse(content);
       if (tool_info?.tool) {
@@ -713,9 +713,9 @@ I automatically invoke memory_retrieval when:
           i = parseInt(i);
           if (Object.hasOwnProperty.call(messages, i)) {
             let { role, content, id, memory_id, react, del } = messages[i];
-            if (memory_id === 188) {
-              console.log(`Memory ID: ${memory_id}, Content: ${content}`);
-            }
+            // if (memory_id === 188) {
+            //   console.log(`Memory ID: ${memory_id}, Content: ${content}`);
+            // }
             if (role == "user") {
               if (react) {
                 const content_json = utils.extractJson(content);

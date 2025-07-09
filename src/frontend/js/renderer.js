@@ -54,7 +54,6 @@ let global = {
   status: {
     auto_opt: false,
   },
-  chunk_id: null,
 };
 
 window.electronAPI.handleLog((log) => {
@@ -97,8 +96,8 @@ window.electronAPI.initInfo((info) => {
   seconds.innerText = global.chat.seconds;
   // 上下文自动优化
   global.status = info.status;
-  if (global.status.auto_opt) e.target.classList.add("active")
-  else e.target.classList.remove("active")
+  if (global.status.auto_opt) auto_opt.classList.add("active")
+  else auto_opt.classList.remove("active")
 })
 
 // 上下文自动优化
@@ -253,6 +252,8 @@ let system_message = `<div class="relative space-y-2 space-x-2" data-role="syste
     <i class="far fa-copy copy action-btn" title="copy"></i>
     <i class="far fa-trash-alt delete action-btn" title="delete"></i>
     <i class="fas fa-toggle-off toggle action-btn" title="toggle"></i>
+    <i class="fas fa-thumbs-up thumbs-up action-btn" title="thumbs up"></i>
+    <i class="fas fa-thumbs-down thumbs-down action-btn" title="thumbs down"></i>
   </div>
 </div>`
 
@@ -433,9 +434,9 @@ async function streamMessageAdd(chunk) {
       }
       optionDom?.remove();
       let memory_id = Object.prototype.hasOwnProperty.call(chunk, "memory_id") ? chunk.memory_id : chunk.id;
-      console.log(`memory_id: ${memory_id}`)
-      console.log(`content: ${chunk.content}`)
-      console.log(`------------------------`)
+      // console.log(`memory_id: ${memory_id}`)
+      // console.log(`content: ${chunk.content}`)
+      // console.log(`------------------------`)
 
       let chunk_content = null;
       let chunk_item_content = null;
@@ -449,15 +450,15 @@ async function streamMessageAdd(chunk) {
         chunk_item.getElementsByClassName('chunk-content')[0].innerHTML = chunk_item_content;
       } else {
         chunk_item = createElement(`<div chunk_data-id="${memory_id}">
-    <div class="chunk">
-      <div class="chunk-content"></div>
-      <div class="chunk-actions">
-        <i class="far fa-trash-alt action-btn chunk-delete" title="delete"></i>
-        <i class="fa fa-location-crosshairs action-btn chunk-location" title="location"></i>
-      </div>
-    </div>
-        
-  </div>`);
+          <div class="chunk">
+            <div class="chunk-content"></div>
+            <div class="chunk-actions">
+              <i class="far fa-trash-alt action-btn chunk-delete" title="delete"></i>
+              <i class="fa fa-location-crosshairs action-btn chunk-location" title="location"></i>
+              <i class="fa fa-quote-right action-btn chunk-quote" title="quote"></i>
+            </div>
+          </div>
+        </div>`);
         if (chunk?.del)
           chunk_item.classList.add("del");
         chunk_content = chunk.content;
@@ -465,10 +466,13 @@ async function streamMessageAdd(chunk) {
         chunk_item.dataset.content = chunk.content;
         chunk_item.getElementsByClassName('chunk-content')[0].innerHTML = chunk_item_content;
         chunk_item.getElementsByClassName('chunk-delete')[0].addEventListener("click", () => {
-          delete_memory(memory_id)
+          delete_memory(memory_id);
         })
         chunk_item.getElementsByClassName('chunk-location')[0].addEventListener("click", () => {
-          locate_memory(memory_id)
+          locate_memory(memory_id);
+        })
+        chunk_item.getElementsByClassName('chunk-quote')[0].addEventListener("click", () => {
+          quote_memory(memory_id);
         })
         message_content.appendChild(chunk_item);
       }
@@ -484,13 +488,8 @@ async function streamMessageAdd(chunk) {
         const thinking = messageSystem.getElementsByClassName("thinking")[0];
         thinking.remove();
         typesetMath();
-        menuEvent(messageSystem, message_content.dataset.content);
-      } else {
-        if (chunk.id == global.chunk_id) {
-          menuEvent(messageSystem, message_content.dataset.content);
-        } else {
-          global.chunk_id = chunk.id;
-        }
+        menuEvent(messageSystem, message_content);
+        console.log("menuEvent1");
       }
       if (global.scroll_top.data)
         top_div.scrollTop = top_div.scrollHeight;
@@ -541,13 +540,37 @@ async function delete_message(id) {
 
   });
 }
+async function thumbMessage(up, down, data) {
+  let thumb = await window.electronAPI.thumbMessage(data);
+  if (thumb === 1) {
+    if (!up.classList.contains("success"))
+      up.classList.add("success")
+    if (down.classList.contains("success"))
+      down.classList.remove("success")
+  } else if (thumb === -1) {
+    if (!down.classList.contains("success"))
+      down.classList.add("success")
+    if (up.classList.contains("success"))
+      up.classList.remove("success")
+  } else {
+    if (up.classList.contains("success"))
+      up.classList.remove("success")
+    if (down.classList.contains("success"))
+      down.classList.remove("success")
+  }
+}
 
 function locate_memory(memory_id) {
   // 滚动到 info_data-id="memory_id"
   let elements = document.querySelectorAll(`[info_data-id="${memory_id}"]`);
-  elements.forEach(function(element) {
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
+  if (elements)
+    elements[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function quote_memory(memory_id) {
+  const quotedContent = `- Please invoke the memory_retrieval tool using memory_id: ${memory_id}`
+    // Add quote to input with newlines before/after
+    input.value = quotedContent + '\n' + input.value;
 }
 
 async function delete_memory(memory_id) {
@@ -568,14 +591,19 @@ async function delete_memory(memory_id) {
   });
 }
 
-function menuEvent(messageSystem, raw) {
+function menuEvent(messageSystem,message_content) {
   const copy = messageSystem.getElementsByClassName("copy")[0];
   const del = messageSystem.getElementsByClassName("delete")[0];
   const toggle = messageSystem.getElementsByClassName("toggle")[0];
+  const thumbs_up = messageSystem.getElementsByClassName("thumbs-up")[0];
+  const thumbs_down = messageSystem.getElementsByClassName("thumbs-down")[0];
   copy.classList.add("active");
   del.classList.add("active");
   toggle.classList.add("active");
+  thumbs_up.classList.add("active");
+  thumbs_down.classList.add("active");
   copy.addEventListener("click", () => {
+    const raw = message_content.dataset.content;
     navigator.clipboard.writeText(raw).then(() => {
       showLog('Copy successful');
       console.log(raw);
@@ -588,6 +616,13 @@ function menuEvent(messageSystem, raw) {
   })
   toggle.addEventListener("click", () => {
     messageSystem.classList.toggle("message_toggle");
+  })
+  thumbMessage(thumbs_up, thumbs_down, { id: messageSystem.dataset.id, thumb: 0 });
+  thumbs_up.addEventListener("click", () => {
+    thumbMessage(thumbs_up, thumbs_down, { id: messageSystem.dataset.id, thumb: 1 });
+  })
+  thumbs_down.addEventListener("click", () => {
+    thumbMessage(thumbs_up, thumbs_down, { id: messageSystem.dataset.id, thumb: -1 });
   })
 }
 

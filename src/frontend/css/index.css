@@ -1045,3 +1045,12 @@ body {
   scrollbar-color: var(--primary) transparent;
   /* 定制 Firefox 滚动条颜色 */
 }
+
+/* 赞和踩 */
+.thumbs-up.success {
+  color: rgb(216, 45, 15);
+}
+
+.thumbs-down.success {
+  color: rgb(15, 109, 216);
+}

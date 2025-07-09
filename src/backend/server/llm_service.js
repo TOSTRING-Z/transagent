@@ -12,7 +12,7 @@ function getStopIds() {
     return stop_ids;
 }
 
-function getMessages(all=false) {
+function getMessages(all = false) {
     if (all) return messages;
     return messages.filter(message => !message?.del);
 }
@@ -95,6 +95,32 @@ function toggleMessage({ id, del, del_mode }) {
     }
 }
 
+function thumbMessage({ id, thumb }) {
+    try {
+        if (thumb === 0) {
+            return {
+                type: "thumb",
+                data: messages.find(message => message.id == id)?.thumb || 0
+            }
+            
+        } else {
+            messages = messages.map(message => {
+                if (message.id == id) {
+                    // 1:up 0:null -1:down
+                    message.thumb = thumb;
+                }
+                return message;
+            });
+            return {
+                type: "messages",
+                data: messages.filter(message => message.id == id)
+            };
+        }
+    } catch {
+        return null;
+    }
+}
+
 function toggleMemory({ memory_id, del_mode }) {
     try {
         if (del_mode) {
@@ -132,6 +158,7 @@ function format_messages(messages_list, params, env_message = null) {
         delete message_copy.show;
         delete message_copy.react;
         delete message_copy.del;
+        delete message_copy.thumb;
         return message_copy;
     });
 
@@ -379,5 +406,5 @@ async function chatBase(data) {
 }
 
 module.exports = {
-    chatBase, clearMessages, saveMessages, loadMessages, toggleMessage, toggleMemory, stopMessage, getStopIds, pushMessage, getMessages, popMessage, envMessage, setTag
+    chatBase, clearMessages, saveMessages, loadMessages, toggleMessage, thumbMessage, toggleMemory, stopMessage, getStopIds, pushMessage, getMessages, popMessage, envMessage, setTag
 };
