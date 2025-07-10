@@ -34,6 +34,8 @@ const tokens = document.getElementById("tokens");
 const seconds = document.getElementById("seconds");
 
 const auto_opt = document.getElementById("auto_opt");
+const envs = document.getElementById("envs");
+const btn_save_envs = document.getElementById("btn_save_envs");
 
 const formData = {
   query: null,
@@ -105,6 +107,29 @@ auto_opt.addEventListener('click', async (e) => {
   e.target.classList.toggle("active");
   await window.electronAPI.toggleAutoOpt();
 })
+
+// 环境
+const editors = {
+  envs: null
+};
+
+btn_save_envs.addEventListener('click', async () => {
+  const config = editors.envs.get();
+  const statu = await window.electronAPI.Envs({ type: "set", config: config });
+  if (statu)
+    showLog('Configuration saved!');
+});
+
+envs.addEventListener('click', async () => {
+  document.getElementById('m-envs').style.display = 'flex';
+  const config_envs = await window.electronAPI.Envs({ type: "get" });
+  const editor_env = document.getElementById("editor_env");
+  editor_env.value = config_envs;
+  // eslint-disable-next-line no-undef
+  editors.envs = editors.envs || new JSONEditor(editor_env, {});
+  editors.envs.set(config_envs);
+})
+
 
 messages.addEventListener('mouseenter', () => {
   global.scroll_top.info = false;
@@ -332,7 +357,7 @@ function loadOptions() {
 }
 
 function showLog(log) {
-  const htmlString = `<div style="display: flex; pointer-events: none; height: 100%; width: 100%; justify-content: center; align-items: center; font-size: large; position: absolute;">
+  const htmlString = `<div style="display: flex; pointer-events: none; height: 100%; width: 100%; justify-content: center; align-items: center; font-size: large; position: absolute; z-index: 10000;">
           <b style="border: 2px solid #666; text-align: center; padding: 5px; background: white;">${log}</b>
       </div>`;
   const parser = new DOMParser();
@@ -465,7 +490,7 @@ async function streamMessageAdd(chunk) {
         chunk_item_content = marked.parse(chunk_content);
         chunk_item.dataset.content = chunk.content;
         chunk_item.getElementsByClassName('chunk-content')[0].innerHTML = chunk_item_content;
-        if (!global.react_statu) {
+        if (!global.react_statu || chunk?.is_plugin) {
           chunk_item.getElementsByClassName('chunk-actions')[0].style.display = "none";
         }
         chunk_item.getElementsByClassName('chunk-delete')[0].addEventListener("click", () => {
@@ -491,7 +516,7 @@ async function streamMessageAdd(chunk) {
         const thinking = messageSystem.getElementsByClassName("thinking")[0];
         thinking.remove();
         typesetMath();
-        menuEvent(messageSystem, message_content);
+        menuEvent(messageSystem, message_content, chunk?.is_plugin);
       }
       if (global.scroll_top.data)
         top_div.scrollTop = top_div.scrollHeight;
@@ -571,8 +596,8 @@ function locate_memory(memory_id) {
 
 function quote_memory(memory_id) {
   const quotedContent = `- Please invoke the memory_retrieval tool using memory_id: ${memory_id}`
-    // Add quote to input with newlines before/after
-    input.value = quotedContent + '\n' + input.value;
+  // Add quote to input with newlines before/after
+  input.value = quotedContent + '\n' + input.value;
 }
 
 async function delete_memory(memory_id) {
@@ -593,7 +618,7 @@ async function delete_memory(memory_id) {
   });
 }
 
-function menuEvent(messageSystem,message_content) {
+function menuEvent(messageSystem, message_content, is_plugin) {
   const copy = messageSystem.getElementsByClassName("copy")[0];
   const del = messageSystem.getElementsByClassName("delete")[0];
   const toggle = messageSystem.getElementsByClassName("toggle")[0];
@@ -601,9 +626,11 @@ function menuEvent(messageSystem,message_content) {
   const thumbs_down = messageSystem.getElementsByClassName("thumbs-down")[0];
   copy.classList.add("active");
   del.classList.add("active");
-  toggle.classList.add("active");
-  thumbs_up.classList.add("active");
-  thumbs_down.classList.add("active");
+  if (!is_plugin) {
+    toggle.classList.add("active");
+    thumbs_up.classList.add("active");
+    thumbs_down.classList.add("active");
+  }
   copy.addEventListener("click", () => {
     const raw = message_content.dataset.content;
     navigator.clipboard.writeText(raw).then(() => {
@@ -965,7 +992,7 @@ const api_key = document.getElementById("api-key");
 
 // 配置弹窗控制
 async function showConfig() {
-  document.querySelector('.config-modal').style.display = 'flex';
+  document.querySelector('#m-config').style.display = 'flex';
   const config = await window.electronAPI.getConfig();
   ai_model.innerHTML = null;
   for (const model in config.models) {

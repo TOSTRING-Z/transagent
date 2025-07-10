@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>配置</title>
+    <title>Config</title>
     <link rel="stylesheet" href="css/jsoneditor/dist/jsoneditor.min.css" />
     <style>
         body {
@@ -111,7 +111,7 @@
                 <div id="json-editor"></div>
             </div>
             <div class="bottom_div">
-                <button id="save-btn">保存配置</button>
+                <button id="save-btn">Save</button>
             </div>
         </div>
     </div>
@@ -154,7 +154,7 @@
         const config = editor.get();
         const statu = ipcRenderer.invoke('set-config', config);
         if (statu)
-            showLog('配置已保存！');
+            showLog('Configuration saved!');
     });
 </script>
 

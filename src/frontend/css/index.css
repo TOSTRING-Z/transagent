@@ -601,11 +601,11 @@ body {
 .ellipsis-div::before {
   content: "";
   display: inline-block;
-  width: 25px;
-  height: 25px;
+  width: 24px;
+  height: 24px;
   position: absolute;
   left: 4px;
-  top: 2px;
+  top: 1px;
   background-image: url(../img/file.svg);
   background-size: contain;
 }

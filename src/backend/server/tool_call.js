@@ -513,7 +513,8 @@ I automatically invoke memory_retrieval when:
 - Language: Please answer using {language}
 - Temporary folder: {tmpdir}
 - Current time: {time}
-- Current mode: {mode}`
+- Current mode: {mode}
+{envs}`
 
     this.modes = {
       AUTO: 'Automatic mode',
@@ -526,6 +527,7 @@ I automatically invoke memory_retrieval when:
       tmpdir: utils.getConfig("tool_call")?.tmpdir || os.tmpdir(),
       time: utils.formatDate(),
       mode: this.modes.ACT,
+      envs: null
     }
   }
 
@@ -579,6 +581,14 @@ I automatically invoke memory_retrieval when:
   environment_update(data) {
     this.environment_details.time = utils.formatDate();
     this.environment_details.language = data?.language || utils.getLanguage();
+    const envs = [];
+    for (const key in data.envs) {
+      if (Object.prototype.hasOwnProperty.call(data.envs, key)) {
+        const value = data.envs[key];
+        envs.push(`- ${key}: ${value}`)
+      }
+    }
+    this.environment_details.envs = envs.join("\n");
     data.env_message = envMessage(this.env.format(this.environment_details));
   }
 

@@ -12,27 +12,29 @@
   <link rel="stylesheet" href="css/output.css" />
   <link rel="stylesheet" href="css/atom-one-light.min.css" />
   <link rel="stylesheet" href="css/fontawesome-free/css/all.min.css" />
+  <link rel="stylesheet" href="css/jsoneditor/dist/jsoneditor.min.css" />
   <link rel="stylesheet" href="css/index.css" />
   <script id="MathJax-script" async src="js/tex-mml-chtml.js"></script>
   <script src="js/check-for-tex.js" defer></script>
   <script src="js/marked.min.js"></script>
   <script src="js/masked_high_light.js"></script>
   <script src="js/highlight.min.js"></script>
+  <script src="js/jsoneditor.min.js"></script>
 </head>
 
 <body>
   <textarea id="content" hidden></textarea>
-      <!-- 在body底部添加自定义对话框 -->
-      <div class="custom-dialog" id="renameDialog">
-        <div class="dialog-content">
-            <h3>Rename title</h3>
-            <input type="text" class="dialog-input" id="renameInput" placeholder="Enter a new title">
-            <div class="dialog-buttons">
-                <button class="dialog-btn" onclick="hideDialog()">Cancel</button>
-                <button class="dialog-btn dialog-confirm" onclick="confirmRename()">Confirm</button>
-            </div>
-        </div>
+  <!-- 在body底部添加自定义对话框 -->
+  <div class="custom-dialog" id="renameDialog">
+    <div class="dialog-content">
+      <h3>Rename title</h3>
+      <input type="text" class="dialog-input" id="renameInput" placeholder="Enter a new title">
+      <div class="dialog-buttons">
+        <button class="dialog-btn" onclick="hideDialog()">Cancel</button>
+        <button class="dialog-btn dialog-confirm" onclick="confirmRename()">Confirm</button>
+      </div>
     </div>
+  </div>
   <!-- 左侧面板 -->
   <div class="sidebar">
     <div class="collapse-btn" onclick="toggleSidebar()">
@@ -56,84 +58,104 @@
       <i class="fas fa-cog"></i>
     </div>
 
-    <!-- 配置弹窗 -->
-    <div class="config-modal" onclick="hideConfig(event)">
+    <!-- 环境变量弹窗 -->
+    <div class="config-modal" id="m-envs" onclick="hideConfig(event)">
       <div class="config-content" onclick="event.stopPropagation()">
-          <h2 style="color: var(--primary); margin-bottom: 20px;">
-              <i class="fas fa-tools"></i> Agent Core Configuration
-          </h2>
-          
-          <div class="form-group">
-              <h3>SSH Configuration</h3>
-              <div class="form-row">
-                  <label>Host:</label>
-                  <input type="text" id="ssh-host" value="172.27.0.3">
-              </div>
-              <div class="form-row">
-                  <label>Port:</label>
-                  <input type="number" id="ssh-port" value="3002">
-              </div>
-              <div class="form-row">
-                  <label>Username:</label>
-                  <input type="text" id="ssh-username" value="root">
-              </div>
-              <div class="form-row">
-                  <label>Password:</label>
-                  <input type="text" id="ssh-password" value="password">
-              </div>
-              <div class="form-row">
-                <div class="form-row">
-                  <label for="ssh-enabled">enabled:</label>
-                  <input type="checkbox" id="ssh-enabled">
-              </div>
+        <h2 style="color: var(--primary); margin-bottom: 20px;">
+          <i class="fas fa-tools"></i> Agent Environment Variables
+        </h2>
+
+        <div class="form-group">
+          <div class="form-row">
+            <div id="editor_env" class="w-full"></div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="dialog-btn" onclick="hideConfig()">Cancel</button>
+          <button class="dialog-btn dialog-confirm" id="btn_save_envs">Save Configuration</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 配置弹窗 -->
+    <div class="config-modal" id="m-config" onclick="hideConfig(event)">
+      <div class="config-content" onclick="event.stopPropagation()">
+        <h2 style="color: var(--primary); margin-bottom: 20px;">
+          <i class="fas fa-tools"></i> Agent Core Configuration
+        </h2>
+
+        <div class="form-group">
+          <h3>SSH Configuration</h3>
+          <div class="form-row">
+            <label>Host:</label>
+            <input type="text" id="ssh-host" value="172.27.0.3">
+          </div>
+          <div class="form-row">
+            <label>Port:</label>
+            <input type="number" id="ssh-port" value="3002">
+          </div>
+          <div class="form-row">
+            <label>Username:</label>
+            <input type="text" id="ssh-username" value="root">
+          </div>
+          <div class="form-row">
+            <label>Password:</label>
+            <input type="text" id="ssh-password" value="password">
+          </div>
+          <div class="form-row">
+            <div class="form-row">
+              <label for="ssh-enabled">enabled:</label>
+              <input type="checkbox" id="ssh-enabled">
             </div>
           </div>
+        </div>
 
-          <div class="form-group">
-              <h3>CLI Prompt</h3>
-              <div class="form-row">
-                  <label>Prompt File Path:</label>
-                  <input type="text" id="cli-prompt" placeholder="/path/to/cli_prompt.md">
-              </div>
+        <div class="form-group">
+          <h3>CLI Prompt</h3>
+          <div class="form-row">
+            <label>Prompt File Path:</label>
+            <input type="text" id="cli-prompt" placeholder="/path/to/cli_prompt.md">
           </div>
+        </div>
 
-          <div class="form-group">
-              <h3>Agent LLM Configuration</h3>
-              <div class="form-row">
-                  <label>Model:</label>
-                  <select id="ai-model">
-                  </select>
-              </div>
-              <div class="form-row">
-                  <label>API Url:</label>
-                  <input type="text" id="api-url" placeholder="Enter your API url">
-              </div>
-              <div class="form-row">
-                  <label>API Key:</label>
-                  <input type="text" id="api-key" placeholder="Enter your API key">
-              </div>
+        <div class="form-group">
+          <h3>Agent LLM Configuration</h3>
+          <div class="form-row">
+            <label>Model:</label>
+            <select id="ai-model">
+            </select>
           </div>
+          <div class="form-row">
+            <label>API Url:</label>
+            <input type="text" id="api-url" placeholder="Enter your API url">
+          </div>
+          <div class="form-row">
+            <label>API Key:</label>
+            <input type="text" id="api-key" placeholder="Enter your API key">
+          </div>
+        </div>
 
-          <div class="form-group">
-              <h3>Biotools MCP server</h3>
-              <div class="form-row">
-                  <label>Url:</label>
-                  <input type="text" id="mcp_server-biotools-url" placeholder="Enter your biotools mcp sse url">
-              </div>
-              <div class="form-row">
-                  <div class="form-row">
-                    <label for="mcp_server-biotools-enabled">disabled:</label>
-                    <input type="checkbox" id="mcp_server-biotools-enabled">
-                </div>
-              </div>
+        <div class="form-group">
+          <h3>Biotools MCP server</h3>
+          <div class="form-row">
+            <label>Url:</label>
+            <input type="text" id="mcp_server-biotools-url" placeholder="Enter your biotools mcp sse url">
           </div>
+          <div class="form-row">
+            <div class="form-row">
+              <label for="mcp_server-biotools-enabled">disabled:</label>
+              <input type="checkbox" id="mcp_server-biotools-enabled">
+            </div>
+          </div>
+        </div>
 
-          <div class="modal-actions">
-              <button class="dialog-btn" onclick="hideConfig()">Cancel</button>
-              <button class="dialog-btn dialog-confirm" onclick="saveConfig()">Save Configuration</button>
-          </div>
+        <div class="modal-actions">
+          <button class="dialog-btn" onclick="hideConfig()">Cancel</button>
+          <button class="dialog-btn dialog-confirm" onclick="saveConfig()">Save Configuration</button>
+        </div>
       </div>
-  </div>
+    </div>
 
     <div class="container-fluid min-h-screen flex">
       <div class="w-full flex-grow">
@@ -174,6 +196,7 @@
             <span><i class="fas fa-hashtag"></i> <span id="tokens">0</span> tokens</span>
             <span><i class="fas fa-clock"></i> <span id="seconds">0</span> s</span>
             <div class="btn" id="auto_opt">Context auto-optimization</div>
+            <div class="btn" id="envs">Environment variables</div>
           </div>
         </div>
       </div>

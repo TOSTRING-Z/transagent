@@ -290,10 +290,11 @@ class MainWindow extends Window {
             data.output_formats = []
             if (data.is_plugin) {
                 let content = await this.chain_call.pluginCall(data);
-                _event.sender.send('stream-data', { id: data.id, content: content, end: true });
+                _event.sender.send('stream-data', { id: data.id, content: content, end: true, is_plugin: data.is_plugin});
             }
             else if (this.funcItems.react.statu) {
                 // ReAct
+                data.envs = global.chat.config;
                 let step = 0;
                 this.tool_call.state = State.IDLE;
                 let tool_call = utils.getConfig("tool_call");
@@ -465,6 +466,19 @@ class MainWindow extends Window {
             const plugins = new Plugins();
             plugins.init()
             return state;
+        });
+        
+        // 环境
+        ipcMain.handle('envs', (_, data) => {
+            if (data.type === "set") {
+                const config = data.config;
+                global.chat.config = config;
+                this.setHistory()
+                return true;
+            } else {
+                const config = global.chat?.config;
+                return config || {};
+            }
         });
 
         ipcMain.on('set-global', (_, chat) => {
