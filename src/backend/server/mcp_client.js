@@ -105,6 +105,7 @@ class MCPClient {
             if (Object.prototype.hasOwnProperty.call(caps, "tools")) {
                 tools = await client.listTools();
             }
+            console.log(tools);
             if (!tools) return null;
             const mcp_prompt = tools.tools.filter(tool => tool.name !== "execute_bash").map(tool => {
                 this.tools[tool.name] = name;

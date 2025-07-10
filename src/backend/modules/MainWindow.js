@@ -424,10 +424,8 @@ class MainWindow extends Window {
         ipcMain.handle('new-chat', () => {
             clearMessages();
             this.window.webContents.send('clear');
+            global.chat = utils.getChatInit();
             global.chat.id = utils.getChatId();
-            global.chat.name = null;
-            global.chat.tokens = 0;
-            global.chat.seconds = 0;
             this.setHistory();
             let chat = utils.copy(global.chat);
             chat.name = utils.formatDate();

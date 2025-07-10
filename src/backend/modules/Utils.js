@@ -233,7 +233,8 @@ class Utils {
             id: null,
             name: null,
             tokens: 0,
-            seconds: 0
+            seconds: 0,
+            config: null,
         }
     }
 }
