@@ -87,8 +87,8 @@ config.json
 },
 "mcp_server": {
   "biotools": {
-    "url": "http://172.27.0.3:3001/sse",
-    "enabled": true
+    "url": "http://172.27.0.3:3001/biotools",
+    "disabled": false
   }
 }
 ```

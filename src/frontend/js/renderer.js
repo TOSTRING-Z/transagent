@@ -1020,10 +1020,8 @@ async function showConfig() {
   document.getElementById('mcp_server-biotools-enabled').checked = !!config.mcp_server.biotools.enabled || null;
 }
 
-function hideConfig(event) {
-  if (!event || event.target === document.querySelector('.config-modal')) {
-    document.querySelector('.config-modal').style.display = 'none';
-  }
+function hideConfig() {
+    document.querySelectorAll('.config-modal').forEach(m=>console.log(m.style.display = 'none'))
 }
 
 async function saveConfig() {
