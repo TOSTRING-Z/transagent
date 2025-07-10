@@ -197,10 +197,10 @@
         "delay_time": 5,
         "threshold": 40
       },
-      "disabled": false
+      "enabled": true
     },
     "display_file": {
-      "disabled": false
+      "enabled": true
     }
   },
   "mcp_server": {
