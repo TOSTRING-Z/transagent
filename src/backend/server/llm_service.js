@@ -319,7 +319,7 @@ async function chatBase(data) {
             headers["Authorization"] = `Bearer ${data.api_key}`;
         }
         if (stop_ids.includes(data.id)) {
-            return "Stop!";
+            return "The user interrupted the task.";
         }
         if (body?.stream) {
             const resp = await fetch(new URL(data.api_url), {
@@ -336,7 +336,7 @@ async function chatBase(data) {
 
             for await (const chunk of stream_res) {
                 if (stop_ids.includes(data.id)) {
-                    return "Stop!";
+                    return "The user interrupted the task.";
                 }
                 content = "";
                 if (Object.prototype.hasOwnProperty.call(chunk, "message")) {
@@ -378,7 +378,7 @@ async function chatBase(data) {
             message_output.content = data.output;
         }
         if (stop_ids.includes(data.id)) {
-            return "Stop!";
+            return "The user interrupted the task.";
         }
 
         if (data.end) {

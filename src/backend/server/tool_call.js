@@ -51,6 +51,50 @@ class ToolCall extends ReActAgent {
           return memory || "No memory ID found";
         }
       },
+      "add_subtask": {
+        func: ({ subtasks }) => {
+          if (!Array.isArray(subtasks)) {
+            subtasks = [subtasks];
+          }
+          subtasks = subtasks.map(task_discription => {
+            const task = {
+              id: this.vars.subtask_id,
+              discription: task_discription,
+              status: "pending"
+            }
+            this.vars.subtask_id++;
+            return task;
+          });
+          this.vars.subtasks = this.vars.subtasks.concat(subtasks)
+
+          return {
+            status: "success",
+            message: `${this.vars.subtasks.length} subtasks added`,
+            subtasks: this.vars.subtasks
+          };
+        }
+      },
+      "complete_subtask": {
+        func: ({ task_ids }) => {
+          if (!Array.isArray(task_ids)) {
+            task_ids = [task_ids];
+          }
+          task_ids = task_ids.map(id => {
+            try {
+              return parseInt(id);
+            } catch {
+              return -1;
+            }
+          });
+          this.vars.subtasks = this.vars.subtasks.filter(task => !task_ids.includes(task.id));
+
+          return {
+            status: "success",
+            message: `${task_ids.length} subtasks completed`,
+            subtasks: this.vars.subtasks
+          };
+        }
+      },
     }
 
     this.tool_prompt = []
@@ -69,6 +113,10 @@ You should strictly follow the entire process of thinking first, then acting, an
 2. Action: Based on your thinking, determine the tools needed to be called
 3. Observation: Analyze the results of the action and incorporate them into your thinking
 
+When dealing with complex tasks, you should:
+1. Automatically generate a detailed subtask list based on user requirements
+2. Call the 'complete_subtask' tool after completing each subtask
+3. Use todolist to display the subtask list
 
 Tool usage instructions:
 You can access and use a series of tools according to the user's approval. Only one tool can be used in each message, and you will receive the execution result of the tool in the user's response. You need to gradually use tools to complete the given task, and each use of the tool should be adjusted based on the results of the previous tool.
@@ -112,6 +160,45 @@ Please always follow this format to ensure the tool can be correctly parsed and 
 # Tools:
 
 {tool_prompt}
+
+## add_subtask
+Description: Add new subtasks to todo list
+
+Parameters:
+- subtasks: (Required) Discription of the subtask
+
+Usage Example:
+{
+  "thinking": "User requested to create a new project, need to break down into subtasks",
+  "tool": "add_subtask",
+  "params": {
+    "subtasks": [
+      "Design project architecture", 
+      "Create database schema", 
+      "Implement API endpoints",
+      ...
+    ]
+  }
+}
+
+## complete_subtask
+Description: Mark subtask(s) as completed
+
+Parameters:
+- task_ids: (Required) Single task ID or array of task IDs to complete
+
+Usage Example:
+{
+  "thinking": "Project architecture design is completed, need to mark these subtasks as done",
+  "tool": "complete_subtask",
+  "params": {
+    "task_ids": [
+      0, 
+      1,
+      ...
+    ]
+  }
+}
 
 ## mcp_server
 Description: Request MCP (Model Context Protocol) service.
@@ -514,7 +601,10 @@ I automatically invoke memory_retrieval when:
 - Temporary folder: {tmpdir}
 - Current time: {time}
 - Current mode: {mode}
-{envs}`
+{envs}
+
+TodoList:
+{todolist}`
 
     this.modes = {
       AUTO: 'Automatic mode',
@@ -522,12 +612,18 @@ I automatically invoke memory_retrieval when:
       PLAN: 'Planning mode',
     }
 
+    this.vars = {
+      subtasks: [],
+      subtask_id: 0,
+    }
+
     this.environment_details = {
       language: utils.getLanguage(),
       tmpdir: utils.getConfig("tool_call")?.tmpdir || os.tmpdir(),
       time: utils.formatDate(),
       mode: this.modes.ACT,
-      envs: null
+      envs: null,
+      todolist: null,
     }
   }
 
@@ -588,6 +684,9 @@ I automatically invoke memory_retrieval when:
         envs.push(`- ${key}: ${value}`)
       }
     }
+    this.environment_details.todolist = this.vars.subtasks.map(task => {
+      return `- task_id: ${task.id}, task_description: ${task.description}, task_statu: ${task.statu}`
+    })
     this.environment_details.envs = envs.join("\n");
     data.env_message = envMessage(this.env.format(this.environment_details));
   }

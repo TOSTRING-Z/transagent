@@ -797,7 +797,7 @@ String.prototype.formatMessage = function (params, role) {
     message.innerHTML = marked.parse(params["message"])
   } else {
     if (params.image_url) {
-      let img = createElement(`<img class="size-48 shadow-xl rounded-md mb-1" src="${params.image_url}">`);
+      let img = createElement(`<img class="w-1/2 shadow-xl rounded-md mb-1 hover" src="${params.image_url}">`);
       message.appendChild(img);
     }
     let text = createElement(`<div class="text"></div>`);

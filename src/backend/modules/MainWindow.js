@@ -301,7 +301,7 @@ class MainWindow extends Window {
                 while (this.tool_call.state != State.FINAL && this.tool_call.state != State.PAUSE) {
                     if (getStopIds().includes(data.id)) {
                         this.tool_call.state = State.FINAL
-                        _event.sender.send('stream-data', { id: data.id, content: "Stop!", end: true });
+                        _event.sender.send('stream-data', { id: data.id, content: "The user interrupted the task.", end: true });
                         break;
                     }
                     data = { ...data, ...defaults, ...tool_call, step: ++step, memory_id: this.tool_call.memory_id, react: true };
@@ -320,7 +320,7 @@ class MainWindow extends Window {
                 let chain_calls = utils.getConfig("chain_call");
                 for (const step in chain_calls) {
                     if (getStopIds().includes(data.id)) {
-                        _event.sender.send('stream-data', { id: data.id, content: "Stop!", end: true });
+                        _event.sender.send('stream-data', { id: data.id, content: "The user interrupted the task.", end: true });
                         break;
                     }
                     data = { ...data, ...defaults, ...chain_calls[step], step: step };
