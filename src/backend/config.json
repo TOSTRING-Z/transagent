@@ -4,6 +4,9 @@
   "icon_time": 5,
   "prompt": null,
   "history_path": null,
+  "webserver": {
+    "port": 3005
+  },
   "short_cut": "CommandOrControl+Shift+Space",
   "backend_url": "http://www.licpathway.net/transagent_web",
   "info_template": "Step: {step}, id: {id}, memory_id: {memory_id}, Call: {model}, Version: {version}, Output:\n\n```json\n{output_format}\n```\n\n",
@@ -224,7 +227,7 @@
       "port": 3002,
       "username": "root",
       "password": "password",
-      "enabled":true
+      "enabled": true
     },
     "llm_parmas": {
       "max_tokens": 4000,

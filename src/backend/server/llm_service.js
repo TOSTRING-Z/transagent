@@ -354,7 +354,7 @@ async function chatBase(data) {
                     }
                 }
                 if (!data?.react && !data?.return_response) {
-                    data.event.sender.send('stream-data', { id: data.id, content: content, end: false });
+                    data.event.send('stream-data', { id: data.id, content: content, end: false });
                 }
             }
             data.output = message_output.content;
@@ -367,7 +367,7 @@ async function chatBase(data) {
             });
             let respJson = await resp.json();
             if (Object.prototype.hasOwnProperty.call(respJson, "error") && !data?.return_response) {
-                data.event.sender.send('info-data', { id: data.id, content: `POST Error:\n\n\`\`\`\n${respJson.error?.message}\n\`\`\`\n\n` });
+                data.event.send('info-data', { id: data.id, content: `POST Error:\n\n\`\`\`\n${respJson.error?.message}\n\`\`\`\n\n` });
                 return null;
             }
             if (Object.prototype.hasOwnProperty.call(respJson, "message")) {
@@ -387,9 +387,9 @@ async function chatBase(data) {
             if (data?.return_response)
                 return true;
             if (!data?.react)
-                data.event.sender.send('stream-data', { id: data.id, content: "", end: true });
+                data.event.send('stream-data', { id: data.id, content: "", end: true });
             else
-                data.event.sender.send('stream-data', { id: data.id, content: data.output_template ? data.output_template.format(data) : data.output, end: true });
+                data.event.send('stream-data', { id: data.id, content: data.output_template ? data.output_template.format(data) : data.output, end: true });
             return true;
         } else {
             if (data?.push_message) {
@@ -401,7 +401,7 @@ async function chatBase(data) {
     } catch (error) {
         console.log(error)
         if (!data?.return_response)
-            data.event.sender.send('info-data', { id: data.id, content: `Response error: ${error.message}\n\n` });
+            data.event.send('info-data', { id: data.id, content: `Response error: ${error.message}\n\n` });
         return null;
     }
 }

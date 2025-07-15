@@ -6,6 +6,7 @@ const { captureMouse } = require('../mouse/capture_mouse');
 const { State } = require("../server/agent.js")
 const { ToolCall } = require('../server/tool_call');
 const { ChainCall } = require('../server/chain_call');
+const { WebServer } = require('./WebServer.js');
 
 const { BrowserWindow, Menu, shell, ipcMain, clipboard, dialog } = require('electron');
 const jsdom = require("jsdom");
@@ -20,6 +21,7 @@ class MainWindow extends Window {
         super(windowManager);
         this.tool_call = new ToolCall(inner.model_obj[inner.model_name.plugins]);
         this.chain_call = new ChainCall();
+        this.webServer = new WebServer(this);
         this.funcItems = {
             clip: {
                 statu: utils.getConfig("func_status")?.clip,
@@ -89,6 +91,9 @@ class MainWindow extends Window {
 
         this.window.loadFile('src/frontend/index.html')
 
+        // Start web server
+        this.webServer.start();
+
         // Send message to renderer process after window loaded
         this.window.webContents.on('did-finish-load', () => {
             this.initFuncItems();
@@ -123,6 +128,7 @@ class MainWindow extends Window {
         })
 
         this.window.on('closed', () => {
+            this.webServer.stop();
             this.window = null;
         })
 
@@ -192,6 +198,101 @@ class MainWindow extends Window {
         data['ids'] = [...new Set(data['ids'])];
         data['memory_ids'] = [...new Set(data['memory_ids'])];
         this.window.webContents.send('delete-memory', data);
+    }
+
+    getDataDefault(data) {
+        if (!data) {
+            data = {};
+        }
+        let defaults = {
+            prompt: this.funcItems.text.event(data?.prompt),
+            query: this.funcItems.text.event(data?.query),
+            img_url: data?.img_url,
+            file_path: data?.file_path,
+            model: utils.copy(data?.model || global.model),
+            version: utils.copy(data?.version || global.version),
+            output_template: null,
+            input_template: null,
+            prompt_template: null,
+            params: null,
+            llm_parmas: utils.getConfig("llm_parmas"),
+            memory_length: utils.getConfig("memory_length"),
+            push_message: true,
+            end: null,
+            event: this.window.webContents
+        }
+        data.outputs = []
+        data.output_formats = []
+        data = { ...data, ...defaults }
+        return data;
+    }
+
+    async callReAct(data) {
+        data.envs = global.chat.config;
+        let step = 0;
+        this.tool_call.state = State.IDLE;
+        let tool_call = utils.getConfig("tool_call");
+        while (this.tool_call.state != State.FINAL && this.tool_call.state != State.PAUSE) {
+            if (getStopIds().includes(data.id)) {
+                this.tool_call.state = State.FINAL
+                this.window.webContents.send('stream-data', { id: data.id, content: "The user interrupted the task.", end: true });
+                break;
+            }
+            data = { ...data, ...tool_call, step: ++step, memory_id: this.tool_call.memory_id, react: true };
+
+            let options = await this.tool_call.step(data);
+            this.setHistory()
+            if (this.tool_call.state == State.PAUSE) {
+                this.window.webContents.send("options", { options, id: data.id });
+            }
+        }
+        if (!global.chat.name) {
+            global.chat.name = await this.setChatName(data)
+        }
+        let agent_messages = getMessages(true).filter(message => message.id === data.id);
+        utils.sendData(inner.url_base.data.collection, {
+            "chat_id": global.chat.id,
+            "message_id": data.id,
+            "user_message": data.query,
+            "agent_messages": agent_messages,
+        })
+        return data.output_formats;
+    }
+
+    async callChain(data) {
+        this.chain_call.state = State.IDLE;
+        let chain_calls = utils.getConfig("chain_call");
+        for (const step in chain_calls) {
+            if (getStopIds().includes(data.id)) {
+                this.window.webContents.send('stream-data', { id: data.id, content: "The user interrupted the task.", end: true });
+                break;
+            }
+            data = { ...data, ...chain_calls[step], step: step };
+            const tool_parmas = {}
+            const input_data = chain_calls[step]?.input_data || [];
+            for (const key in input_data) {
+                if (Object.hasOwnProperty.call(input_data, key)) {
+                    const item = input_data[key];
+                    tool_parmas[key] = item.format(data);
+                }
+            }
+            data = { ...data, ...tool_parmas };
+            await this.chain_call.step(data);
+            this.setHistory()
+            if (this.chain_call.state == State.FINAL) {
+                if (this.chain_call.is_plugin)
+                    this.window.webContents.send('stream-data', { id: data.id, content: data.output_format, end: true });
+                break;
+            }
+            if (this.chain_call.state == State.ERROR) {
+                this.window.webContents.send('stream-data', { id: data.id, content: "Error occurred!", end: true });
+                break;
+            }
+
+            let info = this.chain_call.get_info(data);
+            this.window.webContents.send('info-data', { id: data.id, content: info });
+        }
+        return data.output_format;
     }
 
     setup() {
@@ -269,97 +370,19 @@ class MainWindow extends Window {
                 await this.contextAutoOpt(this.funcItems.text.event(data.query));
             }
             // Default values
-            let defaults = {
-                prompt: this.funcItems.text.event(data.prompt),
-                query: this.funcItems.text.event(data.query),
-                img_url: data?.img_url,
-                file_path: data?.file_path,
-                model: utils.copy(data.model),
-                version: utils.copy(data.version),
-                output_template: null,
-                input_template: null,
-                prompt_template: null,
-                params: null,
-                llm_parmas: utils.getConfig("llm_parmas"),
-                memory_length: utils.getConfig("memory_length"),
-                push_message: true,
-                end: null,
-                event: _event
-            }
-            data.outputs = []
-            data.output_formats = []
-            if (data.is_plugin) {
+            data = this.getDataDefault(data);
+            if (data?.is_plugin) {
                 let content = await this.chain_call.pluginCall(data);
-                _event.sender.send('stream-data', { id: data.id, content: content, end: true, is_plugin: data.is_plugin});
+                this.window.webContents.send('stream-data', { id: data.id, content: content, end: true, is_plugin: data.is_plugin });
             }
             else if (this.funcItems.react.statu) {
                 // ReAct
-                data.envs = global.chat.config;
-                let step = 0;
-                this.tool_call.state = State.IDLE;
-                let tool_call = utils.getConfig("tool_call");
-                while (this.tool_call.state != State.FINAL && this.tool_call.state != State.PAUSE) {
-                    if (getStopIds().includes(data.id)) {
-                        this.tool_call.state = State.FINAL
-                        _event.sender.send('stream-data', { id: data.id, content: "The user interrupted the task.", end: true });
-                        break;
-                    }
-                    data = { ...data, ...defaults, ...tool_call, step: ++step, memory_id: this.tool_call.memory_id, react: true };
-
-                    let options = await this.tool_call.step(data);
-                    this.setHistory()
-                    if (this.tool_call.state == State.PAUSE) {
-                        this.window.webContents.send("options", { options, id: data.id });
-                    }
-                }
-
+                await this.callReAct(data)
             }
             else {
                 // Chain call
-                this.chain_call.state = State.IDLE;
-                let chain_calls = utils.getConfig("chain_call");
-                for (const step in chain_calls) {
-                    if (getStopIds().includes(data.id)) {
-                        _event.sender.send('stream-data', { id: data.id, content: "The user interrupted the task.", end: true });
-                        break;
-                    }
-                    data = { ...data, ...defaults, ...chain_calls[step], step: step };
-                    const tool_parmas = {}
-                    const input_data = chain_calls[step]?.input_data || [];
-                    for (const key in input_data) {
-                        if (Object.hasOwnProperty.call(input_data, key)) {
-                            const item = input_data[key];
-                            tool_parmas[key] = item.format(data);
-                        }
-                    }
-                    data = { ...data, ...tool_parmas };
-                    await this.chain_call.step(data);
-                    this.setHistory()
-                    if (this.chain_call.state == State.FINAL) {
-                        if (this.chain_call.is_plugin)
-                            _event.sender.send('stream-data', { id: data.id, content: data.output_format, end: true });
-                        break;
-                    }
-                    if (this.chain_call.state == State.ERROR) {
-                        _event.sender.send('stream-data', { id: data.id, content: "Error occurred!", end: true });
-                        break;
-                    }
-
-                    let info = this.chain_call.get_info(data);
-                    _event.sender.send('info-data', { id: data.id, content: info });
-                }
+                await this.callChain(data);
             }
-            if (!global.chat.name) {
-                global.chat.name = await this.setChatName(data)
-            }
-            let agent_messages = getMessages(true).filter(message => message.id === data.id);
-            utils.sendData(inner.url_base.data.collection, {
-                "chat_id": global.chat.id,
-                "message_id": data.id,
-                "user_message": data.query,
-                "agent_messages": agent_messages,
-            })
-
         })
 
         ipcMain.handle("toggle-message", async (_event, data) => {
@@ -381,7 +404,7 @@ class MainWindow extends Window {
                     "user_message": messages[0].content,
                     "agent_messages": messages,
                 });
-                return messages?data.thumb: 0;
+                return messages ? data.thumb : 0;
             } else if (result?.type === "thumb") {
                 return result.data;
             }
@@ -465,7 +488,7 @@ class MainWindow extends Window {
             plugins.init()
             return state;
         });
-        
+
         // 环境
         ipcMain.handle('envs', (_, data) => {
             if (data.type === "set") {
@@ -485,9 +508,9 @@ class MainWindow extends Window {
         });
     }
 
-    send_query(data, model, version) {
+    send_query(data, model, version, api_callback = true) {
         data = { ...data, model, version, is_plugin: utils.getIsPlugin(model), id: ++global.id }
-        this.window.webContents.send('query', data);
+        this.window.webContents.send('query', { data, api_callback });
     }
 
     getClipEvent(e) {
@@ -544,11 +567,13 @@ class MainWindow extends Window {
 
     getTextEvent(e) {
         const textFormat = (text) => {
-            text = text.replaceAll('-\n', '');
-            if (e.statu) {
-                return text.replace(/[\s\n]+/g, ' ').trim();
-            } else {
-                return text;
+            if (text != null) {
+                text = text.replaceAll('-\n', '');
+                if (e.statu) {
+                    return text.replace(/[\s\n]+/g, ' ').trim();
+                } else {
+                    return text;
+                }
             }
         }
         return textFormat;

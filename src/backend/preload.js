@@ -28,6 +28,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   userData: (callback) => ipcRenderer.on('user-data', (_event, info) => callback(info)),
   uploadProgress: (callback) => ipcRenderer.on('upload-progress', (_event, info) => callback(info)),
   newChat: () => ipcRenderer.invoke('new-chat'),
+  handleNewChat: (callback) => ipcRenderer.on('new-chat', (_event, chat) => callback(chat)),
+  handleSelectChat: (callback) => ipcRenderer.on('select-chat', (_event, chat) => callback(chat)),
   delChat: (id) => ipcRenderer.send('del-chat', id),
   loadChat: (id) => ipcRenderer.invoke('load-chat', id),
   renameChat: (data) => ipcRenderer.send('rename-chat', data),

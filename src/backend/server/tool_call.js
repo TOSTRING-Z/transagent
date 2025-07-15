@@ -719,17 +719,17 @@ TodoList:
       pushMessage("user", data.output_format, data.id, this.memory_id);
       this.environment_update(data);
       if (tool_info.tool == "display_file") {
-        data.event.sender.send('stream-data', { id: data.id, memory_id: this.memory_id, content: `${output}\n\n` });
+        data.event.send('stream-data', { id: data.id, memory_id: this.memory_id, content: `${output}\n\n` });
       }
       if (this.state == State.PAUSE) {
         const { question, options } = output;
-        data.event.sender.send('stream-data', { id: data.id, memory_id: this.memory_id, content: question, end: true });
+        data.event.send('stream-data', { id: data.id, memory_id: this.memory_id, content: question, end: true });
         return options;
       }
       if (this.state == State.FINAL) {
-        data.event.sender.send('stream-data', { id: data.id, memory_id: this.memory_id, content: output, end: true });
+        data.event.send('stream-data', { id: data.id, memory_id: this.memory_id, content: output, end: true });
       } else {
-        data.event.sender.send('info-data', { id: data.id, memory_id: this.memory_id, content: this.get_info(data) });
+        data.event.send('info-data', { id: data.id, memory_id: this.memory_id, content: this.get_info(data) });
       }
     }
   }
@@ -739,7 +739,7 @@ TodoList:
     const raw_json = await this.llmCall(data);
     console.log(`raw_json: ${raw_json}`);
     data.output_format = utils.extractJson(raw_json) || raw_json;
-    data.event.sender.send('info-data', { id: data.id, memory_id: ++this.memory_id, content: this.get_info(data) });
+    data.event.send('info-data', { id: data.id, memory_id: ++this.memory_id, content: this.get_info(data) });
     return this.get_tool(data.output_format, data);
   }
 
@@ -786,7 +786,7 @@ TodoList:
       const tool_info = JSON5.parse(content);
       if (tool_info?.tool) {
         const thinking = `${tool_info?.thinking || `Tool call: ${tool_info.tool}`}\n\n---\n\n`
-        data.event.sender.send('stream-data', { id: data.id, memory_id: this.memory_id, content: thinking });
+        data.event.send('stream-data', { id: data.id, memory_id: this.memory_id, content: thinking });
         return tool_info;
       }
     } catch (error) {
@@ -799,7 +799,7 @@ TodoList:
       setTag(false);
       pushMessage("user", data.output_format, data.id, this.memory_id);
       this.environment_update(data);
-      data.event.sender.send('info-data', { id: data.id, memory_id: this.memory_id, content: this.get_info(data) });
+      data.event.send('info-data', { id: data.id, memory_id: this.memory_id, content: this.get_info(data) });
     }
   }
 

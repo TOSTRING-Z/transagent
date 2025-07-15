@@ -875,7 +875,9 @@ function addEventStop(messageSystem, id) {
 
 }
 
-window.electronAPI.handleQuery(async (data) => {
+window.electronAPI.handleQuery(async ({ data, api_callback = true }) => {
+  pause.style.display = "none";
+  pause.innerHTML = "";
   optionDom?.remove();
   if (!global.seconds_timer) {
     global.seconds_timer = setInterval(() => {
@@ -912,7 +914,8 @@ window.electronAPI.handleQuery(async (data) => {
   addEventStop(messageSystem, data.id);
   messages.appendChild(messageSystem);
   top_div.scrollTop = top_div.scrollHeight;
-  window.electronAPI.queryText(data);
+  if (api_callback)
+    window.electronAPI.queryText(data);
 })
 
 window.electronAPI.handleExtraLoad((data) => {
@@ -945,8 +948,6 @@ window.electronAPI.handleOptions(({ options, id }) => {
       formData.query = value;
       formData.prompt = "";
       window.electronAPI.clickSubmit(formData);
-      pause.style.display = "none";
-      pause.innerHTML = "";
     })
     pause.appendChild(option);
   })
@@ -1021,7 +1022,7 @@ async function showConfig() {
 }
 
 function hideConfig() {
-    document.querySelectorAll('.config-modal').forEach(m=>console.log(m.style.display = 'none'))
+  document.querySelectorAll('.config-modal').forEach(m => console.log(m.style.display = 'none'))
 }
 
 async function saveConfig() {
@@ -1119,8 +1120,8 @@ function addChatItem(chat) {
   history_list.insertBefore(item, history_list.firstChild);
 }
 
-async function newChat() {
-  const chat = await window.electronAPI.newChat();
+// 新建对话
+function newChat(chat) {
   addChatItem(chat);
   const items = history_list.getElementsByClassName("history-item");
   [...items].forEach(item_ => {
@@ -1131,7 +1132,18 @@ async function newChat() {
   });
 }
 
+const btn_new_chat = document.getElementById("new-chat");
+btn_new_chat.addEventListener("click", async () => {
+  const chat = await window.electronAPI.newChat();
+  newChat(chat);
+})
+
+window.electronAPI.handleNewChat((chat) => {
+  newChat(chat);
+})
+
 // 选择聊天
+
 async function selectChat(chatId) {
   const chat = await window.electronAPI.loadChat(chatId);
   global.chat = chat;
@@ -1145,6 +1157,10 @@ async function selectChat(chatId) {
       item_.classList.remove("active");
   });
 }
+
+window.electronAPI.handleSelectChat(async (chat) => {
+  await selectChat(chat.id);
+})
 
 // 删除聊天
 async function deleteChat(chatId) {
