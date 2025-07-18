@@ -1,0 +1,15 @@
+{
+    "chain_call": [
+        {
+            "model": "plugins",
+            "version": "file_load",
+            "input_data": {
+                "file_path": "{file_path}"
+            }
+        },
+        {
+            "input_template": "The following is the text content in the PDF:\n\n<pdf>{output_formats[0]}</pdf>\n\nThe following is the user input content:\n\n<user>{query}</user>\n\nPlease answer the user input based on the content in the PDF. The reply requirements are as follows:\n- Filter out redundant text, such as line numbers, page numbers and watermarks. \n- Think as much as possible about details, potentially related and possibly related content. \n- For content not in the original text, no need to guess, put forward opinions and output content that may be inconsistent with the original text.\n- Output in a standardized format.",
+            "end": true
+        }
+    ]
+}

@@ -1,0 +1,20 @@
+{
+    "chain_call": [
+        {
+            "model": "deepseek-reasoner",
+            "version": "deepseek-chat",
+            "prompt": "Please think before answering"
+        },
+        {
+            "model": "plugins",
+            "version": "get_think",
+            "input_data": {
+                "input": "{input}"
+            },
+            "output_template": "<think>{output}</think>\n- query:{query}\n- answer:"
+        },
+        {
+            "end": true
+        }
+    ]
+}

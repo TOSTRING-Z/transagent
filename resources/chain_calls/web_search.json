@@ -1,0 +1,26 @@
+{
+    "chain_call": [
+        {
+            "model": "deepseek",
+            "version": "deepseek-chat",
+            "prompt": "将用户输入改写成适合百度搜索的格式，请包含国内用户常用搜索策略：\n\n▌案例1（基础问答）\n输入：怎么自学Python编程？\n输出：Python编程 教程 入门 指南 -广告 -推广 -营销\n\n▌案例2（实时信息）\n输入：大模型最近消息\n输出：大模型 近期消息 最新动态 近一周 -广告 -推广 -营销\n\n▌案例3（学术搜索）\n输入：找最近大模型相关研究\n输出：大模型 研究 site:zhihu.com 近一周\n\n▌案例5（代码问答）\n输入：解释annotator configure test\n输出：annotator configure test site:csdn.net"
+        },
+        {
+            "model": "plugins",
+            "version": "baidu_search",
+            "params": {
+                "num_results": 4,
+                "text_max_len": 4000,
+                "jina": ""
+            },
+            "input_data": {
+                "context": "{output_format}"
+            },
+            "output_template": "{JSON.stringify(output)}"
+        },
+        {
+            "input_template": "<info>\n{output_format}\n</info>\n输入：{query}",
+            "end": true
+        }
+    ]
+}

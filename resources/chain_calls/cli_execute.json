@@ -1,0 +1,13 @@
+{
+    "chain_call": [
+        {
+            "model": "plugins",
+            "version": "cli_execute",
+            "input_data": {
+                "code": "{query}"
+            },
+            "output_template":"{JSON.stringify(output)}",
+            "end": true
+        }
+    ]
+}

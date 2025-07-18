@@ -1,0 +1,8 @@
+{
+    "chain_call": [
+        {
+            "input_template": "{img_url?'Please understand the content of the image and answer.':''}{input}",
+            "end": true
+        }
+    ]
+}

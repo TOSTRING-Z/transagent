@@ -1,0 +1,1 @@
+Execute bash code locally, such as file reading, data analysis, and code execution

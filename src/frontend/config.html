@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Config</title>
+    <link rel="stylesheet" href="css/jsoneditor/dist/jsoneditor.min.css" />
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 自定义标题栏 */
+        .title-bar {
+            -webkit-app-region: drag;
+            /* 允许拖动 */
+            height: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            -webkit-user-select: none;
+            /* Safari */
+            -moz-user-select: none;
+            /* Firefox */
+            -ms-user-select: none;
+            /* IE10+/Edge */
+            user-select: none;
+            /* Standard */
+        }
+
+        /* 窗口控制按钮 */
+        .window-controls {
+            display: flex;
+            -webkit-app-region: no-drag;
+            /* 禁止拖动干扰按钮点击 */
+        }
+
+        .window-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 8px;
+            cursor: pointer;
+        }
+
+        .close-btn {
+            background: #ff5e57;
+        }
+
+        .minimize-btn {
+            background: #ffbb2e;
+        }
+
+        /* 内容区域 */
+        .content {
+            padding: 0px;
+            width: 100%;
+            height: calc(100vh - 30px);
+            overflow: auto;
+        }
+
+        .container-editor {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .top_div {
+            background: #f0f0f0;
+        }
+
+        .middle_div {
+            flex-grow: 1;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+
+        .bottom_div {
+            background: #f9f9f9;
+            border: none;
+            padding: 0.8rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 自定义标题栏 -->
+    <div class="title-bar">
+        <div class="title">Terminal</div>
+        <div class="window-controls">
+            <div class="window-btn minimize-btn" id="minimize-btn"></div>
+            <div class="window-btn close-btn" id="close-btn"></div>
+        </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="content">
+        <div class="container-editor">
+            <div class="top_div">
+                <div></div>
+            </div>
+            <div class="middle_div">
+                <div id="json-editor"></div>
+            </div>
+            <div class="bottom_div">
+                <button id="save-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+<script src="js/jsoneditor.min.js"></script>
+<script>
+    // 窗口控制逻辑
+    const { ipcRenderer } = require('electron')
+
+    document.getElementById('minimize-btn').addEventListener('click', () => {
+        ipcRenderer.send('minimize-window')
+    })
+
+    document.getElementById('close-btn').addEventListener('click', () => {
+        ipcRenderer.send('close-window')
+    })
+
+    // 初始化JSON Editor
+    const editor = new JSONEditor(document.getElementById('json-editor'), {});
+
+    // 加载配置
+    ipcRenderer.invoke('get-config').then(config => {
+        editor.set(config);
+    });
+
+    // 保存配置
+    function showLog(log) {
+        const htmlString = `<div style="display: flex; pointer-events: none; height: 100%; width: 100%; justify-content: center; align-items: center; font-size: large; position: absolute;">
+                <b style="border: 2px solid #666; text-align: center; padding: 5px; background: white;">${log}</b>
+            </div>`;
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlString, 'text/html');
+        const newElement = doc.body.firstChild;
+        document.body.appendChild(newElement);
+        setInterval(() => { newElement.remove() }, 2000)
+    }
+    document.getElementById('save-btn').addEventListener('click', async () => {
+        const config = editor.get();
+        const statu = ipcRenderer.invoke('set-config', config);
+        if (statu)
+            showLog('Configuration saved!');
+    });
+</script>
+
+</html>

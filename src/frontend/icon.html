@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<style>
+  body {
+    margin: 0;
+    /* background-color: rgba(0, 0, 0, 0.5); */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .icon {
+    width: 30px;
+    height: 30px;
+    background-size: 80% 80%;
+    /* 图片会被拉伸以覆盖整个元素 */
+    background-position: center;
+    /* 可选，将图片居中显示 */
+    background-repeat: no-repeat;
+    /* 可选，防止图片重复 */
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.3s;
+    display: inline-block;
+    pointer-events: all;
+  }
+
+  .icon.hidden {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  .icon:hover {
+    transform: scale(1.1);
+  }
+
+  #move {
+    background-size: 60% 60%;
+  }
+</style>
+
+<body>
+  <div style="background-image: url(img/icon/focus.svg)" id="move" class="icon"></div>
+  <div style="background-image: url(img/icon/concat.svg)" id="concat" class="icon" onclick="concatClick()"></div>
+  <div style="background-image: url(img/icon/submit.svg)" id="submit" class="icon" onclick="submitClick()"></div>
+  <div style="background-image: url(img/icon/translation.svg)" id="translation" class="icon"
+    onclick="translationClick()"></div>
+  <div style="background-image: url(img/icon/clear.svg)" id="clear" class="icon" onclick="clearClick()"></div>
+  <div style="background-image: url(img/icon/screen.svg)" id="screen" class="icon" onclick="startCapture()"></div>
+  <script>
+    const { ipcRenderer } = require("electron");
+    function startCapture() {
+      ipcRenderer.send("start-capture");
+    }
+    function concatClick() {
+      ipcRenderer.send("concat-clicked");
+    }
+    function translationClick() {
+      ipcRenderer.send("translation-clicked");
+    }
+    function submitClick() {
+      ipcRenderer.send("submit-clicked");
+    }
+    function clearClick() {
+      ipcRenderer.send("clear-clicked");
+    }
+
+    /* 窗口拖动 */
+    let initialMouseX = 0;
+    let initialMouseY = 0;
+    let mouseDownTime = 0;
+    let windowInitialX = 0;
+    let windowInitialY = 0;
+    let isDragging = false;
+
+    // 处理鼠标按下事件
+    const handleMouseDown = (e) => {
+      isDragging = false
+      initialMouseX = e.screenX; // 使用screenX/screenY获取相对于屏幕的坐标
+      initialMouseY = e.screenY;
+      mouseDownTime = Date.now();
+      // 获取窗口初始位置
+      ipcRenderer.invoke("app:overlay:get-position").then((bounds) => {
+        windowInitialX = bounds.x;
+        windowInitialY = bounds.y;
+
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mouseup", handleMouseUp);
+      });
+    };
+
+    // 处理鼠标移动事件
+    const handleMouseMove = (e) => {
+      const deltaX = e.screenX - initialMouseX;
+      const deltaY = e.screenY - initialMouseY;
+
+      // 判断是否达到拖动阈值
+      if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+        isDragging = true;
+      }
+
+      if (isDragging) {
+        // 计算新位置
+        const newX = windowInitialX + deltaX;
+        const newY = windowInitialY + deltaY;
+
+        // 发送新位置到主进程
+        ipcRenderer.send("app:overlay:set-position", {
+          x: newX,
+          y: newY
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+
+      // 如果不是拖拽且点击时间小于200ms，则触发展开/收起
+      if (!isDragging && Date.now() - mouseDownTime < 200) {
+        toggleExpand();
+      }
+    };
+
+    const toggleExpand = () => {
+      console.log("toggleExpand");
+    };
+
+    document.getElementById("move").addEventListener("mousedown", handleMouseDown);
+  </script>
+</body>
+
+</html>

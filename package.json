@@ -1,0 +1,113 @@
+{
+  "name": "transagent",
+  "version": "1.1.1",
+  "description": "transagent",
+  "main": "src/backend/main.js",
+  "homepage": ".",
+  "author": {
+    "name": "TOSTRING_Z",
+    "email": "mp798378522@gmail.com",
+    "url": "https://github.com/TOSTRING-Z"
+  },
+  "private": true,
+  "build": {
+    "files": [
+      "**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,.venv,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}",
+      "!biotools",
+      "!public",
+      "!dist"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/",
+        "to": "resources/",
+        "filter": [
+          "**/*",
+          "!**/node_modules"
+        ]
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "resources/icon/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "resources/icon/icon.ico",
+      "uninstallerIcon": "resources/icon/uninstall.ico",
+      "installerHeader": "resources/icon/icon.bmp",
+      "installerSidebar": "resources/icon/icon.bmp",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "TransAgent",
+      "menuCategory": "TransAgent"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "resources/icon/icon@256x256.icns"
+    },
+    "linux": {
+      "target": [
+        "deb",
+        "AppImage"
+      ],
+      "icon": "resources/icon/icon@256x256.icns"
+    }
+  },
+  "scripts": {
+    "start": "electron . --enable-logging --log-level=debug",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win --x64",
+    "dist:mac": "electron-builder --mac --x64",
+    "dist:linux": "electron-builder --linux"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.24.0",
+    "@babel/traverse": "^7.27.4",
+    "@huggingface/transformers": "^3.6.3",
+    "@modelcontextprotocol/sdk": "^1.13.3",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/xterm": "^5.5.0",
+    "cheerio": "^1.1.0",
+    "electron-store": "^8.2.0",
+    "express": "^5.1.0",
+    "he": "^1.2.0",
+    "jsdom": "^26.1.0",
+    "json5": "^2.2.3",
+    "officeparser": "^5.1.1",
+    "ssh2": "^1.16.0",
+    "string": "^3.3.3",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.8.0",
+    "@electron-forge/core": "^7.8.0",
+    "@electron-forge/maker-deb": "^7.8.0",
+    "@electron-forge/maker-dmg": "^7.8.0",
+    "@electron-forge/maker-rpm": "^7.8.0",
+    "@electron-forge/maker-squirrel": "^7.8.0",
+    "@electron-forge/maker-zip": "^7.8.0",
+    "@eslint/js": "^9.25.1",
+    "@types/node": "^22.15.2",
+    "electron": "^35.2.1",
+    "electron-builder": "^26.0.12",
+    "eslint": "^9.25.1",
+    "globals": "^16.0.0",
+    "node-abi": "^4.3.0",
+    "tailwindcss": "^3.4.17"
+  }
+}

@@ -1,0 +1,45 @@
+{
+    "chain_call": [
+        {
+            "model": "deepseek",
+            "version": "deepseek-chat",
+            "prompt": "",
+            "input_template": "Please divide the user's task into 3 stages\n - The output json key names must be 'stageN'\n - Only keep the key names I provided\n - The output must be in the following json format:\n {{\"stage1\":\"Stage 1 requires...\",\"stage2\":\"Stage 2 requires...\",\"stage3\":\"Stage 3 requires...\"}}\n- Only keep the json part of the string, do not output any explanations or descriptions.\n{input}"
+        },
+        {
+            "model": "plugins",
+            "version": "json_parse",
+            "input_data": {
+                "input": "{input}"
+            },
+            "output_template": "{outputs[1].stage1}"
+        },
+        {
+            "model": "deepseek",
+            "version": "deepseek-chat",
+            "prompt": "Please answer stage 1.",
+            "output_template": "{outputs[1].stage2}"
+        },
+        {
+            "model": "deepseek",
+            "version": "deepseek-chat",
+            "prompt": "Please answer stage 2.",
+            "output_template": "{outputs[1].stage3}"
+        },
+        {
+            "model": "deepseek",
+            "version": "deepseek-chat",
+            "prompt": "Please answer stage 3.",
+            "output_template": "Stage 1 answer: {outputs[2]}\n---\nStage 2 answer: {outputs[3]}\n---\nStage 3 answer: {outputs[4]}"
+        },
+        {
+            "model": "deepseek",
+            "version": "deepseek-chat",
+            "prompt": "Please check the issues in the previous 3 stages.",
+            "output_template": "User query as follows:{query}\n\n- Please answer based on the results of the above multiple stages.\n\n- Please carefully check the answers of each stage to ensure the reliability of the results.\n\n<steps>\nStage 1 answer: {outputs[2]}\n\nStage 2 answer: {outputs[3]}\n\nStage 3 answer: {outputs[4]}\n\nPotential issues in multiple stages: {outputs[5]}\n</steps>\n\n"
+        },
+        {
+            "end": true
+        }
+    ]
+}

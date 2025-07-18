@@ -1,0 +1,251 @@
+{
+  "memory_length": 10,
+  "retry_time": 10,
+  "icon_time": 5,
+  "prompt": null,
+  "history_path": null,
+  "webserver": {
+    "port": 3005
+  },
+  "short_cut": "CommandOrControl+Shift+Space",
+  "backend_url": "http://www.licpathway.net/transagent_web",
+  "info_template": "Step: {step}, id: {id}, memory_id: {memory_id}, Call: {model}, Version: {version}, Output:\n\n```json\n{output_format}\n```\n\n",
+  "llm_parmas": {
+    "max_tokens": 4000,
+    "temperature": 0.7,
+    "stream": true
+  },
+  "func_status": {
+    "react": true,
+    "markdown": true,
+    "math": true,
+    "clip": false,
+    "text": false,
+    "del": false
+  },
+  "default": {
+    "model": "deepseek",
+    "version": "deepseek-chat",
+    "plugin": "baidu_translate",
+    "auto_optimization": "auto_optimization"
+  },
+  "models": {
+    "ollama": {
+      "api_url": "http://localhost:11434/api/chat",
+      "versions": [
+        "deepseek-coder-v2",
+        "deepseek-r1:14b",
+        {
+          "version": "gemma3:12b",
+          "vision": [
+            "image"
+          ],
+          "ollama": true
+        }
+      ]
+    },
+    "deepseek": {
+      "api_url": "https://api.deepseek.com/chat/completions",
+      "api_key": "",
+      "versions": [
+        "deepseek-coder",
+        "deepseek-chat",
+        "deepseek-reasoner"
+      ]
+    },
+    "aliyuncs": {
+      "api_url": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+      "api_key": "",
+      "versions": [
+        "qwen-plus"
+      ]
+    },
+    "chatglm": {
+      "api_url": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+      "api_key": "",
+      "versions": [
+        "glm-4-flash",
+        "glm-zero-preview",
+        "glm-4-plus",
+        "glm-4-0520",
+        "glm-4-alltools",
+        "glm-4-long",
+        {
+          "version": "glm-4v-flash",
+          "vision": [
+            "image"
+          ]
+        },
+        {
+          "version": "glm-4v-plus",
+          "vision": [
+            "image"
+          ]
+        }
+      ]
+    },
+    "qianfan": {
+      "api_url": "https://qianfan.baidubce.com/v2/chat/completions",
+      "api_key": "",
+      "versions": [
+        "deepseek-v3",
+        "ernie-speed-128k",
+        "ernie-lite-8k",
+        "ernie-tiny-8k"
+      ]
+    },
+    "fireworks": {
+      "api_url": "https://api.fireworks.ai/inference/v1/chat/completions",
+      "api_key": "",
+      "versions": [
+        "accounts/fireworks/models/deepseek-r1-distill-llama-8b",
+        "accounts/fireworks/models/qwen2p5-coder-32b-instruct-128k"
+      ]
+    },
+    "together": {
+      "api_key": "",
+      "api_url": "https://api.together.xyz/v1/chat/completions",
+      "versions": [
+        "deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free",
+        {
+          "version": "meta-llama/Llama-Vision-Free",
+          "vision": [
+            "image"
+          ]
+        },
+        "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
+      ]
+    },
+    "siliconflow": {
+      "api_url": "https://api.siliconflow.cn/v1/chat/completions",
+      "api_key": "",
+      "versions": [
+        "AIDC-AI/Marco-o1",
+        "Qwen/Qwen2.5-7B-Instruct",
+        "internlm/internlm2_5-7b-chat",
+        "meta-llama/Meta-Llama-3.1-8B-Instruct",
+        "THUDM/glm-4-9b-chat",
+        "deepseek-ai/deepseek-vl2",
+        {
+          "version": "Pro/Qwen/Qwen2-VL-7B-Instruct",
+          "vision": [
+            "image"
+          ]
+        }
+      ]
+    }
+  },
+  "plugins": {
+    "auto_optimization": {
+      "params": {
+        "retry_time": 3,
+        "model_name": "epoch_28",
+        "allow_remote_models": false,
+        "local_model_path": "/data/zgr/transagent/model/saved_model/"
+      },
+      "show": false
+    },
+    "baidu_translate": {
+      "show": true
+    },
+    "baidu_search": {
+      "params": {
+        "jina": "",
+        "text_max_len": 500
+      },
+      "enabled": false
+    },
+    "fetch_url": {
+      "enabled": false
+    },
+    "python_execute": {
+      "params": {
+        "python_bin": "python",
+        "delay_time": 5,
+        "threshold": 10000
+      },
+      "enabled": false
+    },
+    "file_load": {
+      "extra": [
+        {
+          "type": "file-upload"
+        }
+      ],
+      "show": false,
+      "params": {
+        "threshold": 10000
+      },
+      "enabled": false
+    },
+    "search_files": {
+      "enabled": false
+    },
+    "list_files": {
+      "params": {
+        "threshold": 50
+      },
+      "enabled": false
+    },
+    "write_to_file": {
+      "enabled": false
+    },
+    "replace_in_file": {
+      "enabled": false
+    },
+    "cli_execute": {
+      "params": {
+        "cli_prompt": null,
+        "bashrc": "/root/.bashrc",
+        "delay_time": 5,
+        "threshold": 40
+      },
+      "enabled": true
+    },
+    "display_file": {
+      "enabled": true
+    }
+  },
+  "mcp_server": {
+    "biotools": {
+      "url": "http://0.0.0.0:3001/biotools",
+      "disabled": false
+    }
+  },
+  "tool_call": {
+    "memory_length": 20,
+    "long_memory_length": 100,
+    "mcp_timeout": 60,
+    "extra_prompt": null,
+    "tmpdir": "/tmp",
+    "language": "english",
+    "system_type": "linux",
+    "system_platform": "debian12",
+    "system_arch": "x86_64",
+    "ssh_config": {
+      "host": "127.0.0.1",
+      "port": 3002,
+      "username": "root",
+      "password": "password",
+      "enabled": true
+    },
+    "llm_parmas": {
+      "max_tokens": 4000,
+      "temperature": 0.2,
+      "stream": true,
+      "response_format": {
+        "type": "json_object"
+      }
+    }
+  },
+  "chain_call": [
+    {
+      "end": true
+    }
+  ],
+  "extra": [
+    {
+      "type": "system-prompt"
+    }
+  ]
+}
