@@ -15,7 +15,7 @@ function threshold(data, max_lines = 10, max_chars_per_line = 200) {
     
     // 如果行数超过限制，只保留最后 max_lines 行
     if (lines.length > max_lines) {
-        result += `Data too large, showing only last ${max_lines} lines (max ${max_chars_per_line} chars per line)\n`;
+        result += `[truncated because the output is too long, showing only last ${max_lines} lines (max ${max_chars_per_line} chars per line)]\n`;
         lines = lines.slice(-max_lines);
     }
     

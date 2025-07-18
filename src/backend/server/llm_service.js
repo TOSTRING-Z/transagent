@@ -22,9 +22,17 @@ function pushMessage(role, content, id, memory_id, show = true, react = true) {
     messages.push(message);
 }
 
-function popMessage() {
+function popMessage(id, memory_id) {
     if (messages.length > 0) {
-        return messages.pop();
+        if (!id && !memory_id)
+            return messages.pop();
+        else {
+            messages = messages.filter(message => {
+                if (message.id === id || message.memory_id === memory_id)
+                    return false;
+                return true;
+            })
+        }
     } else {
         return null;
     }
@@ -103,7 +111,7 @@ function thumbMessage({ id, thumb }) {
                 type: "thumb",
                 data: messages.find(message => message.id === message_id)?.thumb || 0
             }
-            
+
         } else {
             messages = messages.map(message => {
                 if (message.id === message_id) {

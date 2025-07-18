@@ -111,7 +111,7 @@ class DisplayFile {
         // 添加省略行
         markdown += '|';
         Object.keys(json[0]).forEach(() => {
-          markdown += ' ... |';
+          markdown += ' [omitted intermediate lines because the output is too long] ... |';
         });
         markdown += '\n';
 

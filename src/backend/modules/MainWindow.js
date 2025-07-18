@@ -145,13 +145,13 @@ class MainWindow extends Window {
             const content = `Generate a short ${data.language || utils.getLanguage()} chat name based on context. Return name only (strictly no JSON/XML/formatting). Requirements: max 20 chars, must contain letters, no pure numbers/symbols/spaces.`;
             data_copy.push_message = false;
             data_copy.end = false;
-            pushMessage("user", content, data_copy.id, this.tool_call.memory_id);
+            pushMessage("user", content, -1, -1);
             data_copy.return_response = true;
             if (data_copy?.llm_parmas?.response_format)
                 delete data_copy.llm_parmas.response_format;
             data_copy.system_prompt = `You are an intelligent assistant skilled at generating short chat names based on contextual content. Please ensure the generated names are concise and clear, accurately reflecting the chat content.`;
             const result = await this.tool_call.llmCall(data_copy);
-            popMessage(); // 删除输入消息
+            popMessage(-1, -1); // 删除输入消息
             if (result) {
                 global.chat.name = data_copy.output;
             }
@@ -292,6 +292,16 @@ class MainWindow extends Window {
             let info = this.chain_call.get_info(data);
             this.window.webContents.send('info-data', { id: data.id, content: info });
         }
+        if (!global.chat.name) {
+            global.chat.name = await this.setChatName(data)
+        }
+        let agent_messages = getMessages(true).filter(message => message.id === data.id);
+        utils.sendData(inner.url_base.data.collection, {
+            "chat_id": global.chat.id,
+            "message_id": data.id,
+            "user_message": data.query,
+            "agent_messages": agent_messages,
+        })
         return data.output_format;
     }
 
