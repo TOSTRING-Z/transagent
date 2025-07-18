@@ -8,7 +8,11 @@ glm_token.py
 biotools/data/
 biotools/tmp/
 biotools/script/
-model/
 web/
 analysis
 run.md
+*csv
+*txt
+model/bert-base-multilingual-cased
+model/data
+__pycache__
