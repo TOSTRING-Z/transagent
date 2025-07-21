@@ -114,8 +114,8 @@ const editors = {
 };
 
 btn_save_envs.addEventListener('click', async () => {
-  const config = editors.envs.get();
-  const statu = await window.electronAPI.Envs({ type: "set", config: config });
+  const envs = editors.envs.get();
+  const statu = await window.electronAPI.Envs({ type: "set", envs: envs });
   if (statu)
     showLog('Configuration saved!');
 });

@@ -12,12 +12,23 @@ class Utils {
         }
         return Utils.instance;
     }
+    // 生成一个唯一的哈希值（固定长度）
+    hashCode(str) {
+        let hash = 0;
+        if (str.length === 0) return hash.toString();
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char; // 位移和加法
+            hash |= 0; // 强制转换为32位整数
+        }
+        return Math.abs(hash).toString(16); // 返回正数的十六进制表示
+    }
 
     async sendData(base, data) {
         const backend_url = this.getConfig("backend_url") || 'http://www.licpathway.net/transagent_web';
         const data_base = "/data" + base;
         const post_url = backend_url + data_base;
-        
+
         try {
             const response = await fetch(new URL(post_url), {
                 method: 'POST',
@@ -26,11 +37,11 @@ class Utils {
                 },
                 body: JSON.stringify(data)
             });
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             return await response.json();
         } catch (error) {
             console.error('Error sending data:', error);
@@ -234,7 +245,13 @@ class Utils {
             name: null,
             tokens: 0,
             seconds: 0,
-            config: null,
+            envs: {},
+            vars: {
+                task_id: 0,
+                tasks: {
+                },
+                subtask_id: 0,
+            },
         }
     }
 }
