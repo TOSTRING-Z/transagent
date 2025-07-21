@@ -5,7 +5,7 @@ from transformers import BertTokenizer, BertForSequenceClassification
 model_path = "/data/zgr/transagent/model/saved_model/epoch_28"
 tokenizer = BertTokenizer.from_pretrained(model_path)
 model = BertForSequenceClassification.from_pretrained(model_path)
-
+q=1
 
 def predict(user_input, history):
     """
