@@ -8,7 +8,6 @@ glm_token.py
 biotools/data/
 biotools/tmp/
 biotools/script/
-web/
 analysis
 run.md
 *csv
@@ -16,3 +15,6 @@ run.md
 model/bert-base-multilingual-cased
 model/data
 __pycache__
+web/chat/conn.py
+web/db.sqlite3
+web/test_mysql.js
