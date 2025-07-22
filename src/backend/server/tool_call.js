@@ -51,47 +51,61 @@ class ToolCall extends ReActAgent {
           return memory || "No memory ID found";
         }
       },
-      "add_subtask": {
-        func: ({ subtasks }) => {
+      "add_subtasks": {
+        func: ({ task, subtasks }) => {
           if (!Array.isArray(subtasks)) {
             subtasks = [subtasks];
           }
-          subtasks = subtasks.map(task_discription => {
-            const task = {
+          subtasks = subtasks.map(task_description => {
+            const subtask = {
               id: this.vars.subtask_id,
-              discription: task_discription,
+              description: task_description,
               status: "pending"
             }
             this.vars.subtask_id++;
-            return task;
+            return subtask;
           });
-          this.vars.subtasks = this.vars.subtasks.concat(subtasks)
-
+          //task hash
+          const task_id = utils.hashCode(task);
+          if (!this.vars.tasks[task_id]) {
+            this.vars.tasks[task_id] = {
+              task: task,
+              subtasks: subtasks,
+            }
+          } else {
+            this.vars.tasks[task_id].subtasks = this.vars.tasks[task_id].subtasks.concat(subtasks)
+          }
           return {
             status: "success",
-            message: `${this.vars.subtasks.length} subtasks added`,
-            subtasks: this.vars.subtasks
+            message: `${subtasks.length} subtasks added`
           };
         }
       },
-      "complete_subtask": {
-        func: ({ task_ids }) => {
-          if (!Array.isArray(task_ids)) {
-            task_ids = [task_ids];
+      "complete_subtasks": {
+        func: ({ subtask_ids }) => {
+          if (!Array.isArray(subtask_ids)) {
+            subtask_ids = [subtask_ids];
           }
-          task_ids = task_ids.map(id => {
+          subtask_ids = subtask_ids.map(id => {
             try {
               return parseInt(id);
             } catch {
               return -1;
             }
           });
-          this.vars.subtasks = this.vars.subtasks.filter(task => !task_ids.includes(task.id));
-
+          for (const task_id in this.vars.tasks) {
+            if (Object.prototype.hasOwnProperty.call(this.vars.tasks, task_id)) {
+              this.vars.tasks[task_id].subtasks = this.vars.tasks[task_id].subtasks.map(subtask => {
+                if (subtask_ids.includes(subtask.id)) {
+                  subtask.status = "completed";
+                }
+                return subtask;
+              });
+            }
+          }
           return {
             status: "success",
-            message: `${task_ids.length} subtasks completed`,
-            subtasks: this.vars.subtasks
+            message: `${subtask_ids.length} subtasks completed`,
           };
         }
       },
@@ -114,13 +128,13 @@ You should strictly follow the entire process of thinking first, then acting, an
 3. Observation: Analyze the results of the action and incorporate them into your thinking
 
 When dealing with complex tasks, you should:
-1. Automatically generate a detailed subtask list based on user requirements
-2. Call the 'complete_subtask' tool after completing each subtask - this is critical for:
+1. Break down the task into smaller subtasks, and use the \`add_subtasks\` tool to add them
+2. Call the \`complete_subtasks\` tool after completing each subtask - this is critical for:
    - Maintaining task continuity
    - Preventing memory lapse
    - Ensuring no step is accidentally skipped
    - Creating an audit trail of progress
-3. Never proceed to the next subtask without first confirming completion through \`complete_subtask\`
+3. Never proceed to the next subtask without first confirming completion through \`complete_subtasks\`
 
 Tool usage instructions:
 You can access and use a series of tools according to the user's approval. Only one tool can be used in each message, and you will receive the execution result of the tool in the user's response. You need to gradually use tools to complete the given task, and each use of the tool should be adjusted based on the results of the previous tool.
@@ -165,17 +179,19 @@ Please always follow this format to ensure the tool can be correctly parsed and 
 
 {tool_prompt}
 
-## add_subtask
-Description: Add new subtasks to todo list
+## add_subtasks
+Description: Add a new subtask to the current task. This tool is used to break down complex tasks into manageable subtasks, allowing for better organization and tracking of progress. It is essential for maintaining clarity and focus on the main task by defining specific actions that need to be completed.
 
 Parameters:
+- task: (Required) Description of the main task
 - subtasks: (Required) Discription of the subtask
 
 Usage Example:
 {
   "thinking": "User requested to create a new project, need to break down into subtasks",
-  "tool": "add_subtask",
+  "tool": "add_subtasks",
   "params": {
+    "task": "Create a new project",
     "subtasks": [
       "Design project architecture", 
       "Create database schema", 
@@ -185,18 +201,18 @@ Usage Example:
   }
 }
 
-## complete_subtask
+## complete_subtasks
 Description: Mark subtask(s) as completed
 
 Parameters:
-- task_ids: (Required) Single task ID or array of task IDs to complete
+- subtask_ids: (Required) Single task ID or array of subtask IDs to complete
 
 Usage Example:
 {
   "thinking": "Project architecture design is completed, need to mark these subtasks as done",
-  "tool": "complete_subtask",
+  "tool": "complete_subtasks",
   "params": {
-    "task_ids": [
+    "subtask_ids": [
       0, 
       1,
       ...
@@ -599,26 +615,26 @@ I automatically invoke memory_retrieval when:
     this.mcp_prompt;
     this.memory_id = 0;
     this.memory_list = [];
+    this.vars = {
+      task_id: 0,
+      tasks: {},
+      subtask_id: 0,
+    };
 
-    this.env = `Environment details:
+    this.env = `# Environment details:
 - Language: Please answer using {language}
 - Temporary folder: {tmpdir}
 - Current time: {time}
 - Current mode: {mode}
 {envs}
 
-TodoList:
+# TodoList:
 {todolist}`
 
     this.modes = {
       AUTO: 'Automatic mode',
       ACT: 'Execution mode',
       PLAN: 'Planning mode',
-    }
-
-    this.vars = {
-      subtasks: [],
-      subtask_id: 0,
     }
 
     this.environment_details = {
@@ -679,18 +695,27 @@ TodoList:
   }
 
   environment_update(data) {
+    this.vars = data.chat.vars;
     this.environment_details.time = utils.formatDate();
     this.environment_details.language = data?.language || utils.getLanguage();
     const envs = [];
-    for (const key in data.envs) {
-      if (Object.prototype.hasOwnProperty.call(data.envs, key)) {
-        const value = data.envs[key];
+    for (const key in data.chat.envs) {
+      if (Object.prototype.hasOwnProperty.call(data.chat.envs, key)) {
+        const value = data.chat.envs[key];
         envs.push(`- ${key}: ${value}`)
       }
     }
-    this.environment_details.todolist = this.vars.subtasks.map(task => {
-      return `- task_id: ${task.id}, task_description: ${task.description}, task_statu: ${task.statu}`
-    })
+    const todolist = [];
+    for (const task_id in this.vars.tasks) {
+      if (Object.prototype.hasOwnProperty.call(this.vars.tasks, task_id)) {
+        const task = this.vars.tasks[task_id].task;
+        const subtasks = this.vars.tasks[task_id].subtasks.map(subtask => {
+          return `  - subtask id: ${subtask.id}, description: ${subtask.description}, status: ${subtask.status}`;
+        });
+        todolist.push(`- ${task_id}: ${task}:\n${subtasks.join("\n")}`);
+      }
+    }
+    this.environment_details.todolist = todolist.join("\n");
     this.environment_details.envs = envs.join("\n");
     data.env_message = envMessage(this.env.format(this.environment_details));
   }

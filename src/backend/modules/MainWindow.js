@@ -228,7 +228,7 @@ class MainWindow extends Window {
     }
 
     async callReAct(data) {
-        data.envs = global.chat.config;
+        data.chat = global.chat;
         let step = 0;
         this.tool_call.state = State.IDLE;
         let tool_call = utils.getConfig("tool_call");
@@ -502,13 +502,13 @@ class MainWindow extends Window {
         // 环境
         ipcMain.handle('envs', (_, data) => {
             if (data.type === "set") {
-                const config = data.config;
-                global.chat.config = config;
+                const envs = data.envs;
+                global.chat.envs = envs;
                 this.setHistory()
                 return true;
             } else {
-                const config = global.chat?.config;
-                return config || {};
+                const envs = global.chat?.envs;
+                return envs || {};
             }
         });
 
@@ -819,7 +819,7 @@ class MainWindow extends Window {
                         click: () => {
                             clearMessages();
                             this.window.webContents.send('clear')
-                            global.chat.name = null;
+                            global.chat = utils.getChatInit();
                             this.setHistory();
                         }
                     },
@@ -1012,9 +1012,10 @@ class MainWindow extends Window {
     loadHistory(id) {
         const history_path = utils.getHistoryPath(id);
         this.tool_call.load_message(this.window, history_path);
+        let chat = utils.getChatInit();
         const history_data = utils.getHistoryData();
         const history = history_data.data.find(history_ => history_.id == id);
-        return history;
+        return { ...chat, ...history };
     }
 }
 
