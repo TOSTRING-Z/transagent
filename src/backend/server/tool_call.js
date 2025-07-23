@@ -524,14 +524,6 @@ graph TD
 | Tool failure | Check memory_id for previous successful executions |
 | Mode conflict | Suspend task and request mode clarification |
 
-====
-
-# Environment Details Explanation
-- Language: The type of language the assistant needs to use to reply to messages
-- Temporary folder: The location where temporary files are stored during the execution process
-- Current time: Current system time
-- Current mode: The current mode (automatic mode / execution mode / planning mode)
-
 ===
 
 # Memory List Usage Guide
@@ -597,6 +589,14 @@ I automatically invoke memory_retrieval when:
 • Add memory tags for key milestones
 • Create checkpoints regularly
 • Use list_memories to view available records
+
+====
+
+# Environment Details Explanation
+- Language: The type of language the assistant needs to use to reply to messages
+- Temporary folder: The location where temporary files are stored during the execution process
+- Current time: Current system time
+- Current mode: The current mode (automatic mode / execution mode / planning mode)
 
 ====
 
