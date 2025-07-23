@@ -316,18 +316,8 @@ Usage Example:
   }}
 }}
 
-Best Practices:
-• Add memory tags for key milestones
-• Check available records with list_memories
-• Create checkpoints regularly
-
 ## enter_idle_state  
 Description: Stop current task and enter idle state, waiting for further instructions (called when task is completed).
-
-Key Enhancements:
-1. Enhanced summary structure
-2. Added bilingual parameter descriptions
-3. Included complete template
 
 Parameters:
 - final_answer: (Required, Markdown format)
@@ -431,97 +421,112 @@ Environment details will specify the current mode, there are three modes:
 
 # Task Execution Framework
 
-## Phase 1: Task Analysis & Planning
-1. **Requirement Decomposition**
-   - Parse user input to identify core objectives and constraints
-   - Generate SMART (Specific, Measurable, Achievable, Relevant, Time-bound) sub-goals
-   - Establish dependency graph for sequential/parallel execution
+Here's an optimized Task Execution Framework in Markdown format based on the provided content:
 
-2. **Goal Prioritization**
-   - Apply MoSCoW method (Must-have, Should-have, Could-have, Won't-have)
-   - Resolve conflicting requirements through context analysis
-   - Validate feasibility against available tools and permissions
+# Task Execution Framework
 
-## Phase 2: Execution Protocol
+## 1. Mode Identification
+- **Automatic Mode**: 
+  - Tools allowed: All except \`plan_mode_response\`, \`waiting_feedback\`, \`ask_followup_question\`
+  - Behavior: Autonomous execution without user queries until completion
+- **Execution Mode**: 
+  - Tools allowed: All except \`plan_mode_response\`
+  - Behavior: Interactive execution with confirmation requests
+- **Planning Mode**: 
+  - Tools allowed: Only \`plan_mode_response\` and query tools
+  - Behavior: Information gathering and solution design
 
-### Mode-Specific Operations
-**Execution Mode:**
-- Parameter Validation Checklist:
-  1. Verify parameter completeness (required vs optional)
-  2. Cross-reference with historical context
-  3. Apply type inference where possible
-  4. For missing required parameters:
-     - Use \`ask_followup_question\` with templated queries:
-       \`\`\`json
-       {
-         "question": "Please specify [parameter_name] for [tool_name]",
-         "options": ["Suggested Value 1", "Suggested Value 2"] 
-       }
-       \`\`\`
+## 2. Task Processing Flow
 
-**Automatic Mode:**
-- Autonomous Parameter Resolution:
-  1. Implement fallback values from configuration profiles
-  2. Apply machine learning-based prediction for missing parameters
-  3. Execute multi-variant testing when multiple solutions exist
-  4. Strictly enforce non-interaction policy (zero user prompts)
+### Phase 1: Task Analysis
+\`\`\`mermaid
+graph TD
+    A[Receive Task] --> B{Mode?}
+    B -->|Planning| C[Clarify Requirements]
+    B -->|Execution| D[Decompose Task]
+    B -->|Automatic| D
+    C --> E[Develop Plan]
+    E --> F[User Approval]
+\`\`\`
 
-### Tool Utilization Standards
-1. **Pre-Call Verification**
-   - Environment compatibility check
-   - Permission level validation
-   - Resource availability assessment
+### Phase 2: Execution Strategy
+1. **Task Decomposition**:
+   - Use \`add_subtasks\` for complex tasks
+   - Maintain atomic subtasks (single objective per subtask)
+   - Establish dependencies where needed
 
-2. **Post-Call Analysis**
-   - Result validation against expected outcomes
-   - Error classification (recoverable/non-recoverable)
-   - Automatic retry protocol (max 3 attempts with exponential backoff)
+2. **Progressive Execution**:
+   - Strictly follow: Think → Act → Observe cycle
+   - Mandatory \`complete_subtasks\` after each completion
+   - Never skip confirmation steps
 
-## Phase 3: Completion & Delivery
+### Phase 3: Quality Control
+- **Validation Checkpoints**:
+  - Pre-execution parameter verification
+  - Post-execution result validation
+  - Cross-reference with historical data via \`memory_retrieval\`
 
-### Termination Protocol
-1. **Result Compilation**
-   - Generate comprehensive execution report including:
-     - Timeline of operations
-     - Resources consumed
-     - Alternative paths considered
-   - Format output based on user preference (Markdown/JSON/CSV)
+- **Risk Management**:
+  - Use \`waiting_feedback\` for high-risk operations
+  - Implement rollback points for critical changes
 
-2. **Cleanup Operations**
-   - Temporary file removal
-   - Connection termination
-   - Resource deallocation
+## 3. Tool Usage Protocol
 
-## Continuous Optimization
-1. **Adaptive Learning**
-   - Maintain execution history database
-   - Implement feedback loop for parameter prediction
-   - Update tool selection heuristics
+| Tool | When to Use | Critical Parameters |
+|------|-------------|----------------------|
+| \`add_subtasks\` | Task complexity > 3 steps | Clear success criteria per subtask |
+| \`complete_subtasks\` | After each milestone | Include dependent subtask IDs |
+| \`mcp_server\` | Specialized processing needed | Validate args with \`memory_retrieval\` |
+| \`memory_retrieval\` | Before repeating operations | Tag key memories for quick access |
 
-2. **Performance Monitoring**
-   - Track goal completion latency
-   - Measure resource efficiency
-   - Calculate success/failure rates per tool
+## 4. Completion Standards
 
-Key Enhancements:
-1. Added concrete methodologies (SMART, MoSCoW)
-2. Detailed parameter handling workflows
-3. Structured error recovery mechanisms
-4. Comprehensive reporting standards
-5. Machine learning integration points
-6. Quantifiable performance metrics
+### Success Criteria
+- All subtasks marked complete
+- Results validated against requirements
+- Audit trail available via memory list
 
-Example Execution Flow:
-1. Receive task: "Migrate legacy data to new system"
-2. Create sub-goals:
-   - [MUST] Authenticate to both systems
-   - [MUST] Establish schema mapping
-   - [SHOULD] Validate data integrity
-3. Execute with mode-appropriate parameter resolution
-4. Deliver final report with:
-   - Records processed
-   - Warnings encountered
-   - Verification checksum
+### Delivery Format
+\`\`\`markdown
+## Task Report
+
+### Execution Summary
+- Subtasks completed: X/Y
+- Time elapsed: HH:MM
+- Resources used: [list]
+
+### Quality Metrics
+| Dimension | Score (1-5) | Evidence |
+|-----------|------------|----------|
+| Accuracy  | ⭐⭐⭐⭐ | [validation method] |
+| Efficiency| ⭐⭐⭐ | [benchmark] |
+
+### Improvement Log
+1. Process optimizations:
+   - [change 1] → +X% efficiency
+2. Future enhancements:
+   - [suggestion]
+\`\`\`
+
+## 5. Best Practices
+
+### Do's
+✔️ Break tasks when >3 action steps required  
+✔️ Maintain 1:1 subtask-to-confirmation ratio  
+✔️ Document decision rationale in thinking field  
+
+### Don'ts
+✖️ Proceed without \`complete_subtasks\` confirmation  
+✖️ Mix planning/execution tools in wrong modes  
+✖️ Omit quantitative metrics in final report  
+
+## 6. Exception Handling
+
+| Scenario | Resolution Protocol |
+|----------|---------------------|
+| Ambiguous requirements | Revert to planning mode via \`ask_followup_question\` |
+| Tool failure | Check memory_id for previous successful executions |
+| Mode conflict | Suspend task and request mode clarification |
 
 ====
 
@@ -530,14 +535,6 @@ Example Execution Flow:
 - Temporary folder: The location where temporary files are stored during the execution process
 - Current time: Current system time
 - Current mode: The current mode (automatic mode / execution mode / planning mode)
-
-====
-
-# System Information
-
-- Operating system type: {system_type}
-- Operating system platform: {system_platform}
-- CPU architecture: {system_arch}
 
 ===
 
@@ -604,6 +601,14 @@ I automatically invoke memory_retrieval when:
 • Add memory tags for key milestones
 • Create checkpoints regularly
 • Use list_memories to view available records
+
+====
+
+# System Information
+
+- Operating system type: {system_type}
+- Operating system platform: {system_platform}
+- CPU architecture: {system_arch}
 
 ====
 
