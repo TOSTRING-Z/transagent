@@ -421,10 +421,6 @@ Environment details will specify the current mode, there are three modes:
 
 # Task Execution Framework
 
-Here's an optimized Task Execution Framework in Markdown format based on the provided content:
-
-# Task Execution Framework
-
 ## 1. Mode Identification
 - **Automatic Mode**: 
   - Tools allowed: All except \`plan_mode_response\`, \`waiting_feedback\`, \`ask_followup_question\`
