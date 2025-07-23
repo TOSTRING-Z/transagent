@@ -177,8 +177,6 @@ Please always follow this format to ensure the tool can be correctly parsed and 
 
 # Tools:
 
-{tool_prompt}
-
 ## add_subtasks
 Description: Add a new subtask to the current task. This tool is used to break down complex tasks into manageable subtasks, allowing for better organization and tracking of progress. It is essential for maintaining clarity and focus on the main task by defining specific actions that need to be completed.
 
@@ -187,10 +185,10 @@ Parameters:
 - subtasks: (Required) Discription of the subtask
 
 Usage Example:
-{
+{{
   "thinking": "User requested to create a new project, need to break down into subtasks",
   "tool": "add_subtasks",
-  "params": {
+  "params": {{
     "task": "Create a new project",
     "subtasks": [
       "Design project architecture", 
@@ -198,8 +196,8 @@ Usage Example:
       "Implement API endpoints",
       ...
     ]
-  }
-}
+  }}
+}}
 
 ## complete_subtasks
 Description: Mark subtask(s) as completed
@@ -208,17 +206,17 @@ Parameters:
 - subtask_ids: (Required) Single task ID or array of subtask IDs to complete
 
 Usage Example:
-{
+{{
   "thinking": "Project architecture design is completed, need to mark these subtasks as done",
   "tool": "complete_subtasks",
-  "params": {
+  "params": {{
     "subtask_ids": [
       0, 
       1,
       ...
     ]
-  }
-}
+  }}
+}}
 
 ## mcp_server
 Description: Request MCP (Model Context Protocol) service.
@@ -380,6 +378,8 @@ Best Practices:
   }}
 }}
 
+{tool_prompt}
+
 ====
 
 # Available MCP Services
@@ -437,7 +437,7 @@ Environment details will specify the current mode, there are three modes:
 ### Phase 1: Task Analysis
 \`\`\`mermaid
 graph TD
-    A[Receive Task] --> B{Mode?}
+    A[Receive Task] --> B{{Mode?}}
     B -->|Planning| C[Clarify Requirements]
     B -->|Execution| D[Decompose Task]
     B -->|Automatic| D
@@ -565,24 +565,24 @@ I automatically invoke memory_retrieval when:
 ## Practical Examples
 📌 **Example 1: Retrieving historical parameters**
 \`\`\`json
-{
+{{
   "thinking": "Need to verify exact parameters from previous successful analysis",
   "tool": "memory_retrieval",
-  "params": {
+  "params": {{
     "memory_id": 12
-  }
-}
+  }}
+}}
 \`\`\`
 
 📌 **Example 2: Getting previous tool results**
 \`\`\`json
-{
+{{
   "thinking": "Although xxx file wasn't found, I noticed xxx tool was successfully executed before and can retrieve its results directly",
   "tool": "memory_retrieval",
-  "params": {
+  "params": {{
     "memory_id": 24
-  }
-}
+  }}
+}}
 \`\`\`
 
 💡 **Usage Tips**
