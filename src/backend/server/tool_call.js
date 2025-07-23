@@ -177,6 +177,8 @@ Please always follow this format to ensure the tool can be correctly parsed and 
 
 # Tools:
 
+{tool_prompt}
+
 ## add_subtasks
 Description: Add a new subtask to the current task. This tool is used to break down complex tasks into manageable subtasks, allowing for better organization and tracking of progress. It is essential for maintaining clarity and focus on the main task by defining specific actions that need to be completed.
 
@@ -378,8 +380,6 @@ Best Practices:
   }}
 }}
 
-{tool_prompt}
-
 ====
 
 # Available MCP Services
@@ -454,7 +454,6 @@ graph TD
 2. **Progressive Execution**:
    - Strictly follow: Think → Act → Observe cycle
    - Mandatory \`complete_subtasks\` after each completion
-   - Never skip confirmation steps
 
 ### Phase 3: Quality Control
 - **Validation Checkpoints**:
@@ -507,8 +506,7 @@ graph TD
 ## 5. Best Practices
 
 ### Do's
-✔️ Break tasks when >3 action steps required  
-✔️ Maintain 1:1 subtask-to-confirmation ratio  
+✔️ Break tasks when >3 action steps required   
 ✔️ Document decision rationale in thinking field  
 
 ### Don'ts
