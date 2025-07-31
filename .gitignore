@@ -8,6 +8,7 @@ glm_token.py
 biotools/data/
 biotools/tmp/
 biotools/script/
+biotools/processing/
 analysis
 run.md
 *csv
