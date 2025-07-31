@@ -160,11 +160,15 @@ class MainWindow extends Window {
         this.window.webContents.send('auto-rename-chat', global.chat);
     }
 
-    async contextAutoOpt(user_input) {
+    async contextAutoOpt(data) {
         const auto_optimization = inner.model_obj[inner.model_name.plugins][utils.getConfig('default')['auto_optimization']]?.func;
         const messages = getMessages(true);
-        let data = { 'ids': [], 'memory_ids': [] };
+        let ids = { 'ids': [], 'memory_ids': [] };
         for (const key in messages) {
+            if (getStopIds().includes(data.id)) {
+                this.window.webContents.send('stream-data', { id: data.id, content: "The user interrupted the task.", end: true });
+                break;
+            }
             if (Object.hasOwnProperty.call(messages, key)) {
                 let history, name, content;
                 const message = messages[key];
@@ -179,25 +183,34 @@ class MainWindow extends Window {
                     name = 'memory_ids'
                 }
                 if (history) {
-                    const pred = await auto_optimization({ user_input, history });
+                    const pred = await auto_optimization({ query: data.query, history });
                     if (pred === null) {
                         this.window.webContents.send('log', 'Error in loading context automatic optimization model!');
                         break;
                     }
                     if (pred === 0) {
-                        message.del = true;
+                        const messages_by_id = messages.filter(msg => msg.id === message.id && msg.memory_id === message.memory_id);
+                        messages_by_id.forEach(msg => {
+                            msg.del = true;
+                        });
                         if (name === 'ids') {
-                            data[name].push(message.id);
+                            ids[name].push(message.id);
                         } else {
-                            data[name].push(message.memory_id);
+                            ids[name].push(message.memory_id);
                         }
+                    } else {
+                        const messages_by_id = messages.filter(msg => msg.id === message.id && msg.memory_id === message.memory_id);
+                        messages_by_id.forEach(msg => {
+                            if (msg?.del)
+                                delete msg.del;
+                        });
                     }
                 }
             }
         }
-        data['ids'] = [...new Set(data['ids'])];
-        data['memory_ids'] = [...new Set(data['memory_ids'])];
-        this.window.webContents.send('delete-memory', data);
+        ids['ids'] = [...new Set(ids['ids'])];
+        ids['memory_ids'] = [...new Set(ids['memory_ids'])];
+        this.window.webContents.send('delete-memory', ids);
     }
 
     getDataDefault(data) {
@@ -241,13 +254,13 @@ class MainWindow extends Window {
             data = { ...data, ...tool_call, step: ++step, memory_id: this.tool_call.memory_id, react: true };
 
             let options = await this.tool_call.step(data);
+            if (!global.chat.name) {
+                global.chat.name = await this.setChatName(data)
+            }
             this.setHistory()
             if (this.tool_call.state == State.PAUSE) {
                 this.window.webContents.send("options", { options, id: data.id });
             }
-        }
-        if (!global.chat.name) {
-            global.chat.name = await this.setChatName(data)
         }
         let agent_messages = getMessages(true).filter(message => message.id === data.id);
         utils.sendData(inner.url_base.data.collection, {
@@ -267,7 +280,7 @@ class MainWindow extends Window {
                 this.window.webContents.send('stream-data', { id: data.id, content: "The user interrupted the task.", end: true });
                 break;
             }
-            data = { ...data, ...chain_calls[step], step: step };
+            data = { ...data, ...{ model: global.model, version: global.version }, ...chain_calls[step], step: step };
             const tool_parmas = {}
             const input_data = chain_calls[step]?.input_data || [];
             for (const key in input_data) {
@@ -377,7 +390,7 @@ class MainWindow extends Window {
                 this.window.focus();
             }
             if (global.status.auto_opt) {
-                await this.contextAutoOpt(this.funcItems.text.event(data.query));
+                await this.contextAutoOpt(data);
             }
             // Default values
             data = this.getDataDefault(data);
@@ -499,7 +512,7 @@ class MainWindow extends Window {
             return state;
         });
 
-        // 环境
+        // 环境变量
         ipcMain.handle('envs', (_, data) => {
             if (data.type === "set") {
                 const envs = data.envs;
@@ -509,6 +522,19 @@ class MainWindow extends Window {
             } else {
                 const envs = global.chat?.envs;
                 return envs || {};
+            }
+        });
+
+        // 任务列表
+        ipcMain.handle('tasks', (_, data) => {
+            if (data.type === "set") {
+                const tasks = data.tasks;
+                global.chat.vars.tasks = tasks;
+                this.setHistory();
+                return true;
+            } else {
+                const tasks = global.chat?.vars?.tasks;
+                return tasks || [];
             }
         });
 

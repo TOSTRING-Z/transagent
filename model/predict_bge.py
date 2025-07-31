@@ -75,8 +75,26 @@ pairs = [
 ]
 with torch.no_grad():
     for query, passage in pairs:
-        input = get_inputs(query, passage, tokenizer)
+        passage = ""
+        input = get_inputs(query, passage, tokenizer, prompt="")
         output = model(**input, return_dict=True)
         scores = output.logits[:, -1, yes_no_locs].float()
         labels = torch.argmax(scores, dim=1)
         print(labels)
+        tokens = torch.argmax(output.logits, dim=-1)
+        print(
+            "input:\n",
+            tokenizer.decode(
+                input["input_ids"][0],
+                skip_special_tokens=False,
+                clean_up_tokenization_spaces=False,
+            ),
+        )
+        print(
+            "output:\n",
+            tokenizer.decode(
+                tokens[0],
+                skip_special_tokens=False,
+                clean_up_tokenization_spaces=False,
+            ),
+        )

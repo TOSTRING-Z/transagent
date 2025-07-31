@@ -132,7 +132,11 @@
     })
 
     // 初始化JSON Editor
-    const editor = new JSONEditor(document.getElementById('json-editor'), {});
+    const editor = new JSONEditor(document.getElementById('json-editor'), {
+        mode: 'tree',
+        modes: ['tree', 'code'],
+        expandAll: true
+    });
 
     // 加载配置
     ipcRenderer.invoke('get-config').then(config => {

@@ -1,6 +1,7 @@
 import torch
 from transformers import BertTokenizer, BertForSequenceClassification
 from torch.optim import AdamW
+from torch.nn import BCEWithLogitsLoss
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from transformers import logging
@@ -19,7 +20,7 @@ class RandomDataset(Dataset):
     def _load_data_pandas(self):
 
         df = pd.read_csv(
-            "/data/zgr/transagent/model/data/train_labeled.txt",
+            "/data/zgr/transagent/model/data/train_labeled.txt.csv",
             sep="\t",
             header=None,
             names=["user_input", "history", "label"],
@@ -57,7 +58,7 @@ class RandomDataset(Dataset):
 # 主函数
 def main():
     # 从本地加载BERT模型和tokenizer
-    model_path = "/data/zgr/transagent/model/bert-base-multilingual-cased"
+    model_path = "/home/tostring/.cache/modelscope/hub/models/google-bert/bert-base-multilingual-cased"
     writer = SummaryWriter("/data/zgr/transagent/model/runs")
     tokenizer = BertTokenizer.from_pretrained(model_path)
     model = BertForSequenceClassification.from_pretrained(model_path, num_labels=2)
@@ -83,7 +84,9 @@ def main():
             }  # 将batch数据移动到设备上
             optimizer.zero_grad()
             outputs = model(**batch)
-            loss = outputs.loss
+            # loss = outputs.loss
+            loss_fct = BCEWithLogitsLoss()
+            loss = loss_fct(outputs.logits, batch.labels)
             loss.backward()
             optimizer.step()
             total_loss += loss.item()

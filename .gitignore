@@ -14,6 +14,7 @@ run.md
 *txt
 model/bert-base-multilingual-cased
 model/data
+model/runs
 __pycache__
 web/chat/conn.py
 web/db.sqlite3

@@ -1,14 +1,15 @@
 import requests
 import time
 
+
 # 测试FastAPI应用的/predict端点
 def test_predict():
-    url = "http://127.0.0.1:8080/predict"
+    url = "http://127.0.0.1:3004/predict"
     data = {
-        "query": "what is panda?",
-        "passage": "The giant panda (Ailuropoda melanoleuca), sometimes called a panda bear or simply panda, is a bear species endemic to China."
+        "query": "展示任务列表",
+        "passage": "已成功显示转录因子绑定区域与eQTL的重叠分析结果。接下来，我们将展示转录因子绑定区域与超级增强子的重叠分析结果，并提供进一步分析的建议选项。",
     }
-    
+
     try:
         # 添加重试机制
         max_retries = 3
@@ -27,6 +28,7 @@ def test_predict():
                     raise
     except Exception as e:
         print("测试失败:", str(e))
+
 
 if __name__ == "__main__":
     test_predict()

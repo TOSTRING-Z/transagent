@@ -139,9 +139,7 @@
     "auto_optimization": {
       "params": {
         "retry_time": 3,
-        "model_name": "epoch_28",
-        "allow_remote_models": false,
-        "local_model_path": "/data/zgr/transagent/model/saved_model/"
+        "url": "http://127.0.0.1:3004/predict"
       },
       "show": false
     },

@@ -36,6 +36,8 @@ const seconds = document.getElementById("seconds");
 const auto_opt = document.getElementById("auto_opt");
 const envs = document.getElementById("envs");
 const btn_save_envs = document.getElementById("btn_save_envs");
+const tasks = document.getElementById("tasks");
+const btn_save_tasks = document.getElementById("btn_save_tasks");
 
 const formData = {
   query: null,
@@ -62,27 +64,36 @@ window.electronAPI.handleLog((log) => {
   showLog(log);
 })
 window.electronAPI.handleDeleteMemory(({ memory_ids, ids }) => {
-  memory_ids.forEach(memory_id => {
-    let elements = document.querySelectorAll(`[info_data-id="${memory_id}"]`);
-    elements.forEach(function (element) {
-      if (!element.classList.contains('del'))
+  let elements = document.querySelectorAll(`[info_data-id]`);
+  elements.forEach(function (element) {
+    if (memory_ids.includes(parseInt(element.getAttribute('info_data-id')))) {
+      if (!element.classList.contains('del')) {
         element.classList.add('del');
-    });
-    elements = document.querySelectorAll(`[chunk_data-id="${memory_id}"]`);
-    elements.forEach(function (element) {
-      if (!element.classList.contains('del'))
-        element.classList.add('del');
-    });
-  });
-  ids.forEach(id => {
-    let elements = document.querySelectorAll(`[data-id="${id}"]`);
-    elements.forEach(async function (message_element) {
-      if (!message_element.classList.contains('message_del')) {
-        message_element.classList.add('message_del')
-        message_element.classList.add('message_toggle')
       }
-    })
-  })
+    } else if (element.classList.contains('del')) {
+      element.classList.remove('del');
+    }
+  });
+  elements = document.querySelectorAll(`[chunk_data-id]`);
+  elements.forEach(function (element) {
+    if (memory_ids.includes(parseInt(element.getAttribute('chunk_data-id')))) {
+      if (!element.classList.contains('del')) {
+        element.classList.add('del');
+      }
+    } else if (element.classList.contains('del')) {
+      element.classList.remove('del');
+    }
+  });
+  elements = document.querySelectorAll(`[data-id]`);
+  elements.forEach(function (element) {
+    if (ids.includes(parseInt(element.getAttribute('data-id')))) {
+      if (!element.classList.contains('message_del')) {
+        element.classList.add('message_del');
+      }
+    } else if (element.classList.contains('message_del')) {
+      element.classList.remove('message_del');
+    }
+  });
 })
 
 window.electronAPI.initInfo((info) => {
@@ -108,9 +119,10 @@ auto_opt.addEventListener('click', async (e) => {
   await window.electronAPI.toggleAutoOpt();
 })
 
-// 环境
+// 环境变量
 const editors = {
-  envs: null
+  envs: null,
+  tasks: null,
 };
 
 btn_save_envs.addEventListener('click', async () => {
@@ -126,10 +138,37 @@ envs.addEventListener('click', async () => {
   const editor_env = document.getElementById("editor_env");
   editor_env.value = config_envs;
   // eslint-disable-next-line no-undef
-  editors.envs = editors.envs || new JSONEditor(editor_env, {});
+  editors.envs = editors.envs || new JSONEditor(editor_tasks, {
+    mode: 'tree',
+    modes: ['tree', 'code'],
+    expandAll: true
+  });
   editors.envs.set(config_envs);
 })
 
+// 任务列表
+btn_save_tasks.addEventListener('click', async () => {
+  const taskList = tasks.value;
+  const statu = await window.electronAPI.Tasks({ type: "set", tasks: taskList });
+  if (statu)
+    showLog('Tasks saved!');
+});
+
+tasks.addEventListener('click', async () => {
+  const taskList = await window.electronAPI.Tasks({ type: "get" });
+
+  console.log(taskList);
+  document.getElementById('m-tasks').style.display = 'flex';
+  const editor_tasks = document.getElementById("editor_tasks");
+  editor_tasks.value = taskList;
+  // eslint-disable-next-line no-undef
+  editors.tasks = editors.tasks || new JSONEditor(editor_tasks, {
+    mode: 'tree',
+    modes: ['tree', 'code'],
+    expandAll: true
+  });
+  editors.tasks.set(taskList);
+});
 
 messages.addEventListener('mouseenter', () => {
   global.scroll_top.info = false;

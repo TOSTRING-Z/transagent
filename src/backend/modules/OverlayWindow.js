@@ -37,7 +37,7 @@ class OverlayWindow extends Window {
 
     setup() {
 
-        ipcMain.handle('app:overlay:get-position', async (_) => {
+        ipcMain.handle('app:overlay:get-position', async () => {
             return this.windowManager.iconWindow.window.getBounds();
         })
 

@@ -130,8 +130,8 @@ async def get_regulators_bed(trs: Optional[list | str]) -> str:
 
     Args:
         trs: Transcriptional regulators. Can be either:
-            - A list of TR names (e.g., ['TP53', 'BRCA1'])
-            - Path to a CSV file containing TR names (one per line)
+            - A list of TR names from TRAPT prediction (e.g., ['GATA4@Sample_03_0174', 'TBX5@Sample_03_0173'])
+            - Path to a CSV file containing TR names (one name per line)
 
     Returns:
         The paths to the TR binding region bed files.
