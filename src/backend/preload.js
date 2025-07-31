@@ -38,4 +38,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setGlobal: (chat) => ipcRenderer.send('set-global', chat),
   handleAutoRenameChat: (callback) => ipcRenderer.on('auto-rename-chat', (_event, chat) => callback(chat)),
   Envs: (data) => ipcRenderer.invoke('envs', data),
+  Tasks: (data) => ipcRenderer.invoke('tasks', data),
 })

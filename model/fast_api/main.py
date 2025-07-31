@@ -1,71 +1,63 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import torch
-from modelscope import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizer
 import os
 
 app = FastAPI()
+
 
 class PredictionRequest(BaseModel):
     query: str
     passage: str
 
+
 model_path = "/home/tostring/.cache/modelscope/hub/models/"
-model_name = "BAAI/bge-reranker-v2-gemma"
+model_name = "Qwen/Qwen3-1.7B"
 pretrained_model_name_or_path = os.path.join(model_path, model_name)
-tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path)
+tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(
+    pretrained_model_name_or_path
+)
 model = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path)
-yes_no_locs = tokenizer("No Yes", add_special_tokens=False)["input_ids"]
+yes_loc = tokenizer("Yes", add_special_tokens=False)["input_ids"][0]
+no_loc = tokenizer("No", add_special_tokens=False)["input_ids"][0]
+unknown_loc = tokenizer("Unknown", add_special_tokens=False)["input_ids"][0]
 model.eval()
+
 
 @app.post("/predict")
 async def predict(request: PredictionRequest):
     with torch.no_grad():
         input = get_inputs(request.query, request.passage, tokenizer)
         output = model(**input, return_dict=True)
-        scores = output.logits[:, -1, yes_no_locs].float()
+        scores = output.logits[:, -1, [no_loc, yes_loc, unknown_loc]].float()
         labels = torch.argmax(scores, dim=1)
-        return {"prediction": "Yes" if labels.item() == 1 else "No"}
+        return {"prediction": labels.item()}
 
-def get_inputs(user_input, history, tokenizer, prompt=None, max_length=1024):
-    if prompt is None:
-        prompt = "Given a query A and a passage B, determine whether the passage contains an answer to the query by providing a prediction of either 'Yes' or 'No'."
-    sep = "\n"
-    prompt_inputs = tokenizer(prompt, return_tensors=None, add_special_tokens=False)["input_ids"]
-    sep_inputs = tokenizer(sep, return_tensors=None, add_special_tokens=False)["input_ids"]
 
-    query_inputs = tokenizer(
-        f"A: {user_input}",
-        return_tensors=None,
-        add_special_tokens=False,
-        max_length=max_length * 3 // 4,
-        truncation=True,
+def get_inputs(user_input, history, tokenizer: PreTrainedTokenizer):
+
+    query = user_input
+    passage = history
+    messages = [
+        {
+            "role": "system",
+            "content": "Determine if Passage B has any relation to Query A. Answer 'Yes' if related, 'No' if not. If Query A is unclear or ambiguous, answer 'Unknown'.",
+        },
+        {
+            "role": "user",
+            "content": f"*Query A*: {query}\n*Passage B*: {passage}",
+        },
+        {"role": "assistant", "content": "Answer: '"},
+    ]
+    rendered_chat = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=False,
+        continue_final_message=True,
     )
-    passage_inputs = tokenizer(
-        f"B: {history}",
-        return_tensors=None,
-        add_special_tokens=False,
-        max_length=max_length,
-        truncation=True,
-    )
-    input = tokenizer.prepare_for_model(
-        [tokenizer.bos_token_id] + query_inputs["input_ids"],
-        sep_inputs + passage_inputs["input_ids"],
-        truncation="only_second",
-        max_length=max_length,
-        padding=False,
-        return_attention_mask=False,
-        return_token_type_ids=False,
-        add_special_tokens=False,
-    )
-    input["input_ids"] = input["input_ids"] + sep_inputs + prompt_inputs
-    input["attention_mask"] = [1] * len(input["input_ids"])
-    inputs = tokenizer.pad(
-        input,
-        padding=True,
-        max_length=max_length + len(sep_inputs) + len(prompt_inputs),
-        pad_to_multiple_of=8,
+    inputs = tokenizer(
+        rendered_chat,
         return_tensors="pt",
     )
-    inputs = {k: v.unsqueeze(0) if len(v.shape) == 1 else v for k, v in inputs.items()}
     return inputs

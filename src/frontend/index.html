@@ -78,6 +78,26 @@
       </div>
     </div>
 
+    <!-- 任务列表窗口 -->
+    <div class="config-modal" id="m-tasks" onclick="hideConfig()">
+      <div class="config-content" onclick="event.stopPropagation()">
+        <h2 style="color: var(--primary); margin-bottom: 20px;">
+          <i class="fas fa-tools"></i> Agent Tasks
+        </h2>
+
+        <div class="form-group">
+          <div class="form-row">
+            <div id="editor_tasks" class="w-full"></div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="dialog-btn" onclick="hideConfig()">Cancel</button>
+          <button class="dialog-btn dialog-confirm" id="btn_save_tasks">Save Configuration</button>
+        </div>
+      </div>
+    </div>
+
     <!-- 配置弹窗 -->
     <div class="config-modal" id="m-config" onclick="hideConfig()">
       <div class="config-content" onclick="event.stopPropagation()">
@@ -197,6 +217,7 @@
             <span><i class="fas fa-clock"></i> <span id="seconds">0</span> s</span>
             <div class="btn" id="auto_opt">Context auto-optimization</div>
             <div class="btn" id="envs">Environment variables</div>
+            <div class="btn" id="tasks">Task list</div>
           </div>
         </div>
       </div>
